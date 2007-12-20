@@ -1,0 +1,1 @@
+Before compiling ConsoleZLR, you'll need to put a copy of the Inform 6 compiler in the same directory as compile-game.bat, and rename it to Inform6.exe. You can obtain the compiler by installing Inform 7, which is available at http://inform-fiction.org/I7/Download.html.
