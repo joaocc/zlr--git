@@ -1,0 +1,25 @@
+Constant goalstr = "100 million";
+Constant hiword = $05f5;
+Constant loword = $e100;
+
+!Constant goalstr = "10 million";
+!Constant hiword = $0098;
+!Constant loword = $9680;
+
+!Constant goalstr = "1 million";
+!Constant hiword = $000f;
+!Constant loword = $4240;
+
+!Constant goalstr = "100,000";
+!Constant hiword = $0001;
+!Constant loword = $86a0;
+
+[ Main a b;
+  print "Counting up to ", (string) goalstr, "...^";
+  for (::) {
+    b++;
+    if (~~b) a++;
+    if (a==hiword && b==loword) break;
+  }
+  print "Done.^";
+];
