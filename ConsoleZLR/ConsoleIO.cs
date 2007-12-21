@@ -97,6 +97,7 @@ namespace ZLR.Interfaces.SystemConsole
             }
         }
 
+        // TODO: implement command files in ConsoleIO
         public bool ReadingCommandsFromFile
         {
             get { return false; }
@@ -159,21 +160,21 @@ namespace ZLR.Interfaces.SystemConsole
             Console.ForegroundColor = fg;
         }
 
-        public void SetTextStyle(short style)
+        public void SetTextStyle(TextStyle style)
         {
             switch (style)
             {
-                case 0:
+                case TextStyle.Roman:
                     reverse = false;
                     emphasis = false;
                     break;
 
-                case 1:
+                case TextStyle.Reverse:
                     reverse = true;
                     break;
 
-                case 2:
-                case 4:
+                case TextStyle.Bold:
+                case TextStyle.Italic:
                     emphasis = true;
                     break;
             }
@@ -214,10 +215,22 @@ namespace ZLR.Interfaces.SystemConsole
 
         private void RestoreCursorPos()
         {
+            int x, y;
+
             if (upper)
-                Console.SetCursorPosition(xupper - 1, yupper - 1);
+            {
+                x = xupper - 1;
+                y = yupper - 1;
+            }
             else
-                Console.SetCursorPosition(xlower - 1, ylower - 1 + split);
+            {
+                x = xlower - 1;
+                y = ylower - 1 + split;
+            }
+
+            x = Math.Min(Math.Max(x, 0), Console.WindowWidth - 1);
+            y = Math.Min(Math.Max(y, 0), Console.WindowHeight - 1);
+            Console.SetCursorPosition(x, y);
         }
 
         private void SaveCursorPos()
@@ -257,12 +270,23 @@ namespace ZLR.Interfaces.SystemConsole
             if (num == 0)
             {
                 // erase lower
-                int height = Console.WindowHeight - split;
+                int height = Console.WindowHeight;
                 int width = Console.WindowWidth;
-                Console.BackgroundColor = bglower;
-                for (int i = 0; i < height; i++)
+                int startat = 0;
+
+                if (split > 0)
                 {
-                    Console.SetCursorPosition(0, split + i);
+                    /* we have to move the upper window's contents down one line, because
+                     * clearing the lower window will cause the whole console to scroll.
+                     * this is flickery, but there doesn't seem to be a better way. */
+                    Console.MoveBufferArea(0, 0, width, split, 0, 1);
+                    startat = split + 1;
+                }
+
+                Console.BackgroundColor = bglower;
+                for (int i = startat; i < height; i++)
+                {
+                    Console.SetCursorPosition(0, i);
                     for (int j = 0; j < width; j++)
                         Console.Write(' ');
                 }
@@ -315,7 +339,11 @@ namespace ZLR.Interfaces.SystemConsole
                     y = 1;
 
                 if (y > split)
+                {
+                    if (split == 0)
+                        split = 1;
                     y = (short)split;
+                }
                 Console.SetCursorPosition(x - 1, y - 1);
             }
         }
@@ -553,7 +581,12 @@ namespace ZLR.Interfaces.SystemConsole
             return 0;
         }
 
-        public void PlaySoundSample(ushort num, short effect, byte volume, byte repeats,
+        public bool GraphicsFontAvailable
+        {
+            get { return false; }
+        }
+
+        public void PlaySoundSample(ushort num, SoundAction action, byte volume, byte repeats,
             SoundFinishedCallback callback)
         {
             // not supported

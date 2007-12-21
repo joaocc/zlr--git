@@ -26,69 +26,496 @@ namespace ZLR.VM
         CanInput = 2
     }
 
+    /// <summary>
+    /// Indicates the text style being selected in <see cref="IZMachineIO.SetTextStyle"/>.
+    /// </summary>
+    /// <remarks>
+    /// Despite the power-of-two enum values, these styles are not bit flags, and the
+    /// interface module is not expected to support setting multiple styles in a single call.
+    /// </remarks>
+    public enum TextStyle : ushort
+    {
+        /// <summary>
+        /// Turns off all special text styles.
+        /// </summary>
+        Roman = 0,
+        /// <summary>
+        /// Reverses foreground and background colors.
+        /// </summary>
+        Reverse = 1,
+        /// <summary>
+        /// Boldface text.
+        /// </summary>
+        Bold = 2,
+        /// <summary>
+        /// Italic text.
+        /// </summary>
+        Italic = 4,
+        /// <summary>
+        /// Fixed pitch text.
+        /// </summary>
+        FixedPitch = 8,
+    }
+
+    /// <summary>
+    /// Indicates the action being requested by <see cref="IZMachineIO.PlaySoundSample"/>.
+    /// </summary>
+    public enum SoundAction : ushort
+    {
+        /// <summary>
+        /// Cache the sound in anticipation of playing it soon.
+        /// </summary>
+        Prepare = 1,
+        /// <summary>
+        /// Start playing the sound in the background.
+        /// </summary>
+        Start = 2,
+        /// <summary>
+        /// Stop the sound if it's currently playing.
+        /// </summary>
+        Stop = 3,
+        /// <summary>
+        /// Evict the sound from the cache because it won't be needed again soon.
+        /// </summary>
+        FinishWith = 4,
+    }
+
+    /// <summary>
+    /// Provides an interface for Z-machine I/O features: reading and writing text;
+    /// opening streams for saved games and transcripts; playing sounds; moving the cursor
+    /// and splitting windows; changing the text style; and indicating the capabilities of
+    /// the I/O system.
+    /// </summary>
     public interface IZMachineIO
     {
-        // input
+        #region Input
+
+        /// <summary>
+        /// Reads a line of input from the player (or command file).
+        /// </summary>
+        /// <param name="time">The callback interval for timed input, in tenths of a second.
+        /// If this is nonzero, <paramref name="callback"/> should be called every <paramref name="time"/>/10
+        /// seconds.</param>
+        /// <param name="callback">The callback function for timed input, which should be called
+        /// every so often according to <paramref name="time"/>. The function can return true to cancel
+        /// input immediately.</param>
+        /// <param name="terminatingKeys">An array of ZSCII values of function keys which should
+        /// terminate input immediately if pressed. The special value 255 means "any function key" and will
+        /// appear alone.</param>
+        /// <param name="terminator">Set to the ZSCII value of the key that terminated input, or 13
+        /// if input was finished normally by pressing enter.</param>
+        /// <returns>An empty string if input was cancelled by the timer callback, or the input string
+        /// if input was finished normally by pressing enter or one of the terminating keys.</returns>
+        /// <remarks>
+        /// If <see cref="WritingCommandsToFile"/> is true, this method must write the command to the
+        /// current command file, including any terminating character or timeout data needed to
+        /// replay the input later.
+        /// </remarks>
+        /// <seealso cref="ReadingCommandsFromFile"/>
+        /// <seealso cref="WritingCommandsToFile"/>
         string ReadLine(int time, TimedInputCallback callback, byte[] terminatingKeys, out byte terminator);
+        /// <summary>
+        /// Reads a single key of input from the player (or command file), without echoing it.
+        /// </summary>
+        /// <param name="time">The callback interval for timed input, in tenths of a second.
+        /// If this is nonzero, <paramref name="callback"/> should be called every <paramref name="time"/>/10
+        /// seconds.</param>
+        /// <param name="callback">The callback function for timed input, which should be called
+        /// every so often according to <paramref name="time"/>. The function can return true to cancel
+        /// input immediately.</param>
+        /// <param name="translator">A helper callback which translates printable characters into their
+        /// ZSCII values, according to the currently selected translation table.</param>
+        /// <returns>The ZSCII value of the key that was pressed, or 0 if input was cancelled by the
+        /// timer callback.</returns>
+        /// <remarks>
+        /// If <see cref="WritingCommandsToFile"/> is true, this method must write the key to the
+        /// current command file, including any timeout data needed to replay the input later.
+        /// </remarks>
         short ReadKey(int time, TimedInputCallback callback, CharTranslator translator);
+        /// <summary>
+        /// Gets or sets a value indicating whether <see cref="ReadLine"/> and <see cref="ReadKey"/>
+        /// take their input from a file instead of from the player.
+        /// </summary>
+        /// <remarks>
+        /// The interface module is responsible for prompting the player for a file name, if necessary.
+        /// The format of the command file is for the interface module to determine, but it should
+        /// contain enough information to accurately record and replay timed input.
+        /// </remarks>
+        /// <seealso cref="ReadingCommandsFromFile"/>
+        /// <seealso cref="WritingCommandsToFile"/>
         bool ReadingCommandsFromFile { get; set; }
+        /// <summary>
+        /// Gets or sets a value indicating whether <see cref="ReadLine"/> and <see cref="ReadKey"/>
+        /// copy the player's input to a command file so it can be replayed later.
+        /// </summary>
+        /// <remarks>
+        /// The interface module is responsible for prompting the player for a file name, if necessary.
+        /// The format of the command file is for the interface module to determine, but it should
+        /// contain enough information to accurately record and replay timed input.
+        /// </remarks>
         bool WritingCommandsToFile { get; set; }
 
-        // output
+        #endregion
+
+        #region Output
+
+        /// <summary>
+        /// Writes a character to the screen, using the currently selected text style, cursor, and
+        /// window settings.
+        /// </summary>
+        /// <param name="ch">The character to write.</param>
         void PutChar(char ch);
+        /// <summary>
+        /// Writes a string to the screen, using the currently selected text style, cursor, and
+        /// window settings.
+        /// </summary>
+        /// <param name="str">The string to write.</param>
         void PutString(string str);
+        /// <summary>
+        /// Writes a series of lines to the screen, spreading down and to the right from the
+        /// current cursor position, and leaving the cursor at the end of the last line.
+        /// </summary>
+        /// <param name="lines">The lines to write.</param>
         void PutTextRectangle(string[] lines);
+        /// <summary>
+        /// Gets or sets a value indicating whether text in the lower (main) window is
+        /// buffered for word wrapping.
+        /// </summary>
+        /// <remarks>
+        /// This value should be true initially when the game starts.
+        /// The upper window is always buffered.
+        /// </remarks>
         bool Buffering { get; set; }
 
-        // transcript
+        #endregion
+
+        #region Transcripts
+
+        /// <summary>
+        /// Gets or sets a value indicating whether a transcript file is being written.
+        /// </summary>
+        /// <remarks>
+        /// The interface module is responsible for prompting the player for a file name, if necessary.
+        /// However, if the player has already selected a transcript file during the current game,
+        /// the same file should be reused instead of prompting for another name, so games can
+        /// turn transcripting off and on in rapid succession.
+        /// </remarks>
         bool Transcripting { get; set; }
+        /// <summary>
+        /// Writes a single character to the transcript file.
+        /// </summary>
+        /// <param name="ch">The character to write.</param>
         void PutTranscriptChar(char ch);
+        /// <summary>
+        /// Writes a string to the transcript file.
+        /// </summary>
+        /// <param name="str">The string to write.</param>
         void PutTranscriptString(string str);
 
-        // saved game files
+        #endregion
+
+        #region Saving the Game State
+
+        /// <summary>
+        /// Opens a stream to write the saved game file.
+        /// </summary>
+        /// <param name="size">The size of the game state that will be written, in bytes.</param>
+        /// <returns>A writable <see cref="System.IO.Stream"/> for the save file, which the
+        /// VM will close after it's done saving; or null if the user chose not to select a
+        /// file or the file couldn't be opened.</returns>
+        /// <remarks>
+        /// The interface module is responsible for prompting the player for a file name, if necessary.
+        /// </remarks>
         Stream OpenSaveFile(int size);
+        /// <summary>
+        /// Opens a stream to read a previously saved game file.
+        /// </summary>
+        /// <returns>A readable <see cref="System.IO.Stream"/> for the save file, which the
+        /// VM will close after it's done loading; or null if the user chose not to select a
+        /// file or the file couldn't be opened.</returns>
+        /// <remarks>
+        /// The interface module is responsible for prompting the player for a file name, if necessary.
+        /// </remarks>
         Stream OpenRestoreFile();
+        /// <summary>
+        /// Opens a stream to read or write auxiliary game data.
+        /// </summary>
+        /// <param name="name">A suggested name for the auxiliary file.</param>
+        /// <param name="size">The size, in bytes, of the array that will be read from or
+        /// written to the auxiliary file.</param>
+        /// <param name="writing">True if the stream will be used to save auxiliary data;
+        /// false if it will be used to read previously saved data.</param>
+        /// <returns>A <see cref="System.IO.Stream"/> for the auxiliary file, which must be
+        /// readable or writable depending on the value of <paramref name="writing"/>, and
+        /// which the VM will close after it's done using; or null if the user chose not to
+        /// select a file or the file couldn't be opened.</returns>
+        /// <remarks>
+        /// The interface module is responsible for prompting the player for a file name, if necessary.
+        /// The interface module may choose to use the suggested name as-is, or prompt the user
+        /// for a name and use the suggested name as a default. The suggested name should at least
+        /// be visible to the user, since a game may use several auxiliary files.
+        /// </remarks>
         Stream OpenAuxiliaryFile(string name, int size, bool writing);
 
-        // visual effects
-        void SetTextStyle(short style);
-        void SplitWindow(short lines);
-        void SelectWindow(short num);
-        void EraseWindow(short num); // -1 = whole screen and unsplit, -2 = whole screen but keep split
-        void EraseLine();
-        void MoveCursor(short x, short y);
-        void GetCursorPos(out short x, out short y);
-        void SetColors(short fg, short bg);
-        short SetFont(short num); // returns the previous font, or 0 if num was unrecognized
+        #endregion
 
-        // sound effects
-        void PlaySoundSample(ushort number, short effect, byte volume, byte repeats,
+        #region Visual Effects
+
+        /// <summary>
+        /// Changes the current text style.
+        /// </summary>
+        /// <param name="style">The style being requested.</param>
+        /// <remarks>
+        /// The interface module may optionally allow styles to be combined; for example, requesting
+        /// italic when the bold style is already selected may result in bold italic text, or it may
+        /// simply result in italic. In any case, selecting <see cref="TextStyle.Roman"/> must return
+        /// to plain text.
+        /// </remarks>
+        /// <seealso cref="BoldAvailable"/>
+        /// <seealso cref="ItalicAvailable"/>
+        /// <seealso cref="FixedPitchAvailable"/>
+        void SetTextStyle(TextStyle style);
+        /// <summary>
+        /// Changes the size of the upper window.
+        /// </summary>
+        /// <param name="lines">The new height of the upper window, in lines, or 0 to
+        /// turn off the upper window.</param>
+        void SplitWindow(short lines);
+        /// <summary>
+        /// Selects the upper or lower window.
+        /// </summary>
+        /// <param name="num">0 to select the lower window, or 1 for the upper window.</param>
+        void SelectWindow(short num);
+        /// <summary>
+        /// Erases one or both windows.
+        /// </summary>
+        /// <param name="num">0 to erase the lower window, 1 to erase the upper window,
+        /// -1 to erase the whole screen and turn off the upper window, or -2 to erase
+        /// the whole screen but keep the windows split as they are.</param>
+        /// <remarks>
+        /// After erasing a window, the cursor should be returned to its upper left corner.
+        /// After erasing the entire screen (-1 or -2), the lower window should be selected
+        /// and the cursor returned to its upper left corner.
+        /// </remarks>
+        void EraseWindow(short num);
+        /// <summary>
+        /// Erases everything to the right of the cursor position on the current line,
+        /// leaving the cursor where it is.
+        /// </summary>
+        void EraseLine();
+        /// <summary>
+        /// Moves the cursor, if the upper window is selected.
+        /// </summary>
+        /// <param name="x">The X coordinate of the new cursor position, counting from 1.</param>
+        /// <param name="y">The Y coordinate of the new cursor position, counting from 1.</param>
+        /// <remarks>
+        /// The coordinate system is "screen units", the same system used by <see cref="FontHeight"/>,
+        /// <see cref="FontWidth"/>, <see cref="HeightUnits"/>, and <see cref="WidthUnits"/>.
+        /// </remarks>
+        void MoveCursor(short x, short y);
+        /// <summary>
+        /// Retrieves the current cursor position, relative to the top of the currently selected
+        /// window.
+        /// </summary>
+        /// <param name="x">Set to the cursor X coordinate, counting from 1.</param>
+        /// <param name="y">Set to the cursor Y coordinate, counting from 1.</param>
+        /// <remarks>
+        /// The coordinate system is "screen units", the same system used by <see cref="FontHeight"/>,
+        /// <see cref="FontWidth"/>, <see cref="HeightUnits"/>, and <see cref="WidthUnits"/>.
+        /// </remarks>
+        void GetCursorPos(out short x, out short y);
+        /// <summary>
+        /// Sets the current output colors.
+        /// </summary>
+        /// <param name="fg">The new foreground color.</param>
+        /// <param name="bg">The new background color.</param>
+        /// <remarks>
+        /// The regular color values are: 2 (black), 3 (red), 4 (green), 5 (yellow), 6 (blue),
+        /// 7 (magenta), 8 (cyan), 9 (white), 10 (light grey), 11 (medium grey), or 12 (dark grey).
+        /// There are also two special color values: 0 means "no change" and 1 means "return to
+        /// the default".
+        /// </remarks>
+        /// <seealso cref="ColorsAvailable"/>
+        void SetColors(short fg, short bg);
+        /// <summary>
+        /// Sets the current output font.
+        /// </summary>
+        /// <param name="num">The new font number, or 0 to return to the previous font.</param>
+        /// <returns>The previous font number, or 0 if the requested font is not available
+        /// (and thus the font has not been changed).</returns>
+        /// <remarks>
+        /// The standard font numbers are 1 (normal font), 2 ("picture font"), 3 (character
+        /// graphics font), and 4 (Courier-style fixed pitch font). However, font 2 is not
+        /// expected to be supported; its definition is lost to history.
+        /// </remarks>
+        /// <seealso cref="GraphicsFontAvailable"/>
+        short SetFont(short num);
+
+        #endregion
+
+        #region Sound Effects
+
+        /// <summary>
+        /// Plays, stops, or controls the cache status of a sound sample.
+        /// </summary>
+        /// <param name="number">The number of the sound.</param>
+        /// <param name="action">The action being requested of the sound.</param>
+        /// <param name="volume">The volume at which to play the sound, from 1 (quiet) to 8
+        /// (loud). Values higher than 8 should be treated the same as 8, i.e., loudest.</param>
+        /// <param name="repeats">The number of times the sound should be played, or 255
+        /// to repeat the sound forever.</param>
+        /// <param name="callback">A function to call after the sound is finished playing or
+        /// repeating. This should not be called if the sound is explicitly stopped.</param>
+        /// <seealso cref="SoundSamplesAvailable"/>
+        /// <remarks>
+        /// Sampled sounds are played in the background: this method must not wait for
+        /// the sound to finish before returning.
+        /// </remarks>
+        void PlaySoundSample(ushort number, SoundAction action, byte volume, byte repeats,
             SoundFinishedCallback callback);
+        /// <summary>
+        /// Plays a beep sound.
+        /// </summary>
+        /// <param name="highPitch">True to play a high pitched beep, or false for a
+        /// low pitched beep.</param>
+        /// <remarks>
+        /// Beep sounds are synchronous, so this method may wait for the beep to finish
+        /// before returning.
+        /// </remarks>
         void PlayBeep(bool highPitch);
 
-        // capabilities
+        #endregion
+
+        #region Capabilities
+
+        /// <summary>
+        /// Gets or sets a value indicating whether all text will be displayed
+        /// in a fixed pitch font.
+        /// </summary>
+        /// <remarks>
+        /// This only affects the lower window, because the upper window is always fixed pitch.
+        /// </remarks>
         bool ForceFixedPitch { get; set; }
 
+        /// <summary>
+        /// Gets a value indicating whether the bold text style is available.
+        /// </summary>
+        /// <seealso cref="SetTextStyle"/>
         bool BoldAvailable { get; }
+        /// <summary>
+        /// Gets a value indicating whether the italic text style is available.
+        /// </summary>
+        /// <seealso cref="SetTextStyle"/>
         bool ItalicAvailable { get; }
+        /// <summary>
+        /// Gets a value indicating whether the fixed pitch text style is available.
+        /// </summary>
+        /// <seealso cref="SetTextStyle"/>
         bool FixedPitchAvailable { get; }
+        /// <summary>
+        /// Gets a value indicating whether the character graphics font is available.
+        /// </summary>
+        /// <seealso cref="SetFont"/>
+        bool GraphicsFontAvailable { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether timed input is available, i.e., whether
+        /// the callback parameter to <see cref="ReadLine"/> and <see cref="ReadKey"/>
+        /// will actually be called periodically.
+        /// </summary>
+        /// <seealso cref="ReadLine"/>
+        /// <seealso cref="ReadKey"/>
         bool TimedInputAvailable { get; }
+        /// <summary>
+        /// Gets a value indicating whether sampled sound is available, i.e., whether
+        /// <see cref="PlaySoundSample"/> will actually have an effect.
+        /// </summary>
+        /// <seealso cref="PlaySoundSample"/>
         bool SoundSamplesAvailable { get; }
 
+        /// <summary>
+        /// Gets the width of the screen in characters.
+        /// </summary>
+        /// <remarks>
+        /// The standard "character" here is the digit "0" in the fixed pitch font.
+        /// </remarks>
         byte WidthChars { get; }
+        /// <summary>
+        /// Gets the width of the screen in screen units.
+        /// </summary>
+        /// <remarks>
+        /// For simplicity, it is recommended to fix the font size at 1 by 1 so that
+        /// characters and screen units are the same.
+        /// </remarks>
         short WidthUnits { get; }
+        /// <summary>
+        /// Gets the height of the screen in characters.
+        /// </summary>
+        /// <remarks>
+        /// The standard "character" here is the digit "0" in the fixed pitch font.
+        /// </remarks>
         byte HeightChars { get; }
+        /// <summary>
+        /// Gets the height of the screen in screen units.
+        /// </summary>
+        /// <remarks>
+        /// For simplicity, it is recommended to fix the font size at 1 by 1 so that
+        /// characters and screen units are the same.
+        /// </remarks>
         short HeightUnits { get; }
+        /// <summary>
+        /// Gets the height of a character in screen units.
+        /// </summary>
+        /// <remarks>
+        /// The standard "character" here is the digit "0" in the fixed pitch font.
+        /// For simplicity, it is recommended to fix the font size at 1 by 1 so that
+        /// characters and screen units are the same.
+        /// </remarks>
         byte FontHeight { get; }
+        /// <summary>
+        /// Gets the width of a character in screen units.
+        /// </summary>
+        /// <remarks>
+        /// The standard "character" here is the digit "0" in the fixed pitch font.
+        /// For simplicity, it is recommended to fix the font size at 1 by 1 so that
+        /// characters and screen units are the same.
+        /// </remarks>
         byte FontWidth { get; }
 
+        /// <summary>
+        /// Raised when the screen size has changed.
+        /// </summary>
+        /// <remarks>
+        /// The VM will respond by reading the new size values and writing them into
+        /// the game header.
+        /// </remarks>
         event EventHandler SizeChanged;
 
+        /// <summary>
+        /// Gets a value indicating whether color text is available, i.e., whether
+        /// <see cref="SetColors"/> will actually have an effect.
+        /// </summary>
+        /// <seealso cref="SetColors"/>
         bool ColorsAvailable { get; }
+        /// <summary>
+        /// Gets the default foreground color.
+        /// </summary>
         byte DefaultForeground { get; }
+        /// <summary>
+        /// Gets the default background color.
+        /// </summary>
         byte DefaultBackground { get; }
 
+        /// <summary>
+        /// Determines whether a given character can be printed to the screen
+        /// or received as input.
+        /// </summary>
+        /// <param name="ch">The character to test.</param>
+        /// <returns>A <see cref="UnicodeCaps"/> value indicating whether the
+        /// character can be printed or received.</returns>
         UnicodeCaps CheckUnicode(char ch);
+
+        #endregion
     }
 
     partial class ZMachine

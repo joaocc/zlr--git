@@ -354,7 +354,7 @@ namespace ZLR.VM
             }
             else
             {
-                io.PlaySoundSample(number, effect, (byte)volRepeats, (byte)(volRepeats >> 8),
+                io.PlaySoundSample(number, (SoundAction)effect, (byte)volRepeats, (byte)(volRepeats >> 8),
                     delegate { HandleSoundFinished(routine); });
             }
         }

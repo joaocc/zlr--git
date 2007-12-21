@@ -94,7 +94,7 @@ namespace ZLR.Interfaces.SystemConsole
             return null;
         }
 
-        void IZMachineIO.SetTextStyle(short style)
+        void IZMachineIO.SetTextStyle(TextStyle style)
         {
             // nada
         }
@@ -139,6 +139,11 @@ namespace ZLR.Interfaces.SystemConsole
         {
             // not supported
             return 0;
+        }
+
+        bool IZMachineIO.GraphicsFontAvailable
+        {
+            get { return false; }
         }
 
         bool IZMachineIO.ForceFixedPitch
@@ -218,7 +223,7 @@ namespace ZLR.Interfaces.SystemConsole
             get { return 2; }
         }
 
-        void IZMachineIO.PlaySoundSample(ushort num, short effect, byte volume, byte repeats,
+        void IZMachineIO.PlaySoundSample(ushort num, SoundAction action, byte volume, byte repeats,
             SoundFinishedCallback callback)
         {
             // nada

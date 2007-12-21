@@ -928,6 +928,7 @@ namespace ZLR.VM
             globalsOffset = (ushort)GetWord(0xC);
             romStart = (ushort)GetWord(0xE);
 
+            // TODO: if customized alphabets, extra chars, or terminators are in use, we should trap writes to those tables in case they're changed during the game.
             ushort userAlphabets = (ushort)GetWord(0x34);
             if (userAlphabets == 0)
             {
@@ -1011,6 +1012,10 @@ namespace ZLR.VM
                 flags2 |= 1;
             if (io.ForceFixedPitch)
                 flags2 |= 2;
+            if (io.GraphicsFontAvailable)
+                flags2 |= 8;
+
+            // TODO: support mouse input (flags2 & 32)
 
             SetByte(0x1, flags1);
             SetWord(0x10, (short)flags2);

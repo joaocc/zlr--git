@@ -13,8 +13,9 @@ namespace ZLR.Interfaces.Demona
         private winid_t upperWin, lowerWin;
         private winid_t currentWin;
         private bool forceFixed;
-        private int xpos, ypos;
+        private int xpos, ypos; // in Glk coordinates (i.e. counting from 0)
         private uint screenWidth, screenHeight;
+        private TextStyle lastStyle;
 
         private frefid_t transcriptFile;
         private strid_t transcriptStream;
@@ -157,8 +158,11 @@ namespace ZLR.Interfaces.Demona
                             break;
 
                         case EvType.Timer:
-                            Glk.glk_cancel_line_event(currentWin, out ev);
-                            done = true;
+                            if (callback() == true)
+                            {
+                                Glk.glk_cancel_line_event(currentWin, out ev);
+                                done = true;
+                            }
                             break;
 
                         case EvType.Arrange:
@@ -412,7 +416,7 @@ namespace ZLR.Interfaces.Demona
             return new GlkStream(gstr);
         }
 
-        void IZMachineIO.SetTextStyle(short style)
+        void IZMachineIO.SetTextStyle(TextStyle style)
         {
             Style glkStyle;
 
@@ -422,28 +426,23 @@ namespace ZLR.Interfaces.Demona
             {
                 switch (style)
                 {
-                    case 0:
-                        // roman
+                    case TextStyle.Roman:
                         glkStyle = Style.Normal;
                         break;
 
-                    case 1:
-                        // reverse
+                    case TextStyle.Reverse:
                         glkStyle = Style.User1;
                         break;
 
-                    case 2:
-                        // bold
+                    case TextStyle.Bold:
                         glkStyle = Style.Subheader;
                         break;
 
-                    case 4:
-                        // italic
+                    case TextStyle.Italic:
                         glkStyle = Style.Emphasized;
                         break;
 
-                    case 8:
-                        // fixed pitch
+                    case TextStyle.FixedPitch:
                         glkStyle = Style.Preformatted;
                         break;
 
@@ -456,9 +455,9 @@ namespace ZLR.Interfaces.Demona
                 // when force fixed is on in the lower window, just choose between preformatted and bold-preformatted
                 switch (style)
                 {
-                    case 1:
-                    case 2:
-                    case 4:
+                    case TextStyle.Reverse:
+                    case TextStyle.Bold:
+                    case TextStyle.Italic:
                         glkStyle = Style.User2;
                         break;
 
@@ -468,6 +467,7 @@ namespace ZLR.Interfaces.Demona
                 }
             }
 
+            lastStyle = style;
             Glk.glk_set_style(glkStyle);
         }
 
@@ -479,8 +479,8 @@ namespace ZLR.Interfaces.Demona
                     upperWin = Glk.glk_window_open(lowerWin, WinMethod.Above | WinMethod.Fixed,
                         (uint)lines, WinType.TextGrid, 0);
                 else
-                    Glk.glk_window_set_arrangement(upperWin, WinMethod.Above | WinMethod.Fixed,
-                        (uint)lines, winid_t.Null);
+                    Glk.glk_window_set_arrangement(Glk.glk_window_get_parent(upperWin),
+                        WinMethod.Above | WinMethod.Fixed, (uint)lines, winid_t.Null);
             }
             else
             {
@@ -497,20 +497,56 @@ namespace ZLR.Interfaces.Demona
         void IZMachineIO.SelectWindow(short num)
         {
             if (num == 0)
+            {
                 currentWin = lowerWin;
-            else if (num == 1 && upperWin != winid_t.Null)
+            }
+            else if (num == 1)
+            {
+                /* work around a bug in some Inform games where the screen is erased,
+                 * destroying the split, but the split isn't restored before drawing
+                 * the status line. */
+                if (upperWin.IsNull)
+                    ((IZMachineIO)this).SplitWindow(1);
+
                 currentWin = upperWin;
+            }
 
             Glk.glk_set_window(currentWin);
         }
 
         void IZMachineIO.EraseWindow(short num)
         {
-            //XXX handle erase_window -1 and -2
-            if (num == 0)
-                Glk.glk_window_clear(lowerWin);
-            else if (num == 1 && upperWin != winid_t.Null)
-                Glk.glk_window_clear(upperWin);
+            switch (num)
+            {
+                case 0:
+                    // lower only
+                    Glk.glk_window_clear(lowerWin);
+                    break;
+
+                case 1:
+                    // upper only
+                    if (!upperWin.IsNull)
+                        Glk.glk_window_clear(upperWin);
+                    break;
+
+                case -1:
+                    // erase both and unsplit
+                    if (!upperWin.IsNull)
+                    {
+                        stream_result_t dummy;
+                        Glk.glk_window_close(upperWin, out dummy);
+                        upperWin = winid_t.Null;
+                    }
+                    goto case -2;
+                case -2:
+                    // erase both but keep split
+                    if (!upperWin.IsNull)
+                        Glk.glk_window_clear(upperWin);
+                    Glk.glk_window_clear(lowerWin);
+                    currentWin = lowerWin;
+                    xpos = 0; ypos = 0;
+                    break;
+            }
         }
 
         void IZMachineIO.EraseLine()
@@ -527,6 +563,9 @@ namespace ZLR.Interfaces.Demona
 
         void IZMachineIO.MoveCursor(short x, short y)
         {
+            // convert to Glk coordinates
+            x--; y--;
+
             if (currentWin == upperWin)
             {
                 uint width, height;
@@ -552,8 +591,9 @@ namespace ZLR.Interfaces.Demona
 
         void IZMachineIO.GetCursorPos(out short x, out short y)
         {
-            x = (short)xpos;
-            y = (short)ypos;
+            // convert to Z-machine coordinates
+            x = (short)(xpos + 1);
+            y = (short)(ypos + 1);
         }
 
         void IZMachineIO.SetColors(short fg, short bg)
@@ -567,7 +607,13 @@ namespace ZLR.Interfaces.Demona
             return 0;
         }
 
-        void IZMachineIO.PlaySoundSample(ushort number, short effect, byte volume, byte repeats, SoundFinishedCallback callback)
+        bool IZMachineIO.GraphicsFontAvailable
+        {
+            get { return false; }
+        }
+
+        void IZMachineIO.PlaySoundSample(ushort number, SoundAction action, byte volume, byte repeats,
+            SoundFinishedCallback callback)
         {
             //XXX
         }
@@ -588,10 +634,7 @@ namespace ZLR.Interfaces.Demona
                 if (forceFixed != value)
                 {
                     forceFixed = value;
-                    if (value)
-                        Glk.glk_set_style(Style.Preformatted);
-                    else
-                        Glk.glk_set_style(Style.Normal);
+                    ((IZMachineIO)this).SetTextStyle(lastStyle);
                 }
             }
         }
