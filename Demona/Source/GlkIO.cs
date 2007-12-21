@@ -687,7 +687,7 @@ namespace ZLR.Interfaces.Demona
                 if (screenWidth > 32767)
                     return 32767;
                 else
-                    return (byte)screenWidth;
+                    return (short)screenWidth;
             }
         }
 
