@@ -6,6 +6,7 @@ using System.IO;
 
 namespace ZLR.Interfaces.SystemConsole
 {
+    // TODO: split TestCase stuff into its own application and make it work
     class TestCase : IZMachineIO
     {
         private Queue<string> inputBuffer = new Queue<string>();

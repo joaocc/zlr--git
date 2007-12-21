@@ -191,7 +191,7 @@ namespace ZLR.VM
 
         private string GetObjectName(ushort obj)
         {
-            int propTable = GetWord(GetObjectAddress(obj) + 12);
+            int propTable = (ushort)GetWord(GetObjectAddress(obj) + 12);
             return DecodeString(propTable + 1);
         }
 

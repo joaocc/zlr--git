@@ -178,8 +178,8 @@ namespace ZLR.VM
 
             if (address == 0x10)
             {
-                // watch for changes to flags 2
-                byte b = zmem[0x10];
+                // watch for changes to Flags 2's lower byte
+                byte b = zmem[0x11];
                 io.Transcripting = ((b & 1) != 0);
                 io.ForceFixedPitch = ((b & 2) != 0);
             }
@@ -201,8 +201,8 @@ namespace ZLR.VM
 
             if (address == 0xF || address == 0x10)
             {
-                // watch for changes to flags 2
-                byte b = zmem[0x10];
+                // watch for changes to Flags 2's lower byte
+                byte b = zmem[0x11];
                 io.Transcripting = ((b & 1) != 0);
                 io.ForceFixedPitch = ((b & 2) != 0);
             }
@@ -210,8 +210,8 @@ namespace ZLR.VM
 
         private bool ValidHeaderWrite(int address, ref byte value)
         {
-            // the game can only write to bits 0, 1, 2 of Flags 2 (offset 0x10)
-            if (address == 0x10)
+            // the game can only write to bits 0, 1, 2 of Flags 2's lower byte (offset 0x11)
+            if (address == 0x11)
             {
                 value = (byte)((value & 7) | (GetByte(address) & 0xF8));
                 return true;
@@ -965,7 +965,7 @@ namespace ZLR.VM
                     extraChars[i] = (char)GetWord(userExtraChars + 1 + 2 * i);
             }
 
-            int terminatingTable = GetWord(0x2E);
+            ushort terminatingTable = (ushort)GetWord(0x2E);
             if (terminatingTable == 0)
             {
                 terminatingChars = new byte[0];
@@ -1005,7 +1005,7 @@ namespace ZLR.VM
             if (io.TimedInputAvailable)
                 flags1 |= 128;
 
-            byte flags2 = 16; // always support UNDO
+            ushort flags2 = 16; // always support UNDO
 
             if (io.Transcripting)
                 flags2 |= 1;
@@ -1013,7 +1013,7 @@ namespace ZLR.VM
                 flags2 |= 2;
 
             SetByte(0x1, flags1);
-            SetByte(0x10, flags2);
+            SetWord(0x10, (short)flags2);
 
             io.Transcripting = ((flags2 & 1) != 0);
             io.ForceFixedPitch = ((flags2 & 2) != 0);
@@ -1043,7 +1043,7 @@ namespace ZLR.VM
 
         private short GetHeaderExtWord(int num)
         {
-            int headerExt = GetWord(0x36);
+            ushort headerExt = (ushort)GetWord(0x36);
             if (headerExt == 0)
                 return 0;
 
@@ -1116,6 +1116,7 @@ namespace ZLR.VM
                 Array.Copy(zmem, ram, ramLength);
 
                 savedStack = stack.ToArray();
+                //XXX local variable arrays should be cloned for new undo states, which means the frames themselves need to be cloned too
                 savedCallStack = callStack.ToArray();
 
                 savedPC = pc;

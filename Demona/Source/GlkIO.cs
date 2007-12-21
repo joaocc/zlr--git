@@ -12,6 +12,7 @@ namespace ZLR.Interfaces.Demona
     {
         private winid_t upperWin, lowerWin;
         private winid_t currentWin;
+        private bool forceFixed;
         private int xpos, ypos;
         private uint screenWidth, screenHeight;
 
@@ -48,6 +49,9 @@ namespace ZLR.Interfaces.Demona
 
             // set style hints
             Glk.glk_stylehint_set(WinType.AllTypes, Style.User1, StyleHint.ReverseColor, 1);
+
+            Glk.glk_stylehint_set(WinType.AllTypes, Style.User2, StyleHint.Weight, 1);
+            Glk.glk_stylehint_set(WinType.AllTypes, Style.User2, StyleHint.Proportional, 0);
 
             // figure out how big the screen is
             winid_t tempWin = Glk.glk_window_open(winid_t.Null, 0, 0, WinType.TextGrid, 0);
@@ -240,6 +244,7 @@ namespace ZLR.Interfaces.Demona
             return result;
         }
 
+        // TODO: implement command files in GlkIO
         bool IZMachineIO.ReadingCommandsFromFile
         {
             get { return false; }
@@ -327,7 +332,7 @@ namespace ZLR.Interfaces.Demona
         bool IZMachineIO.Buffering
         {
             get { return true; }
-            set { }
+            set { /* can't really change this */ }
         }
 
         bool IZMachineIO.Transcripting
@@ -411,35 +416,56 @@ namespace ZLR.Interfaces.Demona
         {
             Style glkStyle;
 
-            switch (style)
+            // the full range of styles is only available when force fixed is off, or
+            // when the upper window is selected (since force fixed has no effect there)
+            if (!forceFixed || currentWin == upperWin)
             {
-                case 0:
-                    // roman
-                    glkStyle = Style.Normal;
-                    break;
+                switch (style)
+                {
+                    case 0:
+                        // roman
+                        glkStyle = Style.Normal;
+                        break;
 
-                case 1:
-                    // reverse
-                    glkStyle = Style.User1;
-                    break;
+                    case 1:
+                        // reverse
+                        glkStyle = Style.User1;
+                        break;
 
-                case 2:
-                    // bold
-                    glkStyle = Style.Subheader;
-                    break;
+                    case 2:
+                        // bold
+                        glkStyle = Style.Subheader;
+                        break;
 
-                case 4:
-                    // italic
-                    glkStyle = Style.Emphasized;
-                    break;
+                    case 4:
+                        // italic
+                        glkStyle = Style.Emphasized;
+                        break;
 
-                case 8:
-                    // fixed pitch
-                    glkStyle = Style.Preformatted;
-                    break;
+                    case 8:
+                        // fixed pitch
+                        glkStyle = Style.Preformatted;
+                        break;
 
-                default:
-                    return;
+                    default:
+                        return;
+                }
+            }
+            else
+            {
+                // when force fixed is on in the lower window, just choose between preformatted and bold-preformatted
+                switch (style)
+                {
+                    case 1:
+                    case 2:
+                    case 4:
+                        glkStyle = Style.User2;
+                        break;
+
+                    default:
+                        glkStyle = Style.Preformatted;
+                        break;
+                }
             }
 
             Glk.glk_set_style(glkStyle);
@@ -553,8 +579,21 @@ namespace ZLR.Interfaces.Demona
 
         bool IZMachineIO.ForceFixedPitch
         {
-            get { return false; }
-            set { /* not supported */ }
+            get
+            {
+                return forceFixed;
+            }
+            set
+            {
+                if (forceFixed != value)
+                {
+                    forceFixed = value;
+                    if (value)
+                        Glk.glk_set_style(Style.Preformatted);
+                    else
+                        Glk.glk_set_style(Style.Normal);
+                }
+            }
         }
 
         bool IZMachineIO.BoldAvailable
