@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Threading;
 using ZLR.VM;
 
@@ -14,6 +16,15 @@ namespace ZLR.Interfaces.SystemConsole
         private ConsoleColor bgupper = ConsoleColor.Black, fgupper = ConsoleColor.Gray;
         private ConsoleColor bglower = ConsoleColor.Black, fglower = ConsoleColor.Gray;
         private bool reverse, emphasis;
+
+        private struct BufferEntry
+        {
+            public ConsoleColor Foreground, Background;
+            public StringBuilder Text;
+        }
+        private bool buffering = true;
+        private int bufferLength;
+        private List<BufferEntry> buffer = new List<BufferEntry>();
 
         private int origBufHeight;
 
@@ -33,6 +44,8 @@ namespace ZLR.Interfaces.SystemConsole
         public string ReadLine(int time, TimedInputCallback callback,
             byte[] terminatingKeys, out byte terminator)
         {
+            FlushBuffer();
+
             // can't do timed input with Console.ReadLine...
             //XXX handle terminating keys and timed input (this means replacing Console.ReadLine())
             terminator = 13;
@@ -41,6 +54,8 @@ namespace ZLR.Interfaces.SystemConsole
 
         public short ReadKey(int time, TimedInputCallback callback, CharTranslator translator)
         {
+            FlushBuffer();
+
             if (time > 0)
             {
                 int sleeps = 0;
@@ -112,12 +127,53 @@ namespace ZLR.Interfaces.SystemConsole
 
         public void PutChar(char ch)
         {
-            Console.Write(ch);
+            if (upper || !buffering)
+                Console.Write(ch);
+            else
+                BufferedPutChar(ch);
         }
 
         public void PutString(string str)
         {
-            Console.Write(str);
+            if (upper || !buffering)
+            {
+                Console.Write(str);
+            }
+            else
+            {
+                foreach (char ch in str)
+                    BufferedPutChar(ch);
+            }
+        }
+
+        private void BufferedPutChar(char ch)
+        {
+            if ((ch == ' ' || ch == '\n'))
+            {
+                if (Console.CursorLeft + bufferLength >= Console.WindowWidth)
+                    Console.Write('\n');
+
+                FlushBuffer();
+                Console.Write(ch);
+                return;
+            }
+
+            StringBuilder sb;
+            if (bufferLength == 0)
+            {
+                BufferEntry entry;
+                GetConsoleColors(out entry.Foreground, out entry.Background);
+                sb = new StringBuilder(1);
+                entry.Text = sb;
+                buffer.Add(entry);
+            }
+            else
+            {
+                sb = buffer[buffer.Count - 1].Text;
+            }
+
+            sb.Append(ch);
+            bufferLength++;
         }
 
         public void PutTextRectangle(string[] lines)
@@ -132,9 +188,8 @@ namespace ZLR.Interfaces.SystemConsole
             }
         }
 
-        private void SetConsoleColors()
+        private void GetConsoleColors(out ConsoleColor fg, out ConsoleColor bg)
         {
-            ConsoleColor bg, fg;
             if (upper)
             {
                 bg = bgupper;
@@ -155,7 +210,12 @@ namespace ZLR.Interfaces.SystemConsole
                 bg = fg;
                 fg = temp;
             }
+        }
 
+        private void SetConsoleColors()
+        {
+            ConsoleColor bg, fg;
+            GetConsoleColors(out fg, out bg);
             Console.BackgroundColor = bg;
             Console.ForegroundColor = fg;
         }
@@ -179,7 +239,16 @@ namespace ZLR.Interfaces.SystemConsole
                     break;
             }
 
-            SetConsoleColors();
+            if (upper || !buffering)
+            {
+                SetConsoleColors();
+            }
+            else
+            {
+                BufferEntry entry;
+                GetConsoleColors(out entry.Foreground, out entry.Background);
+                entry.Text = new StringBuilder();
+            }
         }
 
         public void SplitWindow(short lines)
@@ -249,6 +318,12 @@ namespace ZLR.Interfaces.SystemConsole
 
         public void EraseWindow(short num)
         {
+            if (num < 1)
+            {
+                buffer.Clear();
+                bufferLength = 0;
+            }
+
             if (num < 0)
             {
                 // -1 = erase all and unsplit, -2 = erase all but keep split
@@ -279,6 +354,9 @@ namespace ZLR.Interfaces.SystemConsole
                     /* we have to move the upper window's contents down one line, because
                      * clearing the lower window will cause the whole console to scroll.
                      * this is flickery, but there doesn't seem to be a better way. */
+                    /* actually, there is an alternative: keep the entire contents of the
+                     * upper window in an offscreen buffer, then clear the entire screen
+                     * and repaint the upper window. */
                     Console.MoveBufferArea(0, 0, width, split, 0, 1);
                     startat = split + 1;
                 }
@@ -350,6 +428,9 @@ namespace ZLR.Interfaces.SystemConsole
 
         public void GetCursorPos(out short x, out short y)
         {
+            if (!upper)
+                FlushBuffer();
+
             int cx = Console.CursorLeft;
             int cy = Console.CursorTop;
 
@@ -602,17 +683,40 @@ namespace ZLR.Interfaces.SystemConsole
             get { return false; }
         }
 
-        // XXX support text buffering in ConsoleIO
         public bool Buffering
         {
-            get { return false; }
-            set { /* nada */ }
+            get
+            {
+                return buffering;
+            }
+            set
+            {
+                if (buffering != value)
+                {
+                    if (buffering)
+                        FlushBuffer();
+                    buffering = value;
+                }
+            }
         }
 
         public UnicodeCaps CheckUnicode(char ch)
         {
             // naive
             return UnicodeCaps.CanInput | UnicodeCaps.CanPrint;
+        }
+
+        private void FlushBuffer()
+        {
+            foreach (BufferEntry entry in buffer)
+            {
+                Console.BackgroundColor = entry.Background;
+                Console.ForegroundColor = entry.Foreground;
+                Console.Write(entry.Text.ToString());
+            }
+
+            buffer.Clear();
+            bufferLength = 0;
         }
     }
 }
