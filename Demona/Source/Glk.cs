@@ -462,7 +462,7 @@ namespace ZLR.Interfaces.Demona
         public static extern uint glk_schannel_play(schanid_t chan, uint snd);
         [DllImport(GLKDLL)]
         public static extern uint glk_schannel_play_ext(schanid_t chan, uint snd, uint repeats,
-            bool notify);
+            uint notify);
         [DllImport(GLKDLL)]
         public static extern void glk_schannel_stop(schanid_t chan);
         [DllImport(GLKDLL)]

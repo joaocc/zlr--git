@@ -19,6 +19,8 @@ namespace ZLR.Interfaces.Demona
 
         private frefid_t transcriptFile;
         private strid_t transcriptStream;
+        private schanid_t soundChannel;
+        private SoundFinishedCallback soundCallback;
 
         private IntPtr argv;
         private IntPtr[] argvStrings;
@@ -167,6 +169,10 @@ namespace ZLR.Interfaces.Demona
                         case EvType.Arrange:
                             UpdateScreenSize();
                             break;
+
+                        case EvType.SoundNotify:
+                            SoundNotify();
+                            break;
                     }
                 }
                 while (!done);
@@ -243,6 +249,10 @@ namespace ZLR.Interfaces.Demona
 
                     case EvType.Arrange:
                         UpdateScreenSize();
+                        break;
+
+                    case EvType.SoundNotify:
+                        SoundNotify();
                         break;
                 }
             }
@@ -626,7 +636,44 @@ namespace ZLR.Interfaces.Demona
         void IZMachineIO.PlaySoundSample(ushort number, SoundAction action, byte volume, byte repeats,
             SoundFinishedCallback callback)
         {
-            //XXX
+            switch (action)
+            {
+                case SoundAction.Prepare:
+                    Glk.glk_sound_load_hint(number, true);
+                    break;
+
+                case SoundAction.FinishWith:
+                    Glk.glk_sound_load_hint(number, false);
+                    break;
+
+                case SoundAction.Start:
+                    if (soundChannel.IsNull)
+                        soundChannel = Glk.glk_schannel_create(0);
+
+                    if (!soundChannel.IsNull)
+                    {
+                        volume = Math.Min(volume, (byte)8);
+                        Glk.glk_schannel_set_volume(soundChannel, (uint)(volume << 13));
+                        soundCallback = callback;
+                        Glk.glk_schannel_play_ext(soundChannel, number, repeats, 1);
+                    }
+                    break;
+
+                case SoundAction.Stop:
+                    if (!soundChannel.IsNull)
+                    {
+                        Glk.glk_schannel_stop(soundChannel);
+                        soundChannel = schanid_t.Null;
+                        soundCallback = null;
+                    }
+                    break;
+            }
+        }
+
+        private void SoundNotify()
+        {
+            if (soundCallback != null)
+                soundCallback();
         }
 
         void IZMachineIO.PlayBeep(bool highPitch)
