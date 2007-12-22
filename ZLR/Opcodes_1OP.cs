@@ -96,6 +96,7 @@ namespace ZLR.VM
             il.Emit(OpCodes.Ldarg_0);
             il.Emit(OpCodes.Dup);
             LoadOperand(il, 0);
+            il.Emit(OpCodes.Conv_U2);
             il.Emit(OpCodes.Call, decodeStringMI);
             il.Emit(OpCodes.Call, printStringMI);
         }

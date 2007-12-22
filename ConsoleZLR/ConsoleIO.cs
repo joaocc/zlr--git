@@ -17,14 +17,10 @@ namespace ZLR.Interfaces.SystemConsole
         private ConsoleColor bglower = ConsoleColor.Black, fglower = ConsoleColor.Gray;
         private bool reverse, emphasis;
 
-        private struct BufferEntry
-        {
-            public ConsoleColor Foreground, Background;
-            public StringBuilder Text;
-        }
+        private const uint STYLE_FLAG = 0x80000000;
         private bool buffering = true;
         private int bufferLength;
-        private List<BufferEntry> buffer = new List<BufferEntry>();
+        private List<uint> buffer = new List<uint>();
 
         private int origBufHeight;
 
@@ -46,8 +42,7 @@ namespace ZLR.Interfaces.SystemConsole
         {
             FlushBuffer();
 
-            // can't do timed input with Console.ReadLine...
-            //XXX handle terminating keys and timed input (this means replacing Console.ReadLine())
+            // TODO: handle terminating keys and timed input in ConsoleIO (this means replacing Console.ReadLine())
             terminator = 13;
             return Console.ReadLine();
         }
@@ -148,6 +143,7 @@ namespace ZLR.Interfaces.SystemConsole
 
         private void BufferedPutChar(char ch)
         {
+            // TODO: optimize ConsoleIO buffer's memory use, e.g. replace List<BufferEntry> with List<uint> and mix the style changes in with the characters
             if ((ch == ' ' || ch == '\n'))
             {
                 if (Console.CursorLeft + bufferLength >= Console.WindowWidth)
@@ -158,21 +154,13 @@ namespace ZLR.Interfaces.SystemConsole
                 return;
             }
 
-            StringBuilder sb;
             if (bufferLength == 0)
             {
-                BufferEntry entry;
-                GetConsoleColors(out entry.Foreground, out entry.Background);
-                sb = new StringBuilder(1);
-                entry.Text = sb;
-                buffer.Add(entry);
+                ConsoleColor fg, bg;
+                GetConsoleColors(out fg, out bg);
+                buffer.Add(STYLE_FLAG | ((uint)bg << 16) | (uint)fg);
             }
-            else
-            {
-                sb = buffer[buffer.Count - 1].Text;
-            }
-
-            sb.Append(ch);
+            buffer.Add((uint)ch);
             bufferLength++;
         }
 
@@ -245,9 +233,9 @@ namespace ZLR.Interfaces.SystemConsole
             }
             else
             {
-                BufferEntry entry;
-                GetConsoleColors(out entry.Foreground, out entry.Background);
-                entry.Text = new StringBuilder();
+                ConsoleColor fg, bg;
+                GetConsoleColors(out fg, out bg);
+                buffer.Add(STYLE_FLAG | ((uint)bg << 16) | (uint)fg);
             }
         }
 
@@ -637,7 +625,7 @@ namespace ZLR.Interfaces.SystemConsole
             string filename;
             do
             {
-                Console.Write("Enter an existing saved game file (blank to quit): ");
+                Console.Write("Enter an existing saved game file (blank to cancel): ");
                 filename = Console.ReadLine();
                 if (filename == "")
                     return null;
@@ -708,14 +696,20 @@ namespace ZLR.Interfaces.SystemConsole
 
         private void FlushBuffer()
         {
-            foreach (BufferEntry entry in buffer)
+            foreach (uint item in buffer)
             {
-                Console.BackgroundColor = entry.Background;
-                Console.ForegroundColor = entry.Foreground;
-                Console.Write(entry.Text.ToString());
+                if ((item & STYLE_FLAG) == 0)
+                {
+                    Console.Write((char)item);
+                }
+                else
+                {
+                    Console.ForegroundColor = (ConsoleColor)(item & 0xFFFF);
+                    Console.BackgroundColor = (ConsoleColor)((item & 0x7FFF) >> 16);
+                }
             }
 
-            buffer.Clear();
+            buffer.RemoveRange(0, buffer.Count);
             bufferLength = 0;
         }
     }

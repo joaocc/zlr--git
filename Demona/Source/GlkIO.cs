@@ -678,7 +678,7 @@ namespace ZLR.Interfaces.Demona
 
         void IZMachineIO.PlayBeep(bool highPitch)
         {
-            //XXX
+            Console.Beep(highPitch ? 1600 : 800, 200);
         }
 
         bool IZMachineIO.ForceFixedPitch
