@@ -128,7 +128,6 @@ namespace ZLR.Interfaces.Demona
 
         #region IZMachineIO Members
 
-        // XXX translate from Latin1 to Unicode since we have to use the single-byte input functions
         string IZMachineIO.ReadLine(int time, TimedInputCallback callback, byte[] terminatingKeys, out byte terminator)
         {
             const int BUFSIZE = 256;
@@ -173,7 +172,12 @@ namespace ZLR.Interfaces.Demona
                 while (!done);
 
                 Glk.glk_request_timer_events(0);
-                return Marshal.PtrToStringAnsi(buf, (int)ev.val1);
+
+                // convert the string from Latin-1
+                int length = (int)ev.val1;
+                byte[] bytes = new byte[length];
+                Marshal.Copy(buf, bytes, 0, length);
+                return Encoding.GetEncoding(Glk.LATIN1).GetString(bytes);
             }
             finally
             {
@@ -261,12 +265,19 @@ namespace ZLR.Interfaces.Demona
             set { }
         }
 
-        // XXX translate from Unicode to Latin1 since we have to use the single-byte output functions
+        private readonly char[] encodingChar = new char[1];
+        private readonly byte[] encodedBytes = new byte[2];
+
         void IZMachineIO.PutChar(char ch)
         {
-            if (ch > 255)
-                ch = '?';
-            Glk.glk_put_char((byte)ch);
+            byte b;
+            encodingChar[0] = ch;
+            int result = Encoding.GetEncoding(Glk.LATIN1).GetBytes(encodingChar, 0, 1, encodedBytes, 0);
+            if (result != 1)
+                b = (byte)'?';
+            else
+                b = encodedBytes[0];
+            Glk.glk_put_char(b);
 
             if (currentWin == upperWin)
             {

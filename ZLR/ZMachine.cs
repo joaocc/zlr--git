@@ -1121,8 +1121,9 @@ namespace ZLR.VM
                 Array.Copy(zmem, ram, ramLength);
 
                 savedStack = stack.ToArray();
-                //XXX local variable arrays should be cloned for new undo states, which means the frames themselves need to be cloned too
                 savedCallStack = callStack.ToArray();
+                for (int i = 0; i < savedCallStack.Length; i++)
+                    savedCallStack[i] = savedCallStack[i].Clone();
 
                 savedPC = pc;
                 savedDest = dest;

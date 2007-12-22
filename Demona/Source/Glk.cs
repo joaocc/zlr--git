@@ -241,6 +241,8 @@ namespace ZLR.Interfaces.Demona
     {
         private const string GLKDLL = "libgarglk.dll";
 
+        public const int LATIN1 = 28591; // code page number
+
         #region Gargoyle Specific
 
         // internal function: we call this directly because we aren't using the glk_main() idiom.
@@ -340,9 +342,21 @@ namespace ZLR.Interfaces.Demona
         [DllImport(GLKDLL)]
         public static extern void glk_put_char_stream(strid_t str, byte ch);
         [DllImport(GLKDLL)]
-        public static extern void glk_put_string(string s);
+        private static extern void glk_put_string(IntPtr s);
+        public static void glk_put_string(string s)
+        {
+            IntPtr buf = StrToLatin1(s);
+            try { glk_put_string(buf); }
+            finally { Marshal.FreeHGlobal(buf); }
+        }
         [DllImport(GLKDLL)]
-        public static extern void glk_put_string_stream(strid_t str, string s);
+        private static extern void glk_put_string_stream(strid_t str, IntPtr s);
+        public static void glk_put_string_stream(strid_t str, string s)
+        {
+            IntPtr buf = StrToLatin1(s);
+            try { glk_put_string_stream(str, buf); }
+            finally { Marshal.FreeHGlobal(buf); }
+        }
         [DllImport(GLKDLL)]
         public static extern void glk_put_buffer(byte[] buf, uint len);
         [DllImport(GLKDLL)]
@@ -355,7 +369,22 @@ namespace ZLR.Interfaces.Demona
         [DllImport(GLKDLL)]
         public static extern int glk_get_char_stream(strid_t str);
         [DllImport(GLKDLL)]
-        public static extern uint glk_get_line_stream(strid_t str, StringBuilder buf, uint len);
+        private static extern uint glk_get_line_stream(strid_t str, IntPtr buf, uint len);
+        public static uint glk_get_line_stream(strid_t str, StringBuilder sb)
+        {
+            int len = sb.Capacity;
+            IntPtr buf = Marshal.AllocHGlobal(len);
+            try
+            {
+                uint result = glk_get_line_stream(str, buf, (uint)len);
+                StrFromLatin1(buf, sb);
+                return result;
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(buf);
+            }
+        }
         [DllImport(GLKDLL)]
         public static extern uint glk_get_buffer_stream(strid_t str, [Out] byte[] buf, uint len);
 
@@ -373,8 +402,13 @@ namespace ZLR.Interfaces.Demona
         [DllImport(GLKDLL)]
         public static extern frefid_t glk_fileref_create_temp(FileUsage usage, uint rock);
         [DllImport(GLKDLL)]
-        public static extern frefid_t glk_fileref_create_by_name(FileUsage usage, string name,
-            uint rock);
+        private static extern frefid_t glk_fileref_create_by_name(FileUsage usage, IntPtr name, uint rock);
+        public static frefid_t glk_fileref_create_by_name(FileUsage usage, string name, uint rock)
+        {
+            IntPtr buf = StrToLatin1(name);
+            try { return glk_fileref_create_by_name(usage, buf, rock); }
+            finally { Marshal.FreeHGlobal(buf); }
+        }
         [DllImport(GLKDLL)]
         public static extern frefid_t glk_fileref_create_by_prompt(FileUsage usage, FileMode fmode,
             uint rock);
@@ -441,5 +475,31 @@ namespace ZLR.Interfaces.Demona
         public static extern BlorbError giblorb_set_resource_map(strid_t file);
 
         #endregion
+
+        public static IntPtr StrToLatin1(string s)
+        {
+            byte[] bytes = Encoding.GetEncoding(LATIN1).GetBytes(s);
+            IntPtr result = Marshal.AllocHGlobal(bytes.Length + 1);
+            if (result == IntPtr.Zero)
+                throw new Exception("Can't allocate unmanaged memory in StrToLatin1");
+
+            Marshal.Copy(bytes, 0, result, bytes.Length);
+            Marshal.WriteByte(result, bytes.Length, 0);
+            return result;
+        }
+
+        public static void StrFromLatin1(IntPtr buf, StringBuilder sb)
+        {
+            int len = 0;
+            while (Marshal.ReadByte(buf, len) != 0)
+                len++;
+
+            byte[] bytes = new byte[len];
+            Marshal.Copy(buf, bytes, 0, len);
+            string str = Encoding.GetEncoding(LATIN1).GetString(bytes);
+
+            sb.Length = 0;
+            sb.Append(str);
+        }
     }
 }
