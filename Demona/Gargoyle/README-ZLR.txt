@@ -1,0 +1,1 @@
+This is not a complete Gargoyle package. The "terps" and "tads" directories have been stripped for distribution with ZLR.

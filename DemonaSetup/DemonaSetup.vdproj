@@ -15,14 +15,50 @@
     {
         "Entry"
         {
+        "MsmKey" = "8:_1C27B0F1D5374DE3814867536859E90D"
+        "OwnerKey" = "8:_514F3BDC89FA464D9DC4CAA3A48C4F39"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_2E45D218A8B64BA3942E21F26D2531B3"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
+        "MsmKey" = "8:_514F3BDC89FA464D9DC4CAA3A48C4F39"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_7E210ED17E935A8571C1EECFC1814D85"
+        "OwnerKey" = "8:_514F3BDC89FA464D9DC4CAA3A48C4F39"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_9A690B5E2EB3C33B20E243C28B532728"
+        "OwnerKey" = "8:_514F3BDC89FA464D9DC4CAA3A48C4F39"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_BDA22E3908E941F9A8D06FBC9A63C6BF"
         "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_E8C9AD0A5A17568D1CB5E6F3980905ED"
+        "OwnerKey" = "8:_514F3BDC89FA464D9DC4CAA3A48C4F39"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_EE431CAAF600471B8CC068484C986E6F"
+        "OwnerKey" = "8:_1C27B0F1D5374DE3814867536859E90D"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -144,6 +180,46 @@
         }
         "File"
         {
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_7E210ED17E935A8571C1EECFC1814D85"
+            {
+            "SourcePath" = "8:comdlg32.dll"
+            "TargetName" = "8:comdlg32.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_AB72223FECF8414FB361BD0AC0774465"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:TRUE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_9A690B5E2EB3C33B20E243C28B532728"
+            {
+            "SourcePath" = "8:SDL.dll"
+            "TargetName" = "8:SDL.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_AB72223FECF8414FB361BD0AC0774465"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:TRUE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_BDA22E3908E941F9A8D06FBC9A63C6BF"
             {
             "SourcePath" = "8:..\\Demona\\zlr.ico"
@@ -162,6 +238,26 @@
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_E8C9AD0A5A17568D1CB5E6F3980905ED"
+            {
+            "SourcePath" = "8:SDL_mixer.dll"
+            "TargetName" = "8:SDL_mixer.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_AB72223FECF8414FB361BD0AC0774465"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:TRUE"
+            "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
             "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_F0AA591AB50F4BDFD1DCD9092453A0A3"
@@ -328,7 +424,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Demona"
         "ProductCode" = "8:{B691FF17-7BD7-46DD-84E8-9F700F030FFE}"
-        "PackageCode" = "8:{A4882F0C-E3D1-47C2-8237-AE5B8FDFEA96}"
+        "PackageCode" = "8:{AD2DAEF5-B89B-4A67-97B6-13DF555D7369}"
         "UpgradeCode" = "8:{62484948-D4A8-4406-9531-270A0E16C763}"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:FALSE"
@@ -881,12 +977,40 @@
         }
         "MergeModule"
         {
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_1C27B0F1D5374DE3814867536859E90D"
+            {
+            "UseDynamicProperties" = "11:TRUE"
+            "IsDependency" = "11:TRUE"
+            "SourcePath" = "8:Microsoft_VC80_DebugCRT_x86.msm"
+                "Properties"
+                {
+                }
+            "LanguageId" = "3:0"
+            "Exclude" = "11:FALSE"
+            "Folder" = "8:"
+            "Feature" = "8:"
+            "IsolateTo" = "8:"
+            }
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_EE431CAAF600471B8CC068484C986E6F"
+            {
+            "UseDynamicProperties" = "11:TRUE"
+            "IsDependency" = "11:TRUE"
+            "SourcePath" = "8:policy_8_0_microsoft_vc80_debugcrt_x86.msm"
+                "Properties"
+                {
+                }
+            "LanguageId" = "3:0"
+            "Exclude" = "11:FALSE"
+            "Folder" = "8:"
+            "Feature" = "8:"
+            "IsolateTo" = "8:"
+            }
         }
         "ProjectOutput"
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_2E45D218A8B64BA3942E21F26D2531B3"
             {
-            "SourcePath" = "8:..\\Demona\\obj\\Release\\Demona.exe"
+            "SourcePath" = "8:..\\Demona\\obj\\Debug\\Demona.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_AB72223FECF8414FB361BD0AC0774465"
@@ -907,6 +1031,34 @@
             "OutputConfiguration" = "8:"
             "OutputGroupCanonicalName" = "8:Built"
             "OutputProjectGuid" = "8:{2B837CC9-6BD8-484C-B7F9-75D3F18FD251}"
+            "ShowKeyOutput" = "11:TRUE"
+                "ExcludeFilters"
+                {
+                }
+            }
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_514F3BDC89FA464D9DC4CAA3A48C4F39"
+            {
+            "SourcePath" = "8:..\\Demona\\bin\\Debug\\libgarglk.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_AB72223FECF8414FB361BD0AC0774465"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            "ProjectOutputGroupRegister" = "3:1"
+            "OutputConfiguration" = "8:"
+            "OutputGroupCanonicalName" = "8:Built"
+            "OutputProjectGuid" = "8:{63A5651F-ABA6-4857-955E-57B3A8DD75B0}"
             "ShowKeyOutput" = "11:TRUE"
                 "ExcludeFilters"
                 {
