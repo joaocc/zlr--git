@@ -93,7 +93,7 @@ void winabort(const char *fmt, ...)
     abort();
 }
 
-void winopenfile(char *prompt, char *buf, int len)
+void winopenfile(char *prompt, char *buf, int len, char *filter)
 {
     OPENFILENAME ofn;
     memset(&ofn, 0, sizeof(OPENFILENAME));
@@ -103,13 +103,15 @@ void winopenfile(char *prompt, char *buf, int len)
     ofn.nMaxFile = len;
     ofn.lpstrInitialDir = NULL;
     ofn.lpstrTitle = prompt;
+	ofn.lpstrFilter = filter;
+	ofn.nFilterIndex = 1;
     ofn.Flags = OFN_FILEMUSTEXIST|OFN_HIDEREADONLY;
 
     if (!GetOpenFileName(&ofn))
 	strcpy(buf, "");
 }
 
-void winsavefile(char *prompt, char *buf, int len)
+void winsavefile(char *prompt, char *buf, int len, char *filter)
 {
     OPENFILENAME ofn;
     memset(&ofn, 0, sizeof(OPENFILENAME));
@@ -119,6 +121,8 @@ void winsavefile(char *prompt, char *buf, int len)
     ofn.nMaxFile = len;
     ofn.lpstrInitialDir = NULL;
     ofn.lpstrTitle = prompt;
+	ofn.lpstrFilter = filter;
+	ofn.nFilterIndex = 1;
     ofn.Flags = OFN_OVERWRITEPROMPT;
 
     if (!GetSaveFileName(&ofn))
@@ -224,6 +228,14 @@ void wintitle(void)
     else
 	sprintf(buf, "%s", gli_program_name);
     SetWindowTextA(hwndframe, buf);
+
+	if (strcmp(gli_program_name, "Unknown"))
+		sprintf(buf, "About Gargoyle / %s...", gli_program_name);
+	else
+		strcpy(buf, "About Gargoyle...");
+
+	ModifyMenu(GetSystemMenu(hwndframe, 0), ID_ABOUT, MF_BYCOMMAND | MF_STRING, ID_ABOUT, buf);
+	DrawMenuBar(hwndframe);
 }
 
 static void winblit(RECT r)

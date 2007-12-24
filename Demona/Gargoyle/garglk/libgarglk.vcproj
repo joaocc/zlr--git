@@ -20,7 +20,7 @@
 			OutputDirectory="$(SolutionDir)Demona\bin\$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="2"
-			CharacterSet="1"
+			CharacterSet="0"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -59,7 +59,7 @@
 			<Tool
 				Name="VCPreLinkEventTool"
 				Description="Creating input libraries for SDL..."
-				CommandLine="lib &quot;/def:$(ProjectDir)..\support\sdl\SDL.def&quot; &quot;/out:$(IntDir)\SDL.lib&quot;&#x0D;&#x0A;lib &quot;/def:$(ProjectDir)..\support\sdl\SDL_mixer.def&quot; &quot;/out:$(IntDir)\SDL_mixer.lib&quot;"
+				CommandLine="lib &quot;/def:$(ProjectDir)..\support\sdl\SDL.def&quot; &quot;/out:$(IntDir)\SDL.lib&quot;&#x0D;&#x0A;lib &quot;/def:$(ProjectDir)..\support\sdl\SDL_mixer.def&quot; &quot;/out:$(IntDir)\SDL_mixer.lib&quot;&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCLinkerTool"
@@ -100,7 +100,7 @@
 			OutputDirectory="$(SolutionDir)Demona\bin\$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="2"
-			CharacterSet="1"
+			CharacterSet="0"
 			WholeProgramOptimization="1"
 			>
 			<Tool
