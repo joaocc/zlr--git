@@ -120,6 +120,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)..\support\jpeg-6b&quot;;&quot;$(ProjectDir)..\support\sdl&quot;;&quot;$(ProjectDir)..\support\libpng-1.2.8&quot;;&quot;$(ProjectDir)..\support\zlib-1.2.2&quot;;&quot;$(ProjectDir)..\support\freetype-2.1.10\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBGARGLK_EXPORTS;_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
@@ -135,12 +136,12 @@
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
-				Description="Create input lib for SDL"
-				CommandLine="lib &quot;/def:$(ProjectDir)..\support\sdl\libsdl.def&quot; &quot;/out:$(OutDir)libsdl.lib&quot;&#x0D;&#x0A;"
+				Description="Creating input libraries for SDL..."
+				CommandLine="lib &quot;/def:$(ProjectDir)..\support\sdl\SDL.def&quot; &quot;/out:$(IntDir)\SDL.lib&quot;&#x0D;&#x0A;lib &quot;/def:$(ProjectDir)..\support\sdl\SDL_mixer.def&quot; &quot;/out:$(IntDir)\SDL_mixer.lib&quot;&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="&quot;$(IntDir)\libsdl.lib&quot; &quot;$(IntDir)\libsdlmixer.lib&quot;"
+				AdditionalDependencies="&quot;$(IntDir)\SDL.lib&quot; &quot;$(IntDir)\SDL_mixer.lib&quot;"
 				LinkIncremental="1"
 				ModuleDefinitionFile="libgarglk.def"
 				GenerateDebugInformation="true"

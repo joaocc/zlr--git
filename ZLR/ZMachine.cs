@@ -24,7 +24,7 @@ namespace ZLR.VM
 {
     partial class ZMachine
     {
-        public static readonly string ZLR_VERSION = "0.04";
+        public static readonly string ZLR_VERSION = "0.05";
 
         private struct CachedCode
         {
