@@ -42,7 +42,6 @@ namespace ZLR.Interfaces.SystemConsole
         {
             FlushBuffer();
 
-            // TODO: handle terminating keys and timed input in ConsoleIO (this means replacing Console.ReadLine())
             terminator = 13;
             return Console.ReadLine();
         }
@@ -107,7 +106,6 @@ namespace ZLR.Interfaces.SystemConsole
             }
         }
 
-        // TODO: implement command files in ConsoleIO
         public bool ReadingCommandsFromFile
         {
             get { return false; }
@@ -143,7 +141,6 @@ namespace ZLR.Interfaces.SystemConsole
 
         private void BufferedPutChar(char ch)
         {
-            // TODO: optimize ConsoleIO buffer's memory use, e.g. replace List<BufferEntry> with List<uint> and mix the style changes in with the characters
             if ((ch == ' ' || ch == '\n'))
             {
                 if (Console.CursorLeft + bufferLength >= Console.WindowWidth)
@@ -640,7 +637,6 @@ namespace ZLR.Interfaces.SystemConsole
 
         public Stream OpenAuxiliaryFile(string name, int size, bool writing)
         {
-            // TODO: support auxiliary files in ConsoleIO
             return null;
         }
 

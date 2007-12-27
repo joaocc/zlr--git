@@ -928,7 +928,6 @@ namespace ZLR.VM
             globalsOffset = (ushort)GetWord(0xC);
             romStart = (ushort)GetWord(0xE);
 
-            // TODO: if customized alphabets, extra chars, or terminators are in use, we should trap writes to those tables in case they're changed during the game.
             ushort userAlphabets = (ushort)GetWord(0x34);
             if (userAlphabets == 0)
             {
@@ -1061,8 +1060,6 @@ namespace ZLR.VM
 
         private void ReadDictionary()
         {
-            // TODO: cache the dictionary words in native memory?
-
             // read word separators
             byte n = GetByte(dictionaryTable);
             wordSeparators = new byte[n];

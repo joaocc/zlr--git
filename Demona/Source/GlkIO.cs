@@ -262,7 +262,6 @@ namespace ZLR.Interfaces.Demona
             return result;
         }
 
-        // TODO: implement command files in GlkIO
         bool IZMachineIO.ReadingCommandsFromFile
         {
             get { return false; }
