@@ -6,6 +6,9 @@ namespace ZLR.VM
     {
         private short GetPropAddr(ushort obj, short prop)
         {
+            if (obj == 0)
+                return 0;
+
             int propTable = (ushort)GetWord(GetObjectAddress(obj) + 12);
 
             // skip object name
@@ -47,6 +50,9 @@ namespace ZLR.VM
 
         private short GetNextProp(ushort obj, short prop)
         {
+            if (obj == 0)
+                return 0;
+
             int propTable = (ushort)GetWord(GetObjectAddress(obj) + 12);
 
             // skip object name
@@ -126,36 +132,51 @@ namespace ZLR.VM
 
         private ushort GetObjectParent(ushort obj)
         {
+            if (obj == 0)
+                return 0;
+
             return (ushort)GetWord(GetObjectAddress(obj) + 6);
         }
 
         private ushort GetObjectSibling(ushort obj)
         {
+            if (obj == 0)
+                return 0;
+
             return (ushort)GetWord(GetObjectAddress(obj) + 8);
         }
 
         private ushort GetObjectChild(ushort obj)
         {
+            if (obj == 0)
+                return 0;
+
             return (ushort)GetWord(GetObjectAddress(obj) + 10);
         }
 
         private void SetObjectParent(ushort obj, ushort value)
         {
-            SetWord(GetObjectAddress(obj) + 6, (short)value);
+            if (obj != 0)
+                SetWord(GetObjectAddress(obj) + 6, (short)value);
         }
 
         private void SetObjectSibling(ushort obj, ushort value)
         {
-            SetWord(GetObjectAddress(obj) + 8, (short)value);
+            if (obj != 0)
+                SetWord(GetObjectAddress(obj) + 8, (short)value);
         }
 
         private void SetObjectChild(ushort obj, ushort value)
         {
-            SetWord(GetObjectAddress(obj) + 10, (short)value);
+            if (obj != 0)
+                SetWord(GetObjectAddress(obj) + 10, (short)value);
         }
 
         private void InsertObject(ushort obj, ushort dest)
         {
+            if (obj == 0)
+                return;
+
             ushort prevParent = GetObjectParent(obj);
             if (prevParent != 0)
             {
@@ -191,12 +212,18 @@ namespace ZLR.VM
 
         private string GetObjectName(ushort obj)
         {
+            if (obj == 0)
+                return string.Empty;
+
             int propTable = (ushort)GetWord(GetObjectAddress(obj) + 12);
             return DecodeString(propTable + 1);
         }
 
         private bool GetObjectAttr(ushort obj, short attr)
         {
+            if (obj == 0)
+                return false;
+
             int bit = 128 >> (attr & 7);
             int offset = attr >> 3;
             byte flags = GetByte(GetObjectAddress(obj) + offset);
@@ -205,6 +232,9 @@ namespace ZLR.VM
 
         private void SetObjectAttr(ushort obj, short attr, bool value)
         {
+            if (obj == 0)
+                return;
+
             int bit = 128 >> (attr & 7);
             int address = GetObjectAddress(obj) + (attr >> 3);
             byte flags = GetByte(address);

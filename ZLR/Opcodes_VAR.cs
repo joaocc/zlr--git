@@ -17,14 +17,17 @@ namespace ZLR.VM
         {
             MethodInfo setWordCheckedMI = typeof(ZMachine).GetMethod("SetWordChecked", BindingFlags.NonPublic | BindingFlags.Instance);
             MethodInfo setWordMI = typeof(ZMachine).GetMethod("SetWord", BindingFlags.NonPublic | BindingFlags.Instance);
+            MethodInfo trapMemoryMI = typeof(ZMachine).GetMethod("TrapMemory", BindingFlags.NonPublic | BindingFlags.Instance);
 
             il.Emit(OpCodes.Ldarg_0);
             LoadOperand(il, 0);
-            il.Emit(OpCodes.Conv_U2);
             LoadOperand(il, 1);
             il.Emit(OpCodes.Ldc_I4_2);
             il.Emit(OpCodes.Mul);
             il.Emit(OpCodes.Add);
+            il.Emit(OpCodes.Stloc, zm.TempWordLocal);
+            il.Emit(OpCodes.Ldloc, zm.TempWordLocal);
+            il.Emit(OpCodes.Conv_U2);
             LoadOperand(il, 2);
 
             MethodInfo impl = setWordCheckedMI;
@@ -35,6 +38,11 @@ namespace ZLR.VM
                     impl = setWordMI;
             }
             il.Emit(OpCodes.Call, impl);
+
+            il.Emit(OpCodes.Ldarg_0);
+            il.Emit(OpCodes.Ldloc, zm.TempWordLocal);
+            il.Emit(OpCodes.Ldc_I4_2);
+            il.Emit(OpCodes.Call, trapMemoryMI);
         }
 
         [Opcode(OpCount.Var, 226)]
@@ -42,12 +50,15 @@ namespace ZLR.VM
         {
             MethodInfo setByteCheckedMI = typeof(ZMachine).GetMethod("SetByteChecked", BindingFlags.NonPublic | BindingFlags.Instance);
             MethodInfo setByteMI = typeof(ZMachine).GetMethod("SetByte", BindingFlags.NonPublic | BindingFlags.Instance);
+            MethodInfo trapMemoryMI = typeof(ZMachine).GetMethod("TrapMemory", BindingFlags.NonPublic | BindingFlags.Instance);
 
             il.Emit(OpCodes.Ldarg_0);
             LoadOperand(il, 0);
-            il.Emit(OpCodes.Conv_U2);
             LoadOperand(il, 1);
             il.Emit(OpCodes.Add);
+            il.Emit(OpCodes.Stloc, zm.TempWordLocal);
+            il.Emit(OpCodes.Ldloc, zm.TempWordLocal);
+            il.Emit(OpCodes.Conv_U2);
             LoadOperand(il, 2);
 
             MethodInfo impl = setByteCheckedMI;
@@ -58,6 +69,11 @@ namespace ZLR.VM
                     impl = setByteMI;
             }
             il.Emit(OpCodes.Call, impl);
+
+            il.Emit(OpCodes.Ldarg_0);
+            il.Emit(OpCodes.Ldloc, zm.TempWordLocal);
+            il.Emit(OpCodes.Ldc_I4_1);
+            il.Emit(OpCodes.Call, trapMemoryMI);
         }
 
         [Opcode(OpCount.Var, 227)]
@@ -303,11 +319,14 @@ namespace ZLR.VM
         {
             MethodInfo impl = typeof(ZMachine).GetMethod("ReadCharImpl", BindingFlags.NonPublic | BindingFlags.Instance);
 
-            // operand 0 is always supposed to be 1, but just in case...
-            if (operandTypes[0] == OperandType.Variable && operandValues[0] == 0)
+            if (operandTypes.Length > 0)
             {
-                PopFromStack(il);
-                il.Emit(OpCodes.Pop);
+                // the operand value is ignored (standard says it must be 1)
+                if (operandTypes[0] == OperandType.Variable && operandValues[0] == 0)
+                {
+                    PopFromStack(il);
+                    il.Emit(OpCodes.Pop);
+                }
             }
 
             il.Emit(OpCodes.Ldarg_0);

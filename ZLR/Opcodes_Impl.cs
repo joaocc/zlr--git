@@ -328,12 +328,16 @@ namespace ZLR.VM
                 for (int i = size - 1; i >= 0; i--)
                     SetByte(second + i, GetByte(first + i));
             }
+
+            TrapMemory(second, (ushort)size);
         }
 
         private void ZeroMemory(ushort address, short size)
         {
             for (int i = 0; i < size; i++)
                 SetByte(address + i, 0);
+
+            TrapMemory(address, (ushort)size);
         }
 
         private void SoundEffectImpl(ushort number, short effect, ushort volRepeats, ushort routine)

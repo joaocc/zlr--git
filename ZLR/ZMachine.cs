@@ -73,6 +73,7 @@ namespace ZLR.VM
         Stack<List<byte>> tableOutputBufferStack = new Stack<List<byte>>();
         char[] alphabet0, alphabet1, alphabet2, extraChars;
         byte[] terminatingChars;
+        MemoryTraps traps = new MemoryTraps();
 
 #if BENCHMARK
         long cycles;
@@ -928,69 +929,11 @@ namespace ZLR.VM
             globalsOffset = (ushort)GetWord(0xC);
             romStart = (ushort)GetWord(0xE);
 
-            ushort userAlphabets = (ushort)GetWord(0x34);
-            if (userAlphabets == 0)
-            {
-                alphabet0 = defaultAlphabet0;
-                alphabet1 = defaultAlphabet1;
-                alphabet2 = defaultAlphabet2;
-            }
-            else
-            {
-                alphabet0 = new char[26];
-                for (int i = 0; i < 26; i++)
-                    alphabet0[i] = CharFromZSCII(GetByte(userAlphabets + i));
-
-                alphabet1 = new char[26];
-                for (int i = 0; i < 26; i++)
-                    alphabet1[i] = CharFromZSCII(GetByte(userAlphabets + 26 + i));
-
-                alphabet2 = new char[26];
-                alphabet2[0] = ' '; // escape code
-                alphabet2[1] = '\n'; // new line
-                for (int i = 2; i < 26; i++)
-                    alphabet2[i] = CharFromZSCII(GetByte(userAlphabets + 52 + i));
-            }
-
-            ushort userExtraChars = (ushort)GetHeaderExtWord(3);
-            if (userExtraChars == 0)
-            {
-                extraChars = defaultExtraChars;
-            }
-            else
-            {
-                byte n = GetByte(userExtraChars);
-                extraChars = new char[n];
-                for (int i = 0; i < n; i++)
-                    extraChars[i] = (char)GetWord(userExtraChars + 1 + 2 * i);
-            }
-
-            ushort terminatingTable = (ushort)GetWord(0x2E);
-            if (terminatingTable == 0)
-            {
-                terminatingChars = new byte[0];
-            }
-            else
-            {
-                List<byte> temp = new List<byte>();
-                byte b = GetByte(terminatingTable);
-                while (b != 0)
-                {
-                    if (b == 255)
-                    {
-                        // 255 means every possible terminator, so don't bother with the rest of the list
-                        temp.Clear();
-                        temp.Add(255);
-                        break;
-                    }
-
-                    temp.Add(b);
-                    b = GetByte(++terminatingTable);
-                }
-                terminatingChars = temp.ToArray();
-            }
-
-            ReadDictionary();
+            // load character tables (setting up memory traps if needed)
+            LoadAlphabets();
+            LoadExtraChars();
+            LoadTerminatingChars();
+            LoadWordSeparators();
 
             byte flags1 = 0; // depends on I/O capabilities
 
@@ -1035,6 +978,110 @@ namespace ZLR.VM
             SetWord(0x32, 0x0100);                  // z-machine standard version
         }
 
+        private void LoadAlphabets()
+        {
+            ushort userAlphabets = (ushort)GetWord(0x34);
+            if (userAlphabets == 0)
+            {
+                alphabet0 = defaultAlphabet0;
+                alphabet1 = defaultAlphabet1;
+                alphabet2 = defaultAlphabet2;
+            }
+            else
+            {
+                alphabet0 = new char[26];
+                for (int i = 0; i < 26; i++)
+                    alphabet0[i] = CharFromZSCII(GetByte(userAlphabets + i));
+
+                alphabet1 = new char[26];
+                for (int i = 0; i < 26; i++)
+                    alphabet1[i] = CharFromZSCII(GetByte(userAlphabets + 26 + i));
+
+                alphabet2 = new char[26];
+                alphabet2[0] = ' '; // escape code
+                alphabet2[1] = '\n'; // new line
+                for (int i = 2; i < 26; i++)
+                    alphabet2[i] = CharFromZSCII(GetByte(userAlphabets + 52 + i));
+
+                if (userAlphabets < romStart)
+                    traps.Add(userAlphabets, 26 * 3, LoadAlphabets);
+            }
+        }
+
+        private void LoadExtraChars()
+        {
+            ushort userExtraChars = (ushort)GetHeaderExtWord(3);
+            if (userExtraChars == 0)
+            {
+                extraChars = defaultExtraChars;
+            }
+            else
+            {
+                byte n = GetByte(userExtraChars);
+                extraChars = new char[n];
+                for (int i = 0; i < n; i++)
+                    extraChars[i] = (char)GetWord(userExtraChars + 1 + 2 * i);
+
+                if (userExtraChars < romStart)
+                {
+                    traps.Remove(userExtraChars);
+                    traps.Add(userExtraChars, n * 2 + 1, LoadExtraChars);
+                }
+            }
+        }
+
+        private void LoadTerminatingChars()
+        {
+            ushort terminatingTable = (ushort)GetWord(0x2E);
+            if (terminatingTable == 0)
+            {
+                terminatingChars = new byte[0];
+            }
+            else
+            {
+                List<byte> temp = new List<byte>();
+                byte b = GetByte(terminatingTable);
+                int n = 1;
+                while (b != 0)
+                {
+                    if (b == 255)
+                    {
+                        // 255 means every possible terminator, so don't bother with the rest of the list
+                        temp.Clear();
+                        temp.Add(255);
+                        break;
+                    }
+
+                    temp.Add(b);
+                    b = GetByte(++terminatingTable);
+                    n++;
+                }
+                terminatingChars = temp.ToArray();
+
+                if (terminatingTable < romStart)
+                {
+                    traps.Remove(terminatingTable);
+                    traps.Add(terminatingTable, n, LoadTerminatingChars);
+                }
+            }
+        }
+
+        private void LoadWordSeparators()
+        {
+            // read word separators
+            byte n = GetByte(dictionaryTable);
+            wordSeparators = new byte[n];
+            for (int i = 0; i < n; i++)
+                wordSeparators[i] = GetByte(dictionaryTable + 1 + i);
+
+            // the dictionary is almost certainly in ROM, but just in case...
+            if (dictionaryTable < romStart)
+            {
+                traps.Remove(dictionaryTable);
+                traps.Add(dictionaryTable, n + 1, LoadWordSeparators);
+            }
+        }
+
         private void io_SizeChanged(object sender, EventArgs e)
         {
             SetByte(0x20, io.HeightChars);          // screen height (rows)
@@ -1058,21 +1105,17 @@ namespace ZLR.VM
             return GetWord(headerExt + 2 * num);
         }
 
-        private void ReadDictionary()
-        {
-            // read word separators
-            byte n = GetByte(dictionaryTable);
-            wordSeparators = new byte[n];
-            for (int i = 0; i < n; i++)
-                wordSeparators[i] = GetByte(dictionaryTable + 1 + i);
-        }
-
         private int UnpackAddress(short packedAddr)
         {
             if (zversion == 5)
                 return 4 * (ushort)packedAddr;
             else
                 return 8 * (ushort)packedAddr;
+        }
+
+        private void TrapMemory(ushort address, ushort length)
+        {
+            traps.Handle(address, length);
         }
 
         internal class CallFrame
@@ -1141,6 +1184,94 @@ namespace ZLR.VM
 
                 pc = savedPC;
                 dest = savedDest;
+            }
+        }
+
+        private delegate void MemoryTrapHandler();
+
+        private class MemoryTraps
+        {
+            private List<int> starts = new List<int>();
+            private List<int> lengths = new List<int>();
+            private List<MemoryTrapHandler> handlers = new List<MemoryTrapHandler>();
+
+            private int firstAddress = 0;
+            private int lastAddress = -1;
+
+            /// <summary>
+            /// Adds a new trap for the specified memory region. Does nothing
+            /// if a region with the same starting address is already trapped.
+            /// </summary>
+            /// <param name="trapStart">The starting address of the region.</param>
+            /// <param name="trapLength">The length of the region.</param>
+            /// <param name="trapHandler">The delegate to call when the memory
+            /// is written.</param>
+            public void Add(int trapStart, int trapLength, MemoryTrapHandler trapHandler)
+            {
+                int idx = starts.BinarySearch(trapStart);
+                if (idx < 0)
+                {
+                    idx = ~idx;
+                    starts.Insert(idx, trapStart);
+                    lengths.Insert(idx, trapLength);
+                    handlers.Insert(idx, trapHandler);
+                }
+            }
+
+            /// <summary>
+            /// Removes a memory trap. Does nothing if no trap is set with the
+            /// given starting address.
+            /// </summary>
+            /// <param name="trapStart">The starting address of the trap to
+            /// remove.</param>
+            public void Remove(int trapStart)
+            {
+                int idx = starts.BinarySearch(trapStart);
+                if (idx >= 0)
+                {
+                    starts.RemoveAt(idx);
+                    lengths.RemoveAt(idx);
+                    handlers.RemoveAt(idx);
+
+                    int count = starts.Count;
+                    if (count == 0)
+                    {
+                        firstAddress = 0;
+                        lastAddress = -1;
+                    }
+                    else
+                    {
+                        firstAddress = starts[0];
+                        lastAddress = starts[count - 1] + lengths[count - 1] - 1;
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Calls the appropriate handlers when a region of memory has been
+            /// written.
+            /// </summary>
+            /// <param name="changeStart">The starting address of the region
+            /// that was written.</param>
+            /// <param name="changeLength">The length of the region that
+            /// was written.</param>
+            public void Handle(int changeStart, int changeLength)
+            {
+                int changeEnd = changeStart + changeLength - 1;
+
+                if (changeStart > lastAddress || changeEnd < firstAddress)
+                    return;
+
+                /* the number of traps will be very limited, so we don't need to
+                 * do anything fancy here. */
+                int trapCount = starts.Count;
+                for (int i = 0; i < trapCount; i++)
+                {
+                    int start = starts[i];
+                    int len = lengths[i];
+                    if (changeStart >= start && changeEnd < start + len)
+                        handlers[i].Invoke();
+                }
             }
         }
     }
