@@ -46,7 +46,7 @@ namespace ZLR.VM
 
         // compilation state
         byte zversion;
-        int globalsOffset, objectTable, dictionaryTable;
+        int globalsOffset, objectTable, dictionaryTable, abbrevTable;
         bool compiling;
         int compilationStart;
         ILGenerator il;
@@ -928,6 +928,7 @@ namespace ZLR.VM
             objectTable = (ushort)GetWord(0xA);
             globalsOffset = (ushort)GetWord(0xC);
             romStart = (ushort)GetWord(0xE);
+            abbrevTable = (ushort)GetWord(0x18);
 
             // load character tables (setting up memory traps if needed)
             LoadAlphabets();

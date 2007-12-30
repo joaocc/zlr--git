@@ -671,7 +671,7 @@ namespace ZLR.VM
                 case 1:
                 case 2:
                 case 3:
-                    sb.Append(CharFromZSCII((short)(32 * (abbrevMode - 1) + zchar)));
+                    sb.Append(GetAbbreviation((short)(32 * (abbrevMode - 1) + zchar)));
                     abbrevMode = 0;
                     return;
 
@@ -726,6 +726,12 @@ namespace ZLR.VM
                     alphabet = 0;
                     return;
             }
+        }
+
+        private string GetAbbreviation(int num)
+        {
+            ushort address = (ushort)GetWord(abbrevTable + num * 2);
+            return DecodeString(address * 2); // word address, not byte address!
         }
 
         private short ReadImpl(ushort buffer, ushort parse, ushort time, ushort routine)

@@ -126,7 +126,11 @@ namespace ZLR.VM
             }
             else
             {
-                return (short)(b & 63);
+                short len = (short)(b & 63);
+                if (len == 0)
+                    return 64;
+                else
+                    return len;
             }
         }
 
