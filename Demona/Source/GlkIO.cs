@@ -243,8 +243,11 @@ namespace ZLR.Interfaces.Demona
                         break;
 
                     case EvType.Timer:
-                        Glk.glk_cancel_char_event(currentWin);
-                        done = true;
+                        if (callback() == true)
+                        {
+                            Glk.glk_cancel_char_event(currentWin);
+                            done = true;
+                        }
                         break;
 
                     case EvType.Arrange:
@@ -623,7 +626,11 @@ namespace ZLR.Interfaces.Demona
 
         short IZMachineIO.SetFont(short num)
         {
-            // not supported
+            // basic support for the normal font
+            if (num == 1)
+                return 1;
+
+            // no font changes supported
             return 0;
         }
 
