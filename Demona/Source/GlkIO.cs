@@ -130,14 +130,23 @@ namespace ZLR.Interfaces.Demona
 
         #region IZMachineIO Members
 
-        string IZMachineIO.ReadLine(int time, TimedInputCallback callback, byte[] terminatingKeys, out byte terminator)
+        string IZMachineIO.ReadLine(string initial, int time, TimedInputCallback callback, byte[] terminatingKeys, out byte terminator)
         {
             const int BUFSIZE = 256;
 
             IntPtr buf = Marshal.AllocHGlobal(BUFSIZE);
             try
             {
-                Glk.glk_request_line_event(currentWin, buf, BUFSIZE, 0);
+                uint initlen = 0;
+
+                if (initial.Length > 0)
+                {
+                    byte[] initBytes = Encoding.GetEncoding(Glk.LATIN1).GetBytes(initial);
+                    Marshal.Copy(initBytes, 0, buf, initBytes.Length);
+                    initlen = (uint)initBytes.Length;
+                }
+
+                Glk.glk_request_line_event(currentWin, buf, BUFSIZE, initlen);
                 Glk.glk_request_timer_events((uint)(time * 100));
 
                 terminator = 0;

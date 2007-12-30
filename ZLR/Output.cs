@@ -93,6 +93,8 @@ namespace ZLR.VM
         /// <summary>
         /// Reads a line of input from the player (or command file).
         /// </summary>
+        /// <param name="initial">The initial string which has been supplied for the player's
+        /// input, or an empty string if no initial input has been supplied.</param>
         /// <param name="time">The callback interval for timed input, in tenths of a second.
         /// If this is nonzero, <paramref name="callback"/> should be called every <paramref name="time"/>/10
         /// seconds.</param>
@@ -107,13 +109,17 @@ namespace ZLR.VM
         /// <returns>An empty string if input was cancelled by the timer callback, or the input string
         /// if input was finished normally by pressing enter or one of the terminating keys.</returns>
         /// <remarks>
-        /// If <see cref="WritingCommandsToFile"/> is true, this method must write the command to the
+        /// <para>If a non-empty string is supplied as <paramref name="initial"/>, the string will have
+        /// already been printed by the game. The interface should avoid printing it again, but should
+        /// still allow the player to edit it as if he had typed it himself. (If this cannot be achieved,
+        /// it is recommended to err on the side of letting the player edit the text.)</para>
+        /// <para>If <see cref="WritingCommandsToFile"/> is true, this method must write the command to the
         /// current command file, including any terminating character or timeout data needed to
-        /// replay the input later.
+        /// replay the input later.</para>
         /// </remarks>
         /// <seealso cref="ReadingCommandsFromFile"/>
         /// <seealso cref="WritingCommandsToFile"/>
-        string ReadLine(int time, TimedInputCallback callback, byte[] terminatingKeys, out byte terminator);
+        string ReadLine(string initial, int time, TimedInputCallback callback, byte[] terminatingKeys, out byte terminator);
         /// <summary>
         /// Reads a single key of input from the player (or command file), without echoing it.
         /// </summary>
@@ -737,7 +743,7 @@ namespace ZLR.VM
         private short ReadImpl(ushort buffer, ushort parse, ushort time, ushort routine)
         {
             byte max = GetByte(buffer);
-            byte offset = GetByte(buffer + 1);
+            byte initlen = GetByte(buffer + 1);
 
             byte terminator;
             string str;
@@ -745,7 +751,16 @@ namespace ZLR.VM
             BeginExternalWait();
             try
             {
-                str = io.ReadLine(time, delegate { return HandleInputTimer(routine); },
+                string initial = string.Empty;
+                if (initlen > 0)
+                {
+                    StringBuilder sb = new StringBuilder(initlen);
+                    for (int i = 0; i < initlen; i++)
+                        sb.Append(CharFromZSCII(GetByte(buffer + 2 + i)));
+                    initial = sb.ToString();
+                }
+                str = io.ReadLine(initial,
+                    time, delegate { return HandleInputTimer(routine); },
                     terminatingChars, out terminator);
             }
             finally
@@ -755,8 +770,8 @@ namespace ZLR.VM
 
             byte[] chars = StringToZSCII(str.ToLower());
             SetByte(buffer + 1, (byte)chars.Length);
-            for (int i = 0; i < Math.Min(chars.Length, max - offset); i++)
-                SetByte(buffer + 2 + offset + i, chars[i]);
+            for (int i = 0; i < Math.Min(chars.Length, max); i++)
+                SetByte(buffer + 2 + i, chars[i]);
 
             if (parse != 0)
                 Tokenize(buffer, parse, 0, false);

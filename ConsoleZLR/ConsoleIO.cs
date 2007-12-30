@@ -40,17 +40,27 @@ namespace ZLR.Interfaces.SystemConsole
             Console.Title = fileName + " - ConsoleZLR";
         }
 
-        public string ReadLine(int time, TimedInputCallback callback,
+        public string ReadLine(string initial, int time, TimedInputCallback callback,
             byte[] terminatingKeys, out byte terminator)
         {
             FlushBuffer();
 
-            int cursor = 0;
             int histIdx = history.Count;
-            StringBuilder sb = new StringBuilder(20);
             string savedEntry = string.Empty;
-
             int sleeps = 0;
+
+            StringBuilder sb;
+            int cursor;
+            if (initial.Length == 0)
+            {
+                sb = new StringBuilder(20);
+                cursor = 0;
+            }
+            else
+            {
+                sb = new StringBuilder(initial);
+                cursor = initial.Length;
+            }
 
             while (true)
             {
@@ -79,9 +89,6 @@ namespace ZLR.Interfaces.SystemConsole
                                 if (Console.CursorLeft != cx ||
                                     Console.CursorTop != cy)
                                 {
-                                    if (Console.CursorLeft != 0)
-                                        Console.WriteLine();
-
                                     Console.Write(sb.ToString());
                                     for (int i = cursor; i < sb.Length; i++)
                                         Console.Write('\x08');

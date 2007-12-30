@@ -21,7 +21,7 @@ namespace ZLR.Interfaces.SystemConsole
 
         #region Z-machine I/O implementation
 
-        string IZMachineIO.ReadLine(int time, TimedInputCallback callback,
+        string IZMachineIO.ReadLine(string initial, int time, TimedInputCallback callback,
             byte[] terminatingKeys, out byte terminator)
         {
             terminator = 13;
