@@ -22,6 +22,9 @@ namespace ZLR.Interfaces.SystemConsole
         private int bufferLength;
         private List<uint> buffer = new List<uint>();
 
+        private const int MAX_COMMAND_HISTORY = 10;
+        private List<string> history = new List<string>();
+
         private int origBufHeight;
 
         public ConsoleIO(string fileName)
@@ -42,35 +45,246 @@ namespace ZLR.Interfaces.SystemConsole
         {
             FlushBuffer();
 
-            terminator = 13;
-            return Console.ReadLine();
+            int cursor = 0;
+            int histIdx = history.Count;
+            StringBuilder sb = new StringBuilder(20);
+            string savedEntry = string.Empty;
+
+            int sleeps = 0;
+
+            while (true)
+            {
+                if (time > 0)
+                {
+                    while (!Console.KeyAvailable)
+                    {
+                        Thread.Sleep(100);
+                        if (Console.KeyAvailable)
+                            break;
+
+                        sleeps++;
+                        if (sleeps == time)
+                        {
+                            sleeps = 0;
+                            int cx = Console.CursorLeft;
+                            int cy = Console.CursorTop;
+                            if (callback() == true)
+                            {
+                                terminator = 0;
+                                return string.Empty;
+                            }
+                            else
+                            {
+                                // the game may have printed something anyway
+                                if (Console.CursorLeft != cx ||
+                                    Console.CursorTop != cy)
+                                {
+                                    if (Console.CursorLeft != 0)
+                                        Console.WriteLine();
+
+                                    Console.Write(sb.ToString());
+                                    for (int i = cursor; i < sb.Length; i++)
+                                        Console.Write('\x08');
+                                }
+                            }
+                        }
+                    }
+                }
+
+                ConsoleKeyInfo info = Console.ReadKey(true);
+                byte special = ConsoleKeyToZSCII(info.Key);
+                if (IsTerminator(special, terminatingKeys))
+                {
+                    terminator = special;
+                    break;
+                }
+
+                switch (info.Key)
+                {
+                    case ConsoleKey.LeftArrow:
+                        if (cursor > 0)
+                        {
+                            cursor--;
+                            Console.Write('\x08');
+                        }
+                        break;
+
+                    case ConsoleKey.RightArrow:
+                        if (cursor < sb.Length)
+                        {
+                            Console.Write(sb[cursor]);
+                            cursor++;
+                        }
+                        break;
+
+                    case ConsoleKey.Home:
+                        while (cursor > 0)
+                        {
+                            cursor--;
+                            Console.Write('\x08');
+                        }
+                        break;
+
+                    case ConsoleKey.End:
+                        while (cursor < sb.Length)
+                        {
+                            Console.Write(sb[cursor]);
+                            cursor++;
+                        }
+                        break;
+
+                    case ConsoleKey.UpArrow:
+                        if (histIdx > 0 && history.Count > 0)
+                        {
+                            if (histIdx == history.Count)
+                                savedEntry = sb.ToString();
+
+                            for (int i = cursor; i < sb.Length; i++)
+                                Console.Write(' ');
+                            for (int i = 0; i < sb.Length; i++)
+                                Console.Write("\x08 \x08");
+
+                            histIdx--;
+                            sb.Length = 0;
+                            sb.Append(history[histIdx]);
+                            Console.Write(sb.ToString());
+                            cursor = sb.Length;
+                        }
+                        break;
+
+                    case ConsoleKey.DownArrow:
+                        if (histIdx < history.Count && history.Count > 0)
+                        {
+                            for (int i = cursor; i < sb.Length; i++)
+                                Console.Write(' ');
+                            for (int i = 0; i < sb.Length; i++)
+                                Console.Write("\x08 \x08");
+
+                            histIdx++;
+                            sb.Length = 0;
+                            if (histIdx == history.Count)
+                                sb.Append(savedEntry);
+                            else
+                                sb.Append(history[histIdx]);
+                            Console.Write(sb.ToString());
+                            cursor = sb.Length;
+                        }
+                        break;
+
+                    case ConsoleKey.Backspace:
+                        if (cursor > 0)
+                        {
+                            cursor--;
+                            sb.Remove(cursor, 1);
+                            Console.Write('\x08');
+                            for (int i = cursor; i < sb.Length; i++)
+                                Console.Write(sb[i]);
+                            Console.Write(' ');
+                            for (int i = cursor; i <= sb.Length; i++)
+                                Console.Write('\x08');
+                        }
+                        break;
+
+                    case ConsoleKey.Delete:
+                        if (cursor < sb.Length)
+                        {
+                            sb.Remove(cursor, 1);
+                            for (int i = cursor; i < sb.Length; i++)
+                                Console.Write(sb[i]);
+                            Console.Write(' ');
+                            for (int i = cursor; i <= sb.Length; i++)
+                                Console.Write('\x08');
+                        }
+                        break;
+
+                    case ConsoleKey.Escape:
+                        for (int i = cursor; i < sb.Length; i++)
+                            Console.Write(' ');
+                        for (int i = 0; i < sb.Length; i++)
+                            Console.Write("\x08 \x08");
+                        sb.Length = 0;
+                        break;
+                        
+                    default:
+                        if (info.KeyChar != '\0')
+                        {
+                            sb.Insert(cursor, info.KeyChar);
+                            Console.Write(info.KeyChar);
+                            cursor++;
+                            for (int i = cursor; i < sb.Length; i++)
+                                Console.Write(sb[i]);
+                            for (int i = cursor; i < sb.Length; i++)
+                                Console.Write('\x08');
+                        }
+                        break;
+                }
+            }
+
+            if (terminator == 13)
+                Console.WriteLine();
+
+            string result = sb.ToString();
+
+            history.Add(result);
+            if (history.Count > MAX_COMMAND_HISTORY)
+                history.RemoveAt(0);
+
+            return result;
+        }
+
+        private static bool IsTerminator(byte key, byte[] terminatingKeys)
+        {
+            if (key == 13)
+                return true;
+
+            if (terminatingKeys.Length == 0)
+                return false;
+
+            if (terminatingKeys[0] == 255)
+                return ((key >= 129 && key <= 154) || (key >= 252 && key <= 254));
+
+            return Array.IndexOf(terminatingKeys, key) >= 0;
         }
 
         public short ReadKey(int time, TimedInputCallback callback, CharTranslator translator)
         {
             FlushBuffer();
 
-            if (time > 0)
+            while (true)
             {
-                int sleeps = 0;
-                while (!Console.KeyAvailable)
+                if (time > 0)
                 {
-                    Thread.Sleep(100);
-                    if (Console.KeyAvailable)
-                        break;
-
-                    sleeps++;
-                    if (sleeps == time)
+                    int sleeps = 0;
+                    while (!Console.KeyAvailable)
                     {
-                        sleeps = 0;
-                        if (callback() == true)
-                            return 0;
+                        Thread.Sleep(100);
+                        if (Console.KeyAvailable)
+                            break;
+
+                        sleeps++;
+                        if (sleeps == time)
+                        {
+                            sleeps = 0;
+                            if (callback() == true)
+                                return 0;
+                        }
                     }
                 }
-            }
 
-            ConsoleKeyInfo info = Console.ReadKey(true);
-            switch (info.Key)
+                ConsoleKeyInfo info = Console.ReadKey(true);
+                short zkey = ConsoleKeyToZSCII(info.Key);
+                if (zkey != 0)
+                    return zkey;
+
+                zkey = translator(info.KeyChar);
+                if (zkey != 0)
+                    return zkey;
+            }
+        }
+
+        private static byte ConsoleKeyToZSCII(ConsoleKey key)
+        {
+            switch (key)
             {
                 case ConsoleKey.Delete: return 8;
                 case ConsoleKey.Tab: return 9;
@@ -102,7 +316,7 @@ namespace ZLR.Interfaces.SystemConsole
                 case ConsoleKey.NumPad7: return 152;
                 case ConsoleKey.NumPad8: return 153;
                 case ConsoleKey.NumPad9: return 154;
-                default: return translator(info.KeyChar);
+                default: return 0;
             }
         }
 
@@ -454,7 +668,7 @@ namespace ZLR.Interfaces.SystemConsole
 
         public bool TimedInputAvailable
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool Transcripting
@@ -642,6 +856,10 @@ namespace ZLR.Interfaces.SystemConsole
 
         public short SetFont(short num)
         {
+            // basic support for the normal font
+            if (num == 1)
+                return 1;
+
             // no font changes supported
             return 0;
         }
@@ -701,7 +919,7 @@ namespace ZLR.Interfaces.SystemConsole
                 else
                 {
                     Console.ForegroundColor = (ConsoleColor)(item & 0xFFFF);
-                    Console.BackgroundColor = (ConsoleColor)((item & 0x7FFF) >> 16);
+                    Console.BackgroundColor = (ConsoleColor)((item >> 16) & 0x7FFF);
                 }
             }
 

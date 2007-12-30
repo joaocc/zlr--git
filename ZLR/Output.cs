@@ -753,7 +753,7 @@ namespace ZLR.VM
                 EndExternalWait();
             }
 
-            byte[] chars = StringToZSCII(str);
+            byte[] chars = StringToZSCII(str.ToLower());
             SetByte(buffer + 1, (byte)chars.Length);
             for (int i = 0; i < Math.Min(chars.Length, max - offset); i++)
                 SetByte(buffer + 2 + offset + i, chars[i]);
@@ -985,7 +985,7 @@ namespace ZLR.VM
             for (int i = 0; i < length; i++)
             {
                 byte zc = input[start + i];
-                char ch = char.ToLower(CharFromZSCII(zc));
+                char ch = CharFromZSCII(zc);
 
                 if (ch == ' ')
                 {

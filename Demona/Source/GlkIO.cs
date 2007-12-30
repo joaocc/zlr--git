@@ -208,7 +208,6 @@ namespace ZLR.Interfaces.Demona
                     case EvType.CharInput:
                         if (ev.win == currentWin)
                         {
-                            done = true;
                             if (ev.val1 <= 255)
                             {
                                 result = translator((char)ev.val1);
@@ -239,6 +238,11 @@ namespace ZLR.Interfaces.Demona
                                     default: result = 0; break;
                                 }
                             }
+
+                            if (result != 0)
+                                done = true;
+                            else
+                                Glk.glk_request_char_event(currentWin);
                         }
                         break;
 
