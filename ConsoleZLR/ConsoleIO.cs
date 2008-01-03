@@ -858,7 +858,32 @@ namespace ZLR.Interfaces.SystemConsole
 
         public Stream OpenAuxiliaryFile(string name, int size, bool writing)
         {
-            return null;
+            if (InvalidAuxFileName(name))
+                return null;
+
+            try
+            {
+                return new FileStream(name,
+                    writing ? FileMode.Create : FileMode.Open,
+                    writing ? FileAccess.Write : FileAccess.Read);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static readonly char[] badChars = { ':', '"', '<', '>', '\\', '/', '*', '?', '|' };
+
+        private static bool InvalidAuxFileName(string name)
+        {
+            if (name.Trim().Length == 0)
+                return true;
+
+            if (name.IndexOfAny(badChars) > 0)
+                return true;
+
+            return false;
         }
 
         public short SetFont(short num)
