@@ -480,6 +480,30 @@ static void gli_put_buffer(stream_t *str, char *buf, glui32 len)
   }
 }
 
+static void gli_unput_buffer(stream_t *str, char *buf, glui32 len)
+{
+  glui32 lx;
+  char *cx;
+
+  if (!str || !str->writable)
+    return;
+
+  if (str->type == strtype_Window)
+  {
+    if (str->win->line_request) {
+      gli_strict_warning("put_buffer: window has pending line request");
+      return;
+    }
+    for (lx=0, cx=buf+len-1; lx<len; lx++, cx--) {
+      if (!gli_window_unput_char(str->win, *cx))
+		  break;
+	  str->writecount--;
+    }
+    if (str->win->echostr)
+      gli_unput_buffer(str->win->echostr, buf, len);
+  }
+}
+
 static void gli_set_style(stream_t *str, glui32 val)
 {
   if (!str || !str->writable)
@@ -673,6 +697,11 @@ void glk_put_buffer_stream(stream_t *str, char *buf, glui32 len)
     return;
   }
   gli_put_buffer(str, buf, len);
+}
+
+void garglk_unput_string(char *s)
+{
+	gli_unput_buffer(gli_currentstr, s, strlen(s));
 }
 
 void glk_set_style(glui32 val)

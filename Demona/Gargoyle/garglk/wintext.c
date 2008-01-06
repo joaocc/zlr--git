@@ -726,6 +726,16 @@ void win_textbuffer_putchar(window_t *win, char ch)
     touch(dwin, 0);
 }
 
+int win_textbuffer_unputchar(window_t *win, char ch)
+{
+    window_textbuffer_t *dwin = win->data;
+	if (dwin->numchars > 0 && dwin->chars[dwin->numchars - 1] == ch)
+	{
+		dwin->numchars--;
+		touch(dwin, 0);
+	}
+}
+
 void win_textbuffer_clear(window_t *win)
 {
     window_textbuffer_t *dwin = win->data;

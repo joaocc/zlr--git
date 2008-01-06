@@ -78,3 +78,5 @@ glk_schannel_stop
 glk_schannel_set_volume
 glk_sound_load_hint
 giblorb_set_resource_map
+garglk_set_line_terminators
+garglk_unput_string

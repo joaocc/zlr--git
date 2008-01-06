@@ -141,6 +141,7 @@ namespace ZLR.Interfaces.Demona
 
                 if (initial.Length > 0)
                 {
+                    Glk.garglk_unput_string(initial);
                     byte[] initBytes = Encoding.GetEncoding(Glk.LATIN1).GetBytes(initial);
                     Marshal.Copy(initBytes, 0, buf, initBytes.Length);
                     initlen = (uint)initBytes.Length;

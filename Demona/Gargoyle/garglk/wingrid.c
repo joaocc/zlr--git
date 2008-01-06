@@ -156,6 +156,51 @@ void win_textgrid_putchar(window_t *win, char ch)
        canonicalized next time a character is printed. */
 }
 
+int win_textgrid_unputchar(window_t *win, char ch)
+{
+    window_textgrid_t *dwin = win->data;
+    tgline_t *ln;
+	int oldx = dwin->curx, oldy = dwin->cury;
+
+	/* Move the cursor back. */
+	if (dwin->curx >= dwin->width)
+		dwin->curx = dwin->width - 1;
+	else
+		dwin->curx--;
+
+    /* Canonicalize the cursor position. That is, the cursor may have been
+       left outside the window area; wrap it if necessary. */
+	if (dwin->curx < 0) {
+		dwin->curx = dwin->width - 1;
+		dwin->cury--;
+    }
+    if (dwin->cury < 0)
+		dwin->cury = 0;
+    else if (dwin->cury >= dwin->height)
+		return; /* outside the window */
+
+    if (ch == '\n') {
+		/* a newline just moves the cursor. */
+		if (dwin->curx == dwin->width - 1)
+			return 1; /* deleted a newline */
+		dwin->curx = oldx;
+		dwin->cury = oldy;
+		return 0; /* it wasn't there */
+    }
+
+    ln = &(dwin->lines[dwin->cury]);
+	if (ln->chars[dwin->curx] == ch) {
+		ln->chars[dwin->curx] = ' ';
+		ln->attrs[dwin->curx] = style_Normal;
+	    touch(dwin, dwin->cury);
+		return 1; /* deleted the char */
+	} else {
+		dwin->curx = oldx;
+		dwin->cury = oldy;
+		return 0; /* it wasn't there */
+	}
+}
+
 void win_textgrid_clear(window_t *win)
 {
     window_textgrid_t *dwin = win->data;

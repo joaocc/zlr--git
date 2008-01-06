@@ -474,6 +474,15 @@ namespace ZLR.Interfaces.Demona
         [DllImport(GLKDLL)]
         public static extern BlorbError giblorb_set_resource_map(strid_t file);
 
+        [DllImport(GLKDLL)]
+        private static extern void garglk_unput_string(IntPtr s);
+        public static void garglk_unput_string(string s)
+        {
+            IntPtr buf = StrToLatin1(s);
+            try { garglk_unput_string(buf); }
+            finally { Marshal.FreeHGlobal(buf); }
+        }
+
         #endregion
 
         public static IntPtr StrToLatin1(string s)

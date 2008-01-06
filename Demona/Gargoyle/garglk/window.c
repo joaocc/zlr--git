@@ -829,6 +829,11 @@ void glk_request_line_event(window_t *win, char *buf, glui32 maxlen,
 
 }
 
+void garglk_set_line_terminators(const glui32 *keycodes, glui32 numkeycodes)
+{
+	//XXX implement garglk_set_line_terminators
+}
+
 void glk_request_mouse_event(window_t *win)
 {
     if (!win) {
@@ -952,6 +957,17 @@ void gli_window_put_char(window_t *win, char ch)
         case wintype_TextGrid:
             win_textgrid_putchar(win, ch);
             break;
+    }
+}
+
+int gli_window_unput_char(window_t *win, char ch)
+{
+    switch (win->type)
+	{
+        case wintype_TextBuffer:
+            return win_textbuffer_unputchar(win, ch);
+        case wintype_TextGrid:
+            return win_textgrid_unputchar(win, ch);
     }
 }
 
