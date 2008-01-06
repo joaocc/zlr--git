@@ -278,18 +278,6 @@ namespace ZLR.Interfaces.Demona
             return result;
         }
 
-        bool IZMachineIO.ReadingCommandsFromFile
-        {
-            get { return false; }
-            set { }
-        }
-
-        bool IZMachineIO.WritingCommandsToFile
-        {
-            get { return false; }
-            set { }
-        }
-
         private readonly char[] encodingChar = new char[1];
         private readonly byte[] encodedBytes = new byte[2];
 
@@ -438,6 +426,14 @@ namespace ZLR.Interfaces.Demona
             frefid_t file = Glk.glk_fileref_create_by_name(
                 FileUsage.Data | FileUsage.BinaryMode, name, 0);
             return OpenStream(file, writing ? FileMode.Write : FileMode.Read);
+        }
+
+        Stream IZMachineIO.OpenCommandFile(bool writing)
+        {
+            FileMode mode = writing ? FileMode.Write : FileMode.Read;
+            frefid_t file = Glk.glk_fileref_create_by_prompt(
+                FileUsage.InputRecord | FileUsage.TextMode, mode, 0);
+            return OpenStream(file, mode);
         }
 
         private Stream OpenStream(frefid_t fileref, FileMode mode)

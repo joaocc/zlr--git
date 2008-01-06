@@ -4,7 +4,7 @@ using System.Text;
 using ZLR.VM;
 using System.IO;
 
-namespace ZLR.Interfaces.SystemConsole
+namespace TestSuite
 {
     // TODO: split TestCase stuff into its own application and make it work
     class TestCase : IZMachineIO
@@ -51,18 +51,6 @@ namespace ZLR.Interfaces.SystemConsole
                 outputBuffer.AppendLine(line);
         }
 
-        bool IZMachineIO.ReadingCommandsFromFile
-        {
-            get { return true; }
-            set { /* nada */ }
-        }
-
-        bool IZMachineIO.WritingCommandsToFile
-        {
-            get { return false; }
-            set { /* nada */ }
-        }
-
         bool IZMachineIO.Transcripting
         {
             get { return false; }
@@ -90,6 +78,11 @@ namespace ZLR.Interfaces.SystemConsole
         }
 
         Stream IZMachineIO.OpenAuxiliaryFile(string name, int size, bool writing)
+        {
+            return null;
+        }
+
+        Stream IZMachineIO.OpenCommandFile(bool writing)
         {
             return null;
         }

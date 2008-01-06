@@ -35,6 +35,7 @@
   <ItemGroup>
     <Compile Include="DebugInfo.cs" />
     <Compile Include="IFF.cs" />
+    <Compile Include="Input.cs" />
     <Compile Include="Objects.cs" />
     <Compile Include="Opcodes.cs" />
     <Compile Include="Opcodes_0OP.cs" />

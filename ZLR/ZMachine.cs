@@ -61,6 +61,8 @@ namespace ZLR.VM
         bool running;
         byte[] zmem;
         IZMachineIO io;
+        CommandFileReader cmdRdr;
+        CommandFileWriter cmdWtr;
         Stack<short> stack = new Stack<short>();
         Stack<CallFrame> callStack = new Stack<CallFrame>();
         CallFrame topFrame;
