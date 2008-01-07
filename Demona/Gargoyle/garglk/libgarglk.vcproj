@@ -58,7 +58,7 @@
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
-				Description="Creating input libraries for SDL..."
+				Description="Creating import libraries for SDL..."
 				CommandLine="lib &quot;/def:$(ProjectDir)..\support\sdl\SDL.def&quot; &quot;/out:$(IntDir)\SDL.lib&quot;&#x0D;&#x0A;lib &quot;/def:$(ProjectDir)..\support\sdl\SDL_mixer.def&quot; &quot;/out:$(IntDir)\SDL_mixer.lib&quot;&#x0D;&#x0A;"
 			/>
 			<Tool
@@ -136,7 +136,7 @@
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
-				Description="Creating input libraries for SDL..."
+				Description="Creating import libraries for SDL..."
 				CommandLine="lib &quot;/def:$(ProjectDir)..\support\sdl\SDL.def&quot; &quot;/out:$(IntDir)\SDL.lib&quot;&#x0D;&#x0A;lib &quot;/def:$(ProjectDir)..\support\sdl\SDL_mixer.def&quot; &quot;/out:$(IntDir)\SDL_mixer.lib&quot;&#x0D;&#x0A;"
 			/>
 			<Tool

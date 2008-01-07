@@ -21,8 +21,14 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_2D125258830B4CD6BAE96CECF2479961"
-        "OwnerKey" = "8:_C2D6E1BDB8E442CB9BD85A4E3F8A3D5F"
+        "MsmKey" = "8:_16965A2CF9A048A481D3B042E0E7EEA8"
+        "OwnerKey" = "8:_2E4AC6C25CC44E789EAE61E2861B76F5"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_2E4AC6C25CC44E789EAE61E2861B76F5"
+        "OwnerKey" = "8:_07ADCF089F3B44BA8A71A4C67410C23A"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -41,12 +47,6 @@
         {
         "MsmKey" = "8:_BDA22E3908E941F9A8D06FBC9A63C6BF"
         "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_C2D6E1BDB8E442CB9BD85A4E3F8A3D5F"
-        "OwnerKey" = "8:_07ADCF089F3B44BA8A71A4C67410C23A"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -371,14 +371,14 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Demona"
-        "ProductCode" = "8:{B2953B5B-8EED-4D07-BBD4-F95F1A3D0D5D}"
-        "PackageCode" = "8:{600CB7E5-0B5D-4C45-8AA1-E9A7D23374EC}"
+        "ProductCode" = "8:{7E6FE2E8-72D2-40BC-9542-AB7EC0D79E8B}"
+        "PackageCode" = "8:{E4FF9227-4F7E-4C1C-AA3D-827830A2C4F9}"
         "UpgradeCode" = "8:{62484948-D4A8-4406-9531-270A0E16C763}"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:FALSE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:0.05"
+        "ProductVersion" = "8:0.06"
         "Manufacturer" = "8:ZLR"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:http://zlr.sourceforge.net/"
@@ -925,7 +925,7 @@
         }
         "MergeModule"
         {
-            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_2D125258830B4CD6BAE96CECF2479961"
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_16965A2CF9A048A481D3B042E0E7EEA8"
             {
             "UseDynamicProperties" = "11:TRUE"
             "IsDependency" = "11:TRUE"
@@ -939,7 +939,7 @@
             "Feature" = "8:"
             "IsolateTo" = "8:"
             }
-            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_C2D6E1BDB8E442CB9BD85A4E3F8A3D5F"
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_2E4AC6C25CC44E789EAE61E2861B76F5"
             {
             "UseDynamicProperties" = "11:TRUE"
             "IsDependency" = "11:TRUE"
