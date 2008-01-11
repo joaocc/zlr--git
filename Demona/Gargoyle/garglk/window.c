@@ -949,11 +949,11 @@ void glk_cancel_line_event(window_t *win, event_t *ev)
 	switch (win->type)
 	{
 		case wintype_TextBuffer:
-			if (win->line_request)
+			if (win->line_request || win->line_request_uni)
 				win_textbuffer_cancel_line(win, ev);
 			break;
 		case wintype_TextGrid:
-			if (win->line_request)
+			if (win->line_request || win->line_request_uni)
 				win_textgrid_cancel_line(win, ev);
 			break;
 		default:

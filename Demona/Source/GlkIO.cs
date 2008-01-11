@@ -10,6 +10,8 @@ namespace ZLR.Interfaces.Demona
 {
     class GlkIO : IZMachineIO, IDisposable
     {
+        private bool unicode;
+
         private winid_t upperWin, lowerWin;
         private winid_t currentWin;
         private bool forceFixed;
@@ -80,6 +82,8 @@ namespace ZLR.Interfaces.Demona
 
             xpos = 0;
             ypos = 0;
+
+            unicode = (Glk.glk_gestalt(Gestalt.Unicode, 0) != 0);
         }
 
         public event EventHandler SizeChanged;
@@ -133,21 +137,32 @@ namespace ZLR.Interfaces.Demona
         string IZMachineIO.ReadLine(string initial, int time, TimedInputCallback callback, byte[] terminatingKeys, out byte terminator)
         {
             const int BUFSIZE = 256;
+            IntPtr buf = Marshal.AllocHGlobal(unicode ? BUFSIZE * 4 : BUFSIZE);
+            Encoding encoding = unicode ? Encoding.UTF32 : Encoding.GetEncoding(Glk.LATIN1);
 
-            IntPtr buf = Marshal.AllocHGlobal(BUFSIZE);
             try
             {
                 uint initlen = 0;
 
                 if (initial.Length > 0)
                 {
-                    Glk.garglk_unput_string(initial);
-                    byte[] initBytes = Encoding.GetEncoding(Glk.LATIN1).GetBytes(initial);
+                    if (unicode)
+                        Glk.garglk_unput_string_uni(initial);
+                    else
+                        Glk.garglk_unput_string(initial);
+
+                    byte[] initBytes = encoding.GetBytes(initial);
                     Marshal.Copy(initBytes, 0, buf, initBytes.Length);
+
                     initlen = (uint)initBytes.Length;
+                    if (unicode)
+                        initlen /= 4;
                 }
 
-                Glk.glk_request_line_event(currentWin, buf, BUFSIZE, initlen);
+                if (unicode)
+                    Glk.glk_request_line_event_uni(currentWin, buf, BUFSIZE, initlen);
+                else
+                    Glk.glk_request_line_event(currentWin, buf, BUFSIZE, initlen);
                 Glk.glk_request_timer_events((uint)(time * 100));
 
                 terminator = 0;
@@ -191,9 +206,11 @@ namespace ZLR.Interfaces.Demona
 
                 // convert the string from Latin-1
                 int length = (int)ev.val1;
+                if (unicode)
+                    length *= 4;
                 byte[] bytes = new byte[length];
                 Marshal.Copy(buf, bytes, 0, length);
-                return Encoding.GetEncoding(Glk.LATIN1).GetString(bytes);
+                return encoding.GetString(bytes);
             }
             finally
             {
@@ -203,7 +220,11 @@ namespace ZLR.Interfaces.Demona
 
         short IZMachineIO.ReadKey(int time, TimedInputCallback callback, CharTranslator translator)
         {
-            Glk.glk_request_char_event(currentWin);
+            if (unicode)
+                Glk.glk_request_char_event_uni(currentWin);
+            else
+                Glk.glk_request_char_event(currentWin);
+
             Glk.glk_request_timer_events((uint)(time * 100));
 
             event_t ev;
@@ -218,7 +239,7 @@ namespace ZLR.Interfaces.Demona
                     case EvType.CharInput:
                         if (ev.win == currentWin)
                         {
-                            if (ev.val1 <= 255)
+                            if (ev.val1 <= 255 || (unicode && ev.val1 <= 0x10000))
                             {
                                 result = translator((char)ev.val1);
                             }
@@ -251,6 +272,8 @@ namespace ZLR.Interfaces.Demona
 
                             if (result != 0)
                                 done = true;
+                            else if (unicode)
+                                Glk.glk_request_char_event_uni(currentWin);
                             else
                                 Glk.glk_request_char_event(currentWin);
                         }
@@ -284,14 +307,21 @@ namespace ZLR.Interfaces.Demona
 
         void IZMachineIO.PutChar(char ch)
         {
-            byte b;
-            encodingChar[0] = ch;
-            int result = Encoding.GetEncoding(Glk.LATIN1).GetBytes(encodingChar, 0, 1, encodedBytes, 0);
-            if (result != 1)
-                b = (byte)'?';
+            if (unicode)
+            {
+                Glk.glk_put_char_uni((uint)ch);
+            }
             else
-                b = encodedBytes[0];
-            Glk.glk_put_char(b);
+            {
+                byte b;
+                encodingChar[0] = ch;
+                int result = Encoding.GetEncoding(Glk.LATIN1).GetBytes(encodingChar, 0, 1, encodedBytes, 0);
+                if (result != 1)
+                    b = (byte)'?';
+                else
+                    b = encodedBytes[0];
+                Glk.glk_put_char(b);
+            }
 
             if (currentWin == upperWin)
             {
@@ -310,7 +340,10 @@ namespace ZLR.Interfaces.Demona
 
         void IZMachineIO.PutString(string str)
         {
-            Glk.glk_put_string(str);
+            if (unicode)
+                Glk.glk_put_string_uni(str);
+            else
+                Glk.glk_put_string(str);
 
             if (currentWin == upperWin)
             {
@@ -333,7 +366,10 @@ namespace ZLR.Interfaces.Demona
             {
                 foreach (string str in lines)
                 {
-                    Glk.glk_put_string(str);
+                    if (unicode)
+                        Glk.glk_put_string_uni(str);
+                    else
+                        Glk.glk_put_string(str);
                     Glk.glk_put_char((byte)'\n');
                 }
             }
@@ -344,16 +380,18 @@ namespace ZLR.Interfaces.Demona
                 foreach (string str in lines)
                 {
                     Glk.glk_window_move_cursor(upperWin, (uint)oxpos, (uint)ypos);
+                    if (unicode)
+                        Glk.glk_put_string_uni(str);
+                    else
+                        Glk.glk_put_string(str);
+
+                    ypos++;
+                    if (ypos >= screenHeight)
+                        ypos = (int)screenHeight - 1;
+
                     xpos = oxpos + str.Length;
                     if (xpos >= screenWidth)
                         xpos = (int)screenWidth - 1;
-                }
-
-                if (lines.Length > 0)
-                {
-                    ypos += lines.Length - 1;
-                    if (ypos >= screenHeight)
-                        ypos = (int)screenHeight - 1;
                 }
             }
         }
@@ -810,13 +848,10 @@ namespace ZLR.Interfaces.Demona
         UnicodeCaps IZMachineIO.CheckUnicode(char ch)
         {
             UnicodeCaps result = 0;
-            if (ch < 255)
-            {
-                if (Glk.glk_gestalt(Gestalt.CharOutput, ch) != 0)
-                    result |= UnicodeCaps.CanPrint;
-                if (Glk.glk_gestalt(Gestalt.CharInput, ch) != 0)
-                    result |= UnicodeCaps.CanInput;
-            }
+            if (Glk.glk_gestalt(Gestalt.CharOutput, ch) != 0)
+                result |= UnicodeCaps.CanPrint;
+            if (Glk.glk_gestalt(Gestalt.CharInput, ch) != 0)
+                result |= UnicodeCaps.CanInput;
             return result;
         }
 

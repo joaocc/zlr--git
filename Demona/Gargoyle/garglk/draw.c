@@ -518,7 +518,7 @@ int gli_string_width(int fidx, unsigned char *s, int n, int spw)
 	{
 		bitmap_t *glyphs;
 		int adv;
-		int c = *s++;
+		int c = touni(*s++);
 
 		if (dolig && n && c == 'f' && *s == 'i') { c = UNI_LIG_FI; s++; n--; }
 		if (dolig && n && c == 'f' && *s == 'l') { c = UNI_LIG_FL; s++; n--; }
@@ -558,7 +558,7 @@ int gli_draw_string(int x, int y, int fidx, unsigned char *rgb,
 		bitmap_t *glyphs;
 		int adv;
 
-		c = *s++;
+		c = touni(*s++);
 
 		if (dolig && n && c == 'f' && *s == 'i') { c = UNI_LIG_FI; s++; n--; }
 		if (dolig && n && c == 'f' && *s == 'l') { c = UNI_LIG_FL; s++; n--; }

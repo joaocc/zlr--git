@@ -391,5 +391,6 @@ extern void garglk_set_line_terminators(const glui32 *keycodes, glui32 numkeycod
 /* garglk_unput_string - removes the specified string from the end of the output buffer, if
  * indeed it is there. */
 extern void garglk_unput_string(char *str);
+extern void garglk_unput_string_uni(glui32 *str);
 
 #endif /* GLK_H */

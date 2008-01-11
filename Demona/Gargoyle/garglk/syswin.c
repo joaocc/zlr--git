@@ -576,7 +576,7 @@ viewproc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			gli_input_handle_key(keycode_Delete);
 		else if (key == '\t')
 			gli_input_handle_key(keycode_Tab);
-		else
+		else if (key != 27)
 			gli_input_handle_key(key);
 
 		return 0;
@@ -590,7 +590,7 @@ viewproc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			gli_input_handle_key(keycode_Delete);
 		else if (key == '\t')
 			gli_input_handle_key(keycode_Tab);
-		else {
+		else if (key != 27) {
 			/* translate from ANSI code page to Unicode */
 			char ansich = (char)key;
 			wchar_t widebuf[2];

@@ -271,7 +271,7 @@ static int calcwidth(window_textbuffer_t *dwin,
 void win_textbuffer_redraw(window_t *win)
 {
     window_textbuffer_t *dwin = win->data;
-    int drawmore = win->line_request || win->char_request;
+	int drawmore = win->line_request || win->char_request || win->line_request_uni || win->char_request_uni;
     tbline_t *ln;
     int linelen;
     int nsp, spw;
@@ -369,7 +369,7 @@ void win_textbuffer_redraw(window_t *win)
          * draw caret
          */
 
-        if (gli_focuswin == win && i == 0 && win->line_request)
+		if (gli_focuswin == win && i == 0 && (win->line_request || win->line_request_uni))
         {
             w = calcwidth(dwin, dwin->chars, dwin->attrs, dwin->incurs, spw);
             gli_draw_caret(x0 + SLOP + ln->lm + w, y + gli_baseline);
@@ -1300,7 +1300,7 @@ glui32 win_textbuffer_flow_break(window_textbuffer_t *dwin)
 void win_textbuffer_click(window_textbuffer_t *dwin, int sx, int sy)
 {
     window_t *win = dwin->owner;
-    if (win->line_request || win->char_request)
+	if (win->line_request || win->char_request || win->line_request_uni || win->char_request_uni)
         gli_focuswin = win;
     if (sx > win->bbox.x1 - gli_scroll_width)
     {

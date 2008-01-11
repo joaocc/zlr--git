@@ -84,6 +84,7 @@ namespace ZLR.Interfaces.Demona
         HyperlinkInput = 12,
         SoundMusic = 13,
         GraphicsTransparency = 14,
+        Unicode = 15,
     }
 
     // evtype_* constants
@@ -320,7 +321,13 @@ namespace ZLR.Interfaces.Demona
         public static extern strid_t glk_stream_open_file(frefid_t fileref, FileMode fmode,
             uint rock);
         [DllImport(GLKDLL)]
+        public static extern strid_t glk_stream_open_file_uni(frefid_t fileref, FileMode fmode,
+            uint rock);
+        [DllImport(GLKDLL)]
         public static extern strid_t glk_stream_open_memory(IntPtr buf, uint buflen, FileMode fmode,
+            uint rock);
+        [DllImport(GLKDLL)]
+        public static extern strid_t glk_stream_open_memory_uni(IntPtr buf, uint buflen, FileMode fmode,
             uint rock);
         [DllImport(GLKDLL)]
         public static extern void glk_stream_close(strid_t str, out stream_result_t result);
@@ -340,13 +347,25 @@ namespace ZLR.Interfaces.Demona
         [DllImport(GLKDLL)]
         public static extern void glk_put_char(byte ch);
         [DllImport(GLKDLL)]
+        public static extern void glk_put_char_uni(uint ch);
+        [DllImport(GLKDLL)]
         public static extern void glk_put_char_stream(strid_t str, byte ch);
+        [DllImport(GLKDLL)]
+        public static extern void glk_put_char_stream_uni(strid_t str, uint ch);
         [DllImport(GLKDLL)]
         private static extern void glk_put_string(IntPtr s);
         public static void glk_put_string(string s)
         {
             IntPtr buf = StrToLatin1(s);
             try { glk_put_string(buf); }
+            finally { Marshal.FreeHGlobal(buf); }
+        }
+        [DllImport(GLKDLL)]
+        private static extern void glk_put_string_uni(IntPtr s);
+        public static void glk_put_string_uni(string s)
+        {
+            IntPtr buf = StrToUTF32(s);
+            try { glk_put_string_uni(buf); }
             finally { Marshal.FreeHGlobal(buf); }
         }
         [DllImport(GLKDLL)]
@@ -358,9 +377,21 @@ namespace ZLR.Interfaces.Demona
             finally { Marshal.FreeHGlobal(buf); }
         }
         [DllImport(GLKDLL)]
-        public static extern void glk_put_buffer(byte[] buf, uint len);
+        private static extern void glk_put_string_stream_uni(strid_t str, IntPtr s);
+        public static void glk_put_string_stream_uni(strid_t str, string s)
+        {
+            IntPtr buf = StrToUTF32(s);
+            try { glk_put_string_stream_uni(str, buf); }
+            finally { Marshal.FreeHGlobal(buf); }
+        }
+        [DllImport(GLKDLL)]
+        public static extern void glk_put_buffer([In] byte[] buf, uint len);
+        [DllImport(GLKDLL)]
+        public static extern void glk_put_buffer_uni([In] uint[] buf, uint len);
         [DllImport(GLKDLL)]
         public static extern void glk_put_buffer_stream(strid_t str, [In] byte[] buf, uint len);
+        [DllImport(GLKDLL)]
+        public static extern void glk_put_buffer_stream_uni(strid_t str, [In] uint[] buf, uint len);
         [DllImport(GLKDLL)]
         public static extern void glk_set_style(Style styl);
         [DllImport(GLKDLL)]
@@ -368,6 +399,8 @@ namespace ZLR.Interfaces.Demona
 
         [DllImport(GLKDLL)]
         public static extern int glk_get_char_stream(strid_t str);
+        [DllImport(GLKDLL)]
+        public static extern int glk_get_char_stream_uni(strid_t str);
         [DllImport(GLKDLL)]
         private static extern uint glk_get_line_stream(strid_t str, IntPtr buf, uint len);
         public static uint glk_get_line_stream(strid_t str, StringBuilder sb)
@@ -386,7 +419,26 @@ namespace ZLR.Interfaces.Demona
             }
         }
         [DllImport(GLKDLL)]
+        private static extern uint glk_get_line_stream_uni(strid_t str, IntPtr buf, uint len);
+        public static uint glk_get_line_stream_uni(strid_t str, StringBuilder sb)
+        {
+            int len = sb.Capacity;
+            IntPtr buf = Marshal.AllocHGlobal(len * 4);
+            try
+            {
+                uint result = glk_get_line_stream_uni(str, buf, (uint)len * 4);
+                StrFromUTF32(buf, sb);
+                return result;
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(buf);
+            }
+        }
+        [DllImport(GLKDLL)]
         public static extern uint glk_get_buffer_stream(strid_t str, [Out] byte[] buf, uint len);
+        [DllImport(GLKDLL)]
+        public static extern uint glk_get_buffer_stream_uni(strid_t str, [Out] uint[] buf, uint len);
 
         [DllImport(GLKDLL)]
         public static extern void glk_stylehint_set(WinType wintype, Style styl, StyleHint hint,
@@ -438,7 +490,12 @@ namespace ZLR.Interfaces.Demona
         public static extern void glk_request_line_event(winid_t win, IntPtr buf, uint maxlen,
             uint initlen);
         [DllImport(GLKDLL)]
+        public static extern void glk_request_line_event_uni(winid_t win, IntPtr buf, uint maxlen,
+            uint initlen);
+        [DllImport(GLKDLL)]
         public static extern void glk_request_char_event(winid_t win);
+        [DllImport(GLKDLL)]
+        public static extern void glk_request_char_event_uni(winid_t win);
         [DllImport(GLKDLL)]
         public static extern void glk_request_mouse_event(winid_t win);
 
@@ -482,6 +539,14 @@ namespace ZLR.Interfaces.Demona
             try { garglk_unput_string(buf); }
             finally { Marshal.FreeHGlobal(buf); }
         }
+        [DllImport(GLKDLL)]
+        private static extern void garglk_unput_string_uni(IntPtr s);
+        public static void garglk_unput_string_uni(string s)
+        {
+            IntPtr buf = StrToUTF32(s);
+            try { garglk_unput_string_uni(buf); }
+            finally { Marshal.FreeHGlobal(buf); }
+        }
 
         #endregion
 
@@ -506,6 +571,32 @@ namespace ZLR.Interfaces.Demona
             byte[] bytes = new byte[len];
             Marshal.Copy(buf, bytes, 0, len);
             string str = Encoding.GetEncoding(LATIN1).GetString(bytes);
+
+            sb.Length = 0;
+            sb.Append(str);
+        }
+
+        public static IntPtr StrToUTF32(string s)
+        {
+            byte[] bytes = Encoding.UTF32.GetBytes(s);
+            IntPtr result = Marshal.AllocHGlobal(bytes.Length + 4);
+            if (result == IntPtr.Zero)
+                throw new Exception("Can't allocate unmanaged memory in StrToUTF32");
+
+            Marshal.Copy(bytes, 0, result, bytes.Length);
+            Marshal.WriteInt32(result, bytes.Length, 0);
+            return result;
+        }
+
+        public static void StrFromUTF32(IntPtr buf, StringBuilder sb)
+        {
+            int len = 0;
+            while (Marshal.ReadInt32(buf, len) != 0)
+                len += 4;
+
+            byte[] bytes = new byte[len];
+            Marshal.Copy(buf, bytes, 0, len);
+            string str = Encoding.UTF32.GetString(bytes);
 
             sb.Length = 0;
             sb.Append(str);

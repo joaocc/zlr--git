@@ -177,6 +177,7 @@ namespace ZLR.VM
             il.Emit(OpCodes.Ldfld, ioFI);
             LoadOperand(il, 0);
             il.Emit(OpCodes.Call, checkUnicodeMI);
+            StoreResult(il);
         }
     }
 }
