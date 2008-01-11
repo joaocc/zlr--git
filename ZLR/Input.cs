@@ -76,7 +76,9 @@ namespace ZLR.VM
                 }
 
                 if (cmdRdr == null)
-                    result = io.ReadKey(time, delegate { return HandleInputTimer(routine); }, CharToZSCII);
+                    result = io.ReadKey(time,
+                        delegate { return HandleInputTimer(routine); },
+                        delegate(char c) { return FilterInput(CharToZSCII(c)); });
                 else
                     result = cmdRdr.ReadKey();
 
@@ -99,6 +101,19 @@ namespace ZLR.VM
 
             short result = stack.Pop();
             return (result != 0);
+        }
+
+        private short FilterInput(short ch)
+        {
+            bool ok = true;
+
+            // only allow characters that are defined for input: section 3.8
+            if (ch < 32 && (ch != 8 && ch != 13 && ch != 27))
+                return 0;
+            else if (ch >= 127 && (ch <= 128 || ch >= 255))
+                return 0;
+
+            return ch;
         }
 
         private struct Token

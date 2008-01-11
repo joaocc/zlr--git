@@ -21,6 +21,7 @@ namespace ZLR.Interfaces.SystemConsole
         private bool buffering = true;
         private int bufferLength;
         private List<uint> buffer = new List<uint>();
+        private int lineCount;
 
         private const int MAX_COMMAND_HISTORY = 10;
         private List<string> history = new List<string>();
@@ -44,6 +45,7 @@ namespace ZLR.Interfaces.SystemConsole
             byte[] terminatingKeys, out byte terminator)
         {
             FlushBuffer();
+            lineCount = 0;
 
             int histIdx = history.Count;
             string savedEntry = string.Empty;
@@ -256,6 +258,7 @@ namespace ZLR.Interfaces.SystemConsole
         public short ReadKey(int time, TimedInputCallback callback, CharTranslator translator)
         {
             FlushBuffer();
+            lineCount = 0;
 
             while (true)
             {
@@ -294,7 +297,6 @@ namespace ZLR.Interfaces.SystemConsole
             switch (key)
             {
                 case ConsoleKey.Delete: return 8;
-                case ConsoleKey.Tab: return 9;
                 case ConsoleKey.Enter: return 13;
                 case ConsoleKey.Escape: return 27;
                 case ConsoleKey.UpArrow: return 129;
@@ -342,7 +344,10 @@ namespace ZLR.Interfaces.SystemConsole
         public void PutChar(char ch)
         {
             if (upper || !buffering)
+            {
                 Console.Write(ch);
+                CheckMore();
+            }
             else
                 BufferedPutChar(ch);
         }
@@ -351,7 +356,11 @@ namespace ZLR.Interfaces.SystemConsole
         {
             if (upper || !buffering)
             {
-                Console.Write(str);
+                foreach (char ch in str)
+                {
+                    Console.Write(ch);
+                    CheckMore();
+                }
             }
             else
             {
@@ -365,10 +374,14 @@ namespace ZLR.Interfaces.SystemConsole
             if ((ch == ' ' || ch == '\n'))
             {
                 if (Console.CursorLeft + bufferLength >= Console.WindowWidth)
+                {
                     Console.Write('\n');
+                    CheckMore();
+                }
 
                 FlushBuffer();
                 Console.Write(ch);
+                CheckMore();
                 return;
             }
 
@@ -384,6 +397,8 @@ namespace ZLR.Interfaces.SystemConsole
 
         public void PutTextRectangle(string[] lines)
         {
+            FlushBuffer();
+
             int row = Console.CursorTop;
             int col = Console.CursorLeft;
 
@@ -807,6 +822,9 @@ namespace ZLR.Interfaces.SystemConsole
         {
             string defaultFile = fileBase + ".sav";
 
+            FlushBuffer();
+            lineCount = 0;
+
             string filename = null;
             do
             {
@@ -840,6 +858,9 @@ namespace ZLR.Interfaces.SystemConsole
 
         public Stream OpenRestoreFile()
         {
+            FlushBuffer();
+            lineCount = 0;
+
             string filename;
             do
             {
@@ -875,6 +896,9 @@ namespace ZLR.Interfaces.SystemConsole
 
         public Stream OpenCommandFile(bool writing)
         {
+            FlushBuffer();
+            lineCount = 0;
+
             string filename;
             do
             {
@@ -991,6 +1015,7 @@ namespace ZLR.Interfaces.SystemConsole
                 if ((item & STYLE_FLAG) == 0)
                 {
                     Console.Write((char)item);
+                    CheckMore();
                 }
                 else
                 {
@@ -1001,6 +1026,26 @@ namespace ZLR.Interfaces.SystemConsole
 
             buffer.RemoveRange(0, buffer.Count);
             bufferLength = 0;
+        }
+
+        private void CheckMore()
+        {
+            if (Console.CursorLeft == 0)
+            {
+                lineCount++;
+                if (lineCount >= Console.WindowHeight - split - 1)
+                {
+                    Console.Write("-- more --");
+                    Console.ReadKey(true);
+
+                    // erase the prompt
+                    Console.Write("\b\b\b\b\b\b\b\b\b\b");
+                    Console.Write("          ");
+                    Console.Write("\b\b\b\b\b\b\b\b\b\b");
+
+                    lineCount = 0;
+                }
+            }
         }
     }
 }
