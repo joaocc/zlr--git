@@ -111,7 +111,7 @@ void win_textgrid_redraw(window_t *win)
 		x = x0 + k * gli_cellw;
 		gli_draw_rect(x, y, gli_cellw, gli_leading,
 			dwin->styles[ln->attrs[k]].bg);
-		gli_draw_string(x * GLI_SUBPIX, y + gli_baseline,
+		gli_draw_string_uni(x * GLI_SUBPIX, y + gli_baseline,
 			dwin->styles[ln->attrs[k]].font,
 			dwin->styles[ln->attrs[k]].fg,	
 			ln->chars + k, 1, -1);
@@ -120,7 +120,7 @@ void win_textgrid_redraw(window_t *win)
     }
 }
 
-void win_textgrid_putchar(window_t *win, char ch)
+void win_textgrid_putchar_uni(window_t *win, glui32 ch)
 {
     window_textgrid_t *dwin = win->data;
     tgline_t *ln;
@@ -149,14 +149,14 @@ void win_textgrid_putchar(window_t *win, char ch)
 
     ln = &(dwin->lines[dwin->cury]);
     ln->chars[dwin->curx] = ch;
-    ln->attrs[dwin->curx] = win->style;
+    ln->attrs[dwin->curx] = (unsigned char)win->style;
 
     dwin->curx++;
     /* We can leave the cursor outside the window, since it will be
        canonicalized next time a character is printed. */
 }
 
-int win_textgrid_unputchar(window_t *win, char ch)
+int win_textgrid_unputchar_uni(window_t *win, glui32 ch)
 {
     window_textgrid_t *dwin = win->data;
     tgline_t *ln;
@@ -177,7 +177,7 @@ int win_textgrid_unputchar(window_t *win, char ch)
     if (dwin->cury < 0)
 		dwin->cury = 0;
     else if (dwin->cury >= dwin->height)
-		return; /* outside the window */
+		return FALSE; /* outside the window */
 
     if (ch == '\n') {
 		/* a newline just moves the cursor. */
@@ -193,23 +193,24 @@ int win_textgrid_unputchar(window_t *win, char ch)
 		ln->chars[dwin->curx] = ' ';
 		ln->attrs[dwin->curx] = style_Normal;
 	    touch(dwin, dwin->cury);
-		return 1; /* deleted the char */
+		return TRUE; /* deleted the char */
 	} else {
 		dwin->curx = oldx;
 		dwin->cury = oldy;
-		return 0; /* it wasn't there */
+		return FALSE; /* it wasn't there */
 	}
 }
 
 void win_textgrid_clear(window_t *win)
 {
     window_textgrid_t *dwin = win->data;
-    int k;
+    int k, j;
 
     for (k = 0; k < dwin->height; k++)
     {
 	touch(dwin, k);
-	memset(dwin->lines[k].chars, ' ', sizeof dwin->lines[k].chars);
+	for (j = 0; j < sizeof dwin->lines[k].chars; j++)
+		dwin->lines[k].chars[j] = ' ';
 	memset(dwin->lines[k].attrs, style_Normal, sizeof dwin->lines[k].attrs);
     }
 
@@ -290,12 +291,55 @@ void win_textgrid_init_line(window_t *win, char *buf, int maxlen, int initlen)
     }
 }
 
+void win_textgrid_init_line_uni(window_t *win, glui32 *buf, int maxlen, int initlen)
+{
+    window_textgrid_t *dwin = win->data;
+
+    if (maxlen > (dwin->width - dwin->curx))
+	maxlen = (dwin->width - dwin->curx);
+
+    dwin->inbuf = buf;
+    dwin->inmax = maxlen;
+    dwin->inlen = 0;
+    dwin->incurs = 0;
+    dwin->inorgx = dwin->curx;
+    dwin->inorgy = dwin->cury;
+    dwin->origstyle = win->style;
+    win->style = style_Input;
+
+    if (initlen > maxlen)
+	initlen = maxlen;
+
+    if (initlen)
+    {
+	int ix;
+	tgline_t *ln = &(dwin->lines[dwin->inorgy]);
+
+	for (ix=0; ix<initlen; ix++) {
+	    ln->attrs[dwin->inorgx+ix] = style_Input;
+	    ln->chars[dwin->inorgx+ix] = buf[ix];
+	}
+
+	dwin->incurs += initlen;
+	dwin->inlen += initlen;
+	dwin->curx = dwin->inorgx+dwin->incurs;
+	dwin->cury = dwin->inorgy;
+
+	touch(dwin, dwin->inorgy);
+    }
+
+    if (gli_register_arr) {
+	dwin->inarrayrock = (*gli_register_arr)(buf, maxlen, "&+#!Iu");
+    }
+}
+
 /* Abort line input, storing whatever's been typed so far. */
 void win_textgrid_cancel_line(window_t *win, event_t *ev)
 {
     int ix;
-    char *inbuf;
+    void *inbuf;
     int inmax;
+	int unicode = win->line_request_uni;
     gidispatch_rock_t inarrayrock;
     window_textgrid_t *dwin = win->data;
     tgline_t *ln = &(dwin->lines[dwin->inorgy]);
@@ -307,11 +351,21 @@ void win_textgrid_cancel_line(window_t *win, event_t *ev)
     inmax = dwin->inmax;
     inarrayrock = dwin->inarrayrock;
 
-    for (ix=0; ix<dwin->inlen; ix++)
-	inbuf[ix] = ln->chars[dwin->inorgx+ix];
-
-    if (win->echostr) 
-	gli_stream_echo_line(win->echostr, inbuf, dwin->inlen);
+	if (!unicode) {
+		for (ix=0; ix<dwin->inlen; ix++) {
+			glui32 ch = ln->chars[dwin->inorgx+ix];
+			if (ch > 0xff)
+				ch = '?';
+			((char *)inbuf)[ix] = (char)ch;
+		}
+		if (win->echostr) 
+			gli_stream_echo_line(win->echostr, (char *)inbuf, dwin->inlen);
+	} else {
+		for (ix=0; ix<dwin->inlen; ix++)
+			((glui32 *)inbuf)[ix] = ln->chars[dwin->inorgx+ix];
+		if (win->echostr)
+			gli_stream_echo_line_uni(win->echostr, (glui32 *)inbuf, dwin->inlen);
+	}
 
     dwin->cury = dwin->inorgy+1;
     dwin->curx = 0;
@@ -322,13 +376,14 @@ void win_textgrid_cancel_line(window_t *win, event_t *ev)
     ev->val1 = dwin->inlen;
 
     win->line_request = FALSE;
+	win->line_request_uni = FALSE;
     dwin->inbuf = NULL;
     dwin->inmax = 0;
     dwin->inorgx = 0;
     dwin->inorgy = 0;
 
     if (gli_unregister_arr) {
-	(*gli_unregister_arr)(inbuf, inmax, "&+#!Cn", inarrayrock);
+		(*gli_unregister_arr)(inbuf, inmax, unicode ? "&+#!Iu" : "&+#!Cn", inarrayrock);
     }
 }
 
@@ -337,7 +392,8 @@ void win_textgrid_cancel_line(window_t *win, event_t *ev)
 /* Any key, during character input. Ends character input. */
 void gcmd_grid_accept_readchar(window_t *win, glui32 arg)
 {
-    win->char_request = FALSE; 
+    win->char_request = FALSE;
+	win->char_request_uni = FALSE;
     gli_event_store(evtype_CharInput, win, arg, 0);
 }
 
@@ -345,11 +401,12 @@ void gcmd_grid_accept_readchar(window_t *win, glui32 arg)
 static void acceptline(window_t *win)
 {
     int ix;
-    char *inbuf;
+    void *inbuf;
     int inmax;
     gidispatch_rock_t inarrayrock;
     window_textgrid_t *dwin = win->data;
     tgline_t *ln = &(dwin->lines[dwin->inorgy]);
+	int unicode = win->line_request_uni;
 
     if (!dwin->inbuf)
 	return;
@@ -358,12 +415,17 @@ static void acceptline(window_t *win)
     inmax = dwin->inmax;
     inarrayrock = dwin->inarrayrock;
 
-    for (ix=0; ix<dwin->inlen; ix++) {
-	inbuf[ix] = ln->chars[dwin->inorgx+ix];
-    }
-
-    if (win->echostr) 
-	gli_stream_echo_line(win->echostr, inbuf, dwin->inlen);
+	if (!unicode) {
+		for (ix=0; ix<dwin->inlen; ix++)
+			((char *)inbuf)[ix] = (char)ln->chars[dwin->inorgx+ix];
+		if (win->echostr) 
+			gli_stream_echo_line(win->echostr, (char *)inbuf, dwin->inlen);
+	} else {
+		for (ix=0; ix<dwin->inlen; ix++)
+			((glui32 *)inbuf)[ix] = ln->chars[dwin->inorgx+ix];
+		if (win->echostr) 
+			gli_stream_echo_line_uni(win->echostr, (glui32 *)inbuf, dwin->inlen);
+	}
 
     dwin->cury = dwin->inorgy+1;
     dwin->curx = 0;
@@ -371,6 +433,7 @@ static void acceptline(window_t *win)
 
     gli_event_store(evtype_LineInput, win, dwin->inlen, 0);
     win->line_request = FALSE;
+	win->line_request_uni = FALSE;
     dwin->inbuf = NULL;
     dwin->inmax = 0;
     dwin->inorgx = 0;

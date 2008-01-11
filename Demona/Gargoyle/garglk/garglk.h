@@ -77,15 +77,25 @@ extern int gli_cellw;
 extern int gli_cellh;
 
 /* Usurp C1 space for ligatures and smart typography glyphs */
-#define LIG_FI 128	
-#define LIG_FL 129
-#define UNI_LSQUO 130
-#define UNI_RSQUO 131
-#define UNI_LDQUO 132
-#define UNI_RDQUO 133
-#define UNI_NDASH 134
-#define UNI_MDASH 135
-#define FLOWBREAK 136
+#define ENC_LIG_FI 128	
+#define ENC_LIG_FL 129
+#define ENC_LSQUO 130
+#define ENC_RSQUO 131
+#define ENC_LDQUO 132
+#define ENC_RDQUO 133
+#define ENC_NDASH 134
+#define ENC_MDASH 135
+#define ENC_FLOWBREAK 136
+
+/* These are the Unicode versions */
+#define UNI_LIG_FI	0xFB01
+#define UNI_LIG_FL	0xFB02
+#define UNI_LSQUO	0x2018
+#define UNI_RSQUO	0x2019
+#define UNI_LDQUO	0x201c
+#define UNI_RDQUO	0x201d
+#define UNI_NDASH	0x2013
+#define UNI_MDASH	0x2014
 
 typedef struct rect_s rect_t;
 typedef struct picture_s picture_t;
@@ -211,6 +221,7 @@ struct glk_stream_struct
     glui32 rock;
 
     int type; /* file, window, or memory stream */
+    int unicode; /* one-byte or four-byte chars? Not meaningful for windows. */
 
     glui32 readcount, writecount;
     int readable, writable;
@@ -222,11 +233,11 @@ struct glk_stream_struct
     FILE *file; 
 
     /* for strtype_Memory */
-    unsigned char *buf;
-    unsigned char *bufptr;
-    unsigned char *bufend;
-    unsigned char *bufeof;
-    glui32 buflen;
+    void *buf;		/* unsigned char* for latin1, glui32* for unicode */
+    void *bufptr;
+    void *bufend;
+    void *bufeof;
+    glui32 buflen;	/* # of bytes for latin1, # of 4-byte words for unicode */
     gidispatch_rock_t arrayrock;
 
     gidispatch_rock_t disprock;
@@ -264,7 +275,9 @@ struct glk_window_struct
     stream_t *echostr; /* the window's echo stream, if any. */
 
     int line_request;
+	int line_request_uni;
     int char_request;
+	int char_request_uni;
     int mouse_request;
 
     glui32 style;
@@ -296,7 +309,7 @@ struct window_pair_s
 typedef struct tgline_s
 {
     int dirty;
-    unsigned char chars[256];
+    glui32 chars[256];
     unsigned char attrs[256];
 } tgline_t;
 
@@ -310,7 +323,7 @@ struct window_textgrid_s
     int curx, cury; /* the window cursor position */
 
     /* for line input */
-    char *inbuf;
+    void *inbuf;	/* unsigned char* for latin1, glui32* for unicode */
     int inorgx, inorgy;
     int inmax;
     int incurs, inlen;
@@ -326,7 +339,7 @@ typedef struct tbline_s
     int len, newline, dirty;
     picture_t *lpic, *rpic;
     int lm, rm;
-    unsigned char chars[TBLINELEN];
+    glui32 chars[TBLINELEN];
     unsigned char attrs[TBLINELEN];
 } tbline_t;
 
@@ -341,7 +354,7 @@ struct window_textbuffer_s
     tbline_t lines[SCROLLBACK];	/* XXX make this dynamic */
 
     int numchars;		/* number of chars in last line: lines[0] */
-    unsigned char *chars;	/* alias to lines[0].chars */
+    glui32 *chars;		/* alias to lines[0].chars */
     unsigned char *attrs;	/* alias to lines[0].attrs */
 
     /* adjust margins temporarily for images */
@@ -351,7 +364,7 @@ struct window_textbuffer_s
     int radjn;
 
     /* Command history. */
-    char *history[HISTORYLEN];
+    glui32 *history[HISTORYLEN];
     int historypos;
     int historyfirst, historypresent;
 
@@ -361,7 +374,7 @@ struct window_textbuffer_s
     int scrollmax;
 
     /* for line input */
-    char *inbuf;
+    void *inbuf;	/* unsigned char* for latin1, glui32* for unicode */
     int inmax;
     long infence;
     long incurs;
@@ -431,11 +444,12 @@ extern window_textgrid_t *win_textgrid_create(window_t *win);
 extern void win_textgrid_destroy(window_textgrid_t *dwin);
 extern void win_textgrid_rearrange(window_t *win, rect_t *box);
 extern void win_textgrid_redraw(window_t *win);
-extern void win_textgrid_putchar(window_t *win, char ch);
-extern int win_textgrid_unputchar(window_t *win, char ch);
+extern void win_textgrid_putchar_uni(window_t *win, glui32 ch);
+extern int win_textgrid_unputchar_uni(window_t *win, glui32 ch);
 extern void win_textgrid_clear(window_t *win);
 extern void win_textgrid_move_cursor(window_t *win, int xpos, int ypos);
 extern void win_textgrid_init_line(window_t *win, char *buf, int maxlen, int initlen);
+extern void win_textgrid_init_line_uni(window_t *win, glui32 *buf, int maxlen, int initlen);
 extern void win_textgrid_cancel_line(window_t *win, event_t *ev);
 extern void win_textgrid_click(window_textgrid_t *dwin, int x, int y);
 extern void gcmd_grid_accept_readchar(window_t *win, glui32 arg);
@@ -445,10 +459,11 @@ extern window_textbuffer_t *win_textbuffer_create(window_t *win);
 extern void win_textbuffer_destroy(window_textbuffer_t *dwin);
 extern void win_textbuffer_rearrange(window_t *win, rect_t *box);
 extern void win_textbuffer_redraw(window_t *win);
-extern void win_textbuffer_putchar(window_t *win, char ch);
-extern int win_textbuffer_unputchar(window_t *win, char ch);
+extern void win_textbuffer_putchar_uni(window_t *win, glui32 ch);
+extern int win_textbuffer_unputchar_uni(window_t *win, glui32 ch);
 extern void win_textbuffer_clear(window_t *win);
 extern void win_textbuffer_init_line(window_t *win, char *buf, int maxlen, int initlen);
+extern void win_textbuffer_init_line_uni(window_t *win, glui32 *buf, int maxlen, int initlen);
 extern void win_textbuffer_cancel_line(window_t *win, event_t *ev);
 extern void win_textbuffer_click(window_textbuffer_t *dwin, int x, int y);
 extern void gcmd_buffer_accept_readchar(window_t *win, glui32 arg);
@@ -465,8 +480,8 @@ extern window_t *gli_window_iterate_treeorder(window_t *win);
 
 extern void gli_window_rearrange(window_t *win, rect_t *box);
 extern void gli_window_redraw(window_t *win);
-extern void gli_window_put_char(window_t *win, char ch);
-extern int gli_window_unput_char(window_t *win, char ch);
+extern void gli_window_put_char_uni(window_t *win, glui32 ch);
+extern int gli_window_unput_char_uni(window_t *win, glui32 ch);
 
 extern void gli_windows_redraw(void);
 extern void gli_windows_size_change(void);
@@ -480,7 +495,7 @@ void gli_input_handle_click(int x, int y);
 void gli_event_store(glui32 type, window_t *win, glui32 val1, glui32 val2);
 
 extern stream_t *gli_new_stream(glui32 type, int readable, int writable, 
-    glui32 rock);
+    glui32 rock, int unicode);
 extern void gli_delete_stream(stream_t *str);
 extern stream_t *gli_stream_open_window(window_t *win);
 extern strid_t gli_stream_open_pathname(char *pathname, int textmode,
@@ -489,6 +504,7 @@ extern void gli_stream_set_current(stream_t *str);
 extern void gli_stream_fill_result(stream_t *str, 
     stream_result_t *result);
 extern void gli_stream_echo_line(stream_t *str, char *buf, glui32 len);
+extern void gli_stream_echo_line_uni(stream_t *str, glui32 *buf, glui32 len);
 
 extern fileref_t *gli_new_fileref(char *filename, glui32 usage, 
     glui32 rock);
@@ -500,6 +516,8 @@ void gli_draw_clear(unsigned char *rgb);
 void gli_draw_rect(int x, int y, int w, int h, unsigned char *rgb);
 int gli_draw_string(int x, int y, int f, unsigned char *rgb, unsigned char *text, int len, int spacewidth);
 int gli_string_width(int f, unsigned char *text, int len, int spw);
+int gli_draw_string_uni(int x, int y, int f, unsigned char *rgb, glui32 *text, int len, int spacewidth);
+int gli_string_width_uni(int f, glui32 *text, int len, int spw);
 void gli_draw_caret(int x, int y);
 void gli_draw_picture(picture_t *pic, int x, int y, int x0, int y0, int x1, int y1);
 
@@ -546,3 +564,18 @@ glui32 win_textbuffer_flow_break(window_textbuffer_t *win);
 
 void gli_calc_padding(window_t *win, int *x, int *y);
 
+/* unicode case mapping */
+
+typedef glui32 gli_case_block_t[2]; /* upper, lower */
+/* If both are 0xFFFFFFFF, you have to look at the special-case table */
+
+typedef glui32 gli_case_special_t[3]; /* upper, lower, title */
+/* Each of these points to a subarray of the unigen_special_array
+(in cgunicode.c). In that subarray, element zero is the length,
+and that's followed by length unicode values. */
+
+void gli_putchar_utf8(glui32 val, FILE *fl);
+glui32 gli_getchar_utf8(FILE *fl);
+glui32 gli_parse_utf8(unsigned char *buf, glui32 buflen, glui32 *out, glui32 outlen);
+
+glui32 strlen_uni(glui32 *s);

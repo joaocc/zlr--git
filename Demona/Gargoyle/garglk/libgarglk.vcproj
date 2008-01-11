@@ -41,7 +41,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="&quot;$(ProjectDir)..\support\jpeg-6b&quot;;&quot;$(ProjectDir)..\support\sdl&quot;;&quot;$(ProjectDir)..\support\libpng-1.2.8&quot;;&quot;$(ProjectDir)..\support\zlib-1.2.2&quot;;&quot;$(ProjectDir)..\support\freetype-2.1.10\include&quot;"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;LIBGARGLK_EXPORTS;_CRT_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_WIN32_WINNT=0x0501;_USRDLL;LIBGARGLK_EXPORTS;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -121,7 +121,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="&quot;$(ProjectDir)..\support\jpeg-6b&quot;;&quot;$(ProjectDir)..\support\sdl&quot;;&quot;$(ProjectDir)..\support\libpng-1.2.8&quot;;&quot;$(ProjectDir)..\support\zlib-1.2.2&quot;;&quot;$(ProjectDir)..\support\freetype-2.1.10\include&quot;"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBGARGLK_EXPORTS;_CRT_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_WIN32_WINNT=0x0501;_USRDLL;LIBGARGLK_EXPORTS;_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -221,6 +221,22 @@
 			<File
 				RelativePath="cgstyle.c"
 				>
+			</File>
+			<File
+				RelativePath=".\cgunicod.c"
+				>
+			</File>
+			<File
+				RelativePath=".\cgunigen.c"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="config.c"

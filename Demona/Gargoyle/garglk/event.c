@@ -65,10 +65,10 @@ void gli_input_handle_key(glui32 key)
 	    gcmd_grid_accept_readline(win, key);
 	break;
     case wintype_TextBuffer:
-	if (win->char_request)
-	    gcmd_buffer_accept_readchar(win, key);
-	if (win->line_request)
-	    gcmd_buffer_accept_readline(win, key);
+		if (win->char_request || win->char_request_uni)
+		    gcmd_buffer_accept_readchar(win, key);
+		if (win->line_request || win->line_request_uni)
+		    gcmd_buffer_accept_readline(win, key);
 	break;
     }
 }

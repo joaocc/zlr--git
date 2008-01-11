@@ -55,7 +55,9 @@ window_t *gli_new_window(glui32 type, glui32 rock)
     win->data = NULL; /* for now */
 
     win->char_request = FALSE;
+	win->char_request_uni = FALSE;
     win->line_request = FALSE;
+	win->line_request_uni = FALSE;
     win->mouse_request = FALSE;
 
     win->style = style_Normal;
@@ -781,7 +783,7 @@ void glk_request_char_event(window_t *win)
         return;
     }
 
-    if (win->char_request || win->line_request) {
+	if (win->char_request || win->line_request || win->char_request_uni || win->line_request_uni) {
         gli_strict_warning("request_char_event: window already has keyboard request");
         return;
     }
@@ -799,6 +801,31 @@ void glk_request_char_event(window_t *win)
 
 }
 
+void glk_request_char_event_uni(window_t *win)
+{
+    if (!win) {
+        gli_strict_warning("request_char_event: invalid ref");
+        return;
+    }
+
+	if (win->char_request || win->line_request || win->char_request_uni || win->line_request_uni) {
+        gli_strict_warning("request_char_event: window already has keyboard request");
+        return;
+    }
+
+    switch (win->type)
+	{
+		case wintype_TextBuffer:
+		case wintype_TextGrid:
+			win->char_request_uni = TRUE;
+			break;
+		default:
+			gli_strict_warning("request_char_event: window does not support keyboard input");
+			break;
+	}
+
+}
+
 void glk_request_line_event(window_t *win, char *buf, glui32 maxlen, 
     glui32 initlen)
 {
@@ -807,7 +834,7 @@ void glk_request_line_event(window_t *win, char *buf, glui32 maxlen,
         return;
     }
 
-    if (win->char_request || win->line_request) {
+	if (win->char_request || win->line_request || win->char_request_uni || win->line_request_uni) {
         gli_strict_warning("request_line_event: window already has keyboard request");
         return;
     }
@@ -821,6 +848,36 @@ void glk_request_line_event(window_t *win, char *buf, glui32 maxlen,
 		case wintype_TextGrid:
 			win->line_request = TRUE;
 			win_textgrid_init_line(win, buf, maxlen, initlen);
+			break;
+		default:
+			gli_strict_warning("request_line_event: window does not support keyboard input");
+			break;
+	}
+
+}
+
+void glk_request_line_event_uni(window_t *win, glui32 *buf, glui32 maxlen, 
+    glui32 initlen)
+{
+    if (!win) {
+        gli_strict_warning("request_line_event: invalid ref");
+        return;
+    }
+
+	if (win->char_request || win->line_request || win->char_request_uni || win->line_request_uni) {
+        gli_strict_warning("request_line_event: window already has keyboard request");
+        return;
+    }
+
+    switch (win->type)
+	{
+		case wintype_TextBuffer:
+			win->line_request_uni = TRUE;
+			win_textbuffer_init_line_uni(win, buf, maxlen, initlen);
+			break;
+		case wintype_TextGrid:
+			win->line_request_uni = TRUE;
+			win_textgrid_init_line_uni(win, buf, maxlen, initlen);
 			break;
 		default:
 			gli_strict_warning("request_line_event: window does not support keyboard input");
@@ -867,6 +924,7 @@ void glk_cancel_char_event(window_t *win)
 		case wintype_TextBuffer:
 		case wintype_TextGrid:
 			win->char_request = FALSE;
+			win->char_request_uni = FALSE;
 			break;
 		default:
 			/* do nothing */
@@ -947,27 +1005,29 @@ void gli_window_click(window_t *win, int x, int y)
  * Text output and cursor positioning
  */
 
-void gli_window_put_char(window_t *win, char ch)
+void gli_window_put_char_uni(window_t *win, glui32 ch)
 {
     switch (win->type)
 	{
         case wintype_TextBuffer:
-            win_textbuffer_putchar(win, ch);
+            win_textbuffer_putchar_uni(win, ch);
             break;
         case wintype_TextGrid:
-            win_textgrid_putchar(win, ch);
+            win_textgrid_putchar_uni(win, ch);
             break;
     }
 }
 
-int gli_window_unput_char(window_t *win, char ch)
+int gli_window_unput_char_uni(window_t *win, glui32 ch)
 {
     switch (win->type)
 	{
         case wintype_TextBuffer:
-            return win_textbuffer_unputchar(win, ch);
+            return win_textbuffer_unputchar_uni(win, ch);
         case wintype_TextGrid:
-            return win_textgrid_unputchar(win, ch);
+            return win_textgrid_unputchar_uni(win, ch);
+		default:
+			return FALSE;
     }
 }
 
@@ -978,7 +1038,7 @@ void glk_window_clear(window_t *win)
 		return;
 	}
 
-	if (win->line_request) {
+	if (win->line_request || win->line_request_uni) {
 		gli_strict_warning("window_clear: window has pending line request");
 		return;
 	}

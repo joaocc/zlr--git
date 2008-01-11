@@ -22,6 +22,7 @@ typedef signed long glsi32;
 
 /* These are the compile-time conditionals that reveal various Glk optional
     modules. */
+#define GLK_MODULE_UNICODE
 #define GLK_MODULE_IMAGE
 #define GLK_MODULE_SOUND
 #define GLK_MODULE_HYPERLINKS
@@ -51,6 +52,7 @@ typedef struct glk_schannel_struct *schanid_t;
 #define gestalt_HyperlinkInput (12)
 #define gestalt_SoundMusic (13)
 #define gestalt_GraphicsTransparency (14)
+#define gestalt_Unicode (15)
 
 #define evtype_None (0)
 #define evtype_Timer (1)
@@ -262,6 +264,37 @@ extern void glk_request_mouse_event(winid_t win);
 extern void glk_cancel_line_event(winid_t win, event_t *event);
 extern void glk_cancel_char_event(winid_t win);
 extern void glk_cancel_mouse_event(winid_t win); 
+
+#ifdef GLK_MODULE_UNICODE
+
+extern glui32 glk_buffer_to_lower_case_uni(glui32 *buf, glui32 len,
+    glui32 numchars);
+extern glui32 glk_buffer_to_upper_case_uni(glui32 *buf, glui32 len,
+    glui32 numchars);
+extern glui32 glk_buffer_to_title_case_uni(glui32 *buf, glui32 len,
+    glui32 numchars, glui32 lowerrest);
+
+extern void glk_put_char_uni(glui32 ch);
+extern void glk_put_string_uni(glui32 *s);
+extern void glk_put_buffer_uni(glui32 *buf, glui32 len);
+extern void glk_put_char_stream_uni(strid_t str, glui32 ch);
+extern void glk_put_string_stream_uni(strid_t str, glui32 *s);
+extern void glk_put_buffer_stream_uni(strid_t str, glui32 *buf, glui32 len);
+
+extern glsi32 glk_get_char_stream_uni(strid_t str);
+extern glui32 glk_get_buffer_stream_uni(strid_t str, glui32 *buf, glui32 len);
+extern glui32 glk_get_line_stream_uni(strid_t str, glui32 *buf, glui32 len);
+
+extern strid_t glk_stream_open_file_uni(frefid_t fileref, glui32 fmode,
+    glui32 rock);
+extern strid_t glk_stream_open_memory_uni(glui32 *buf, glui32 buflen,
+    glui32 fmode, glui32 rock);
+
+extern void glk_request_char_event_uni(winid_t win);
+extern void glk_request_line_event_uni(winid_t win, glui32 *buf,
+    glui32 maxlen, glui32 initlen);
+
+#endif /* GLK_MODULE_UNICODE */
 
 #ifdef GLK_MODULE_IMAGE
 

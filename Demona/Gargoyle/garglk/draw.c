@@ -20,6 +20,7 @@ void gli_get_builtin_font(int idx, unsigned char **ptr, unsigned int *len);
 
 typedef struct font_s font_t;
 typedef struct bitmap_s bitmap_t;
+typedef struct fentry_s fentry_t;
 
 struct bitmap_s
 {
@@ -27,12 +28,21 @@ struct bitmap_s
     unsigned char *data;
 };
 
+struct fentry_s
+{
+	glui32 cid;
+	int adv;
+	bitmap_t glyph[GLI_SUBPIX];
+};
+
 struct font_s
 {
     FT_Face face;
-	char loaded[256];
-    int advs[256];
-    bitmap_t glyphs[256][GLI_SUBPIX];
+	bitmap_t lowglyphs[256][GLI_SUBPIX];
+	int lowadvs[256];
+	unsigned char lowloaded[256/8];
+	fentry_t *highentries;
+	int num_highentries, alloced_highentries;
 };
 
 /*
@@ -61,14 +71,14 @@ static int touni(int enc)
 {
 	switch (enc)
 	{
-		case LIG_FI: return 0xFB01;
-		case LIG_FL: return 0xFB02;
-		case UNI_LSQUO: return 0x2018;
-		case UNI_RSQUO: return 0x2019;
-		case UNI_LDQUO: return 0x201c;
-		case UNI_RDQUO: return 0x201d;
-		case UNI_NDASH: return 0x2013;
-		case UNI_MDASH: return 0x2014;
+		case ENC_LIG_FI: return UNI_LIG_FI;
+		case ENC_LIG_FL: return UNI_LIG_FL;
+		case ENC_LSQUO: return UNI_LSQUO;
+		case ENC_RSQUO: return UNI_RSQUO;
+		case ENC_LDQUO: return UNI_LDQUO;
+		case ENC_RDQUO: return UNI_RDQUO;
+		case ENC_NDASH: return UNI_NDASH;
+		case ENC_MDASH: return UNI_MDASH;
 	}
 	return enc;
 }
@@ -110,17 +120,29 @@ static void gammacopy_lcd(unsigned char *dst, unsigned char *src, int w, int h, 
     }
 }
 
-static void loadglyph(font_t *f, int enc)
+static int findhighglyph(glui32 cid, fentry_t *entries, int length)
+{
+	int start = 0, end = length, mid;
+	while (start < end) {
+		mid = (start + end) / 2;
+		if (entries[mid].cid == cid)
+			return mid;
+		else if (entries[mid].cid < cid)
+			start = mid + 1;
+		else
+			end = mid;
+	}
+	return ~mid;
+}
+
+static void loadglyph(font_t *f, glui32 cid)
 {
 	FT_Vector v;
 	int err;
-	int cid;
-	int gid;
+	glui32 gid;
 	int x;
-
-	f->loaded[enc] = 1;
-
-	cid = touni(enc);
+	bitmap_t glyphs[GLI_SUBPIX];
+	int adv;
 
 	gid = FT_Get_Char_Index(f->face, cid);
 	if (gid <= 0)
@@ -145,24 +167,59 @@ static void loadglyph(font_t *f, int enc)
 		if (err)
 			winabort("FT_Render_Glyph");
 
-		f->advs[enc] = (f->face->glyph->advance.x * GLI_SUBPIX + 32) / 64;
+		adv = (f->face->glyph->advance.x * GLI_SUBPIX + 32) / 64;
 
-		f->glyphs[enc][x].lsb = f->face->glyph->bitmap_left;
-		f->glyphs[enc][x].top = f->face->glyph->bitmap_top;
-		f->glyphs[enc][x].w = f->face->glyph->bitmap.width;
-		f->glyphs[enc][x].h = f->face->glyph->bitmap.rows;
-		f->glyphs[enc][x].pitch = f->face->glyph->bitmap.pitch;
-		f->glyphs[enc][x].data =
-			malloc(f->glyphs[enc][x].pitch * f->glyphs[enc][x].h);
+		glyphs[x].lsb = f->face->glyph->bitmap_left;
+		glyphs[x].top = f->face->glyph->bitmap_top;
+		glyphs[x].w = f->face->glyph->bitmap.width;
+		glyphs[x].h = f->face->glyph->bitmap.rows;
+		glyphs[x].pitch = f->face->glyph->bitmap.pitch;
+		glyphs[x].data =
+			malloc(glyphs[x].pitch * glyphs[x].h);
                 if (gli_conf_lcd)
-                    gammacopy_lcd(f->glyphs[enc][x].data,
+                    gammacopy_lcd(glyphs[x].data,
                             f->face->glyph->bitmap.buffer,
-                            f->glyphs[enc][x].w, f->glyphs[enc][x].h, f->glyphs[enc][x].pitch);
+                            glyphs[x].w, glyphs[x].h, glyphs[x].pitch);
                 else
-                    gammacopy(f->glyphs[enc][x].data,
+                    gammacopy(glyphs[x].data,
                             f->face->glyph->bitmap.buffer,
-                            f->glyphs[enc][x].pitch * f->glyphs[enc][x].h);
-        }
+                            glyphs[x].pitch * glyphs[x].h);
+    }
+
+	if (cid < 256) {
+		f->lowloaded[cid/8] |= (1 << (cid%8));
+		f->lowadvs[cid] = adv;
+		memcpy(f->lowglyphs[cid], glyphs, sizeof glyphs);
+	} else {
+		int idx = findhighglyph(cid, f->highentries, f->num_highentries);
+		if (idx < 0) {
+			idx = ~idx;
+
+			/* make room if needed */
+			if (f->alloced_highentries == f->num_highentries) {
+				fentry_t *newentries;
+				int newsize = f->alloced_highentries * 2;
+				if (!newsize)
+					newsize = 2;
+				newentries = malloc(newsize * sizeof(fentry_t));
+				if (!newentries)
+					return;
+				if (f->highentries) {
+					memcpy(newentries, f->highentries, f->num_highentries * sizeof(fentry_t));
+					free(f->highentries);
+				}
+				f->highentries = newentries;
+				f->alloced_highentries = newsize;
+			}
+
+			/* insert new glyph */
+			memmove(&f->highentries[idx+1], &f->highentries[idx], (f->num_highentries - idx) * sizeof(fentry_t));
+			f->highentries[idx].cid = cid;
+			f->highentries[idx].adv = adv;
+			memcpy(f->highentries[idx].glyph, glyphs, sizeof glyphs);
+			f->num_highentries++;
+		}
+	}
 }
 
 static void loadfont(font_t *f, char *name, float size, float aspect)
@@ -223,8 +280,10 @@ static void loadfont(font_t *f, char *name, float size, float aspect)
 	if (err)
 		winabort("FT_Select_CharMap: %s", name);
 
-	for (i = 0; i < 256; i++)
-		f->loaded[i] = 0;
+	memset(f->lowloaded, 0, sizeof f->lowloaded);
+	f->alloced_highentries = 0;
+	f->num_highentries = 0;
+	f->highentries = NULL;
 }
 
 #if 0
@@ -271,7 +330,7 @@ void gli_initialize_fonts(void)
 	loadglyph(&gfont_table[0], '0');
 
 	gli_cellh = gli_leading;
-	gli_cellw = (gfont_table[0].advs['0'] + GLI_SUBPIX - 1) / GLI_SUBPIX;
+	gli_cellw = (gfont_table[0].lowadvs['0'] + GLI_SUBPIX - 1) / GLI_SUBPIX;
 }
 
 /*
@@ -425,6 +484,23 @@ static int charkern(font_t *f, int c0, int c1)
 	return (v.x * GLI_SUBPIX) / 64.0;
 }
 
+static void getglyph(font_t *f, glui32 cid, int *adv, bitmap_t **glyphs)
+{
+	if (cid < 256) {
+		if ((f->lowloaded[cid/8] & (1 << (cid%8))) == 0)
+			loadglyph(f, cid);
+		*adv = f->lowadvs[cid];
+		*glyphs = f->lowglyphs[cid];
+	} else {
+		int idx = findhighglyph(cid, f->highentries, f->num_highentries);
+		if (idx < 0) {
+			loadglyph(f, cid);
+			idx = ~idx;
+		}
+		*adv = f->highentries[idx].adv;
+		*glyphs = f->highentries[idx].glyph;
+	}
+}
 
 int gli_string_width(int fidx, unsigned char *s, int n, int spw)
 {
@@ -433,20 +509,21 @@ int gli_string_width(int fidx, unsigned char *s, int n, int spw)
 	int prev = -1;
 	int w = 0;
 
-	if ( FT_Get_Char_Index(f->face, 0xFB01) == 0 )
+	if ( FT_Get_Char_Index(f->face, UNI_LIG_FI) == 0 )
 		dolig = 0;
-	if ( FT_Get_Char_Index(f->face, 0xFB02) == 0 )
+	if ( FT_Get_Char_Index(f->face, UNI_LIG_FL) == 0 )
 		dolig = 0;
 
 	while (n--)
 	{
+		bitmap_t *glyphs;
+		int adv;
 		int c = *s++;
 
-		if (dolig && n && c == 'f' && *s == 'i') { c = LIG_FI; s++; n--; }
-		if (dolig && n && c == 'f' && *s == 'l') { c = LIG_FL; s++; n--; }
+		if (dolig && n && c == 'f' && *s == 'i') { c = UNI_LIG_FI; s++; n--; }
+		if (dolig && n && c == 'f' && *s == 'l') { c = UNI_LIG_FL; s++; n--; }
 
-		if (!f->loaded[c])
-			loadglyph(f, c);
+		getglyph(f, c, &adv, &glyphs);
 
 		if (prev != -1)
 			w += charkern(f, prev, c);
@@ -454,7 +531,7 @@ int gli_string_width(int fidx, unsigned char *s, int n, int spw)
 		if (spw >= 0 && c == ' ')
 			w += spw;
 		else
-			w += f->advs[c];
+			w += adv;
 
 		prev = c;
 	}
@@ -468,23 +545,25 @@ int gli_draw_string(int x, int y, int fidx, unsigned char *rgb,
 	font_t *f = &gfont_table[fidx];
 	int dolig = ! FT_IS_FIXED_WIDTH(f->face);
 	int prev = -1;
-	int c;
+	glui32 c;
 	int px, sx;
 
-	if ( FT_Get_Char_Index(f->face, 0xFB01) == 0 )
+	if ( FT_Get_Char_Index(f->face, UNI_LIG_FI) == 0 )
 		dolig = 0;
-	if ( FT_Get_Char_Index(f->face, 0xFB02) == 0 )
+	if ( FT_Get_Char_Index(f->face, UNI_LIG_FL) == 0 )
 		dolig = 0;
 
 	while (n--)
 	{
+		bitmap_t *glyphs;
+		int adv;
+
 		c = *s++;
 
-		if (dolig && n && c == 'f' && *s == 'i') { c = LIG_FI; s++; n--; }
-		if (dolig && n && c == 'f' && *s == 'l') { c = LIG_FL; s++; n--; }
+		if (dolig && n && c == 'f' && *s == 'i') { c = UNI_LIG_FI; s++; n--; }
+		if (dolig && n && c == 'f' && *s == 'l') { c = UNI_LIG_FL; s++; n--; }
 
-		if (!f->loaded[c])
-			loadglyph(f, c);
+		getglyph(f, c, &adv, &glyphs);
 
 		if (prev != -1)
 			x += charkern(f, prev, c);
@@ -493,19 +572,104 @@ int gli_draw_string(int x, int y, int fidx, unsigned char *rgb,
 		sx = x % GLI_SUBPIX;
 
                 if (gli_conf_lcd)
-                    draw_bitmap_lcd(&f->glyphs[c][sx], px, y, rgb);
+                    draw_bitmap_lcd(&glyphs[sx], px, y, rgb);
                 else
-                    draw_bitmap(&f->glyphs[c][sx], px, y, rgb);
+                    draw_bitmap(&glyphs[sx], px, y, rgb);
 
 		if (spw >= 0 && c == ' ')
 			x += spw;
 		else
-			x += f->advs[c];
+			x += adv;
 
 		prev = c;
 	}
 
 	return x;
+}
+
+int gli_draw_string_uni(int x, int y, int fidx, unsigned char *rgb,
+		glui32 *s, int n, int spw)
+{
+	font_t *f = &gfont_table[fidx];
+	int dolig = ! FT_IS_FIXED_WIDTH(f->face);
+	int prev = -1;
+	glui32 c;
+	int px, sx;
+
+	if ( FT_Get_Char_Index(f->face, UNI_LIG_FI) == 0 )
+		dolig = 0;
+	if ( FT_Get_Char_Index(f->face, UNI_LIG_FL) == 0 )
+		dolig = 0;
+
+	while (n--)
+	{
+		bitmap_t *glyphs;
+		int adv;
+
+		c = *s++;
+
+		if (dolig && n && c == 'f' && *s == 'i') { c = UNI_LIG_FI; s++; n--; }
+		if (dolig && n && c == 'f' && *s == 'l') { c = UNI_LIG_FL; s++; n--; }
+
+		getglyph(f, c, &adv, &glyphs);
+
+		if (prev != -1)
+			x += charkern(f, prev, c);
+
+		px = x / GLI_SUBPIX;
+		sx = x % GLI_SUBPIX;
+
+                if (gli_conf_lcd)
+                    draw_bitmap_lcd(&glyphs[sx], px, y, rgb);
+                else
+                    draw_bitmap(&glyphs[sx], px, y, rgb);
+
+		if (spw >= 0 && c == ' ')
+			x += spw;
+		else
+			x += adv;
+
+		prev = c;
+	}
+
+	return x;
+}
+
+int gli_string_width_uni(int fidx, glui32 *s, int n, int spw)
+{
+	font_t *f = &gfont_table[fidx];
+	int dolig = ! FT_IS_FIXED_WIDTH(f->face);
+	int prev = -1;
+	int w = 0;
+
+	if ( FT_Get_Char_Index(f->face, UNI_LIG_FI) == 0 )
+		dolig = 0;
+	if ( FT_Get_Char_Index(f->face, UNI_LIG_FL) == 0 )
+		dolig = 0;
+
+	while (n--)
+	{
+		bitmap_t *glyphs;
+		int adv;
+		int c = *s++;
+
+		if (dolig && n && c == 'f' && *s == 'i') { c = UNI_LIG_FI; s++; n--; }
+		if (dolig && n && c == 'f' && *s == 'l') { c = UNI_LIG_FL; s++; n--; }
+
+		getglyph(f, c, &adv, &glyphs);
+
+		if (prev != -1)
+			w += charkern(f, prev, c);
+
+		if (spw >= 0 && c == ' ')
+			w += spw;
+		else
+			w += adv;
+
+		prev = c;
+	}
+
+	return w;
 }
 
 void gli_draw_caret(int x, int y)
