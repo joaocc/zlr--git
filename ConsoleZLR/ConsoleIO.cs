@@ -474,11 +474,31 @@ namespace ZLR.Interfaces.SystemConsole
 
         public void SplitWindow(short lines)
         {
+            if (lines < 0)
+                lines = 0;
+
             split = Math.Min(lines, Console.WindowHeight);
             if (split == 0)
                 Console.BufferHeight = origBufHeight;
             else
                 Console.BufferHeight = Console.WindowHeight;
+
+            if (upper)
+            {
+                if (Console.CursorTop >= split)
+                {
+                    Console.CursorTop = Math.Max(split - 1, 0);
+                    Console.CursorLeft = 0;
+                }
+            }
+            else
+            {
+                if (Console.CursorTop < split && split < Console.WindowHeight)
+                {
+                    Console.CursorTop = split;
+                    Console.CursorLeft = 0;
+                }
+            }
         }
 
         public void SelectWindow(short num)
@@ -1030,7 +1050,7 @@ namespace ZLR.Interfaces.SystemConsole
 
         private void CheckMore()
         {
-            if (Console.CursorLeft == 0)
+            if (!upper && Console.CursorLeft == 0)
             {
                 lineCount++;
                 if (lineCount >= Console.WindowHeight - split - 1)
