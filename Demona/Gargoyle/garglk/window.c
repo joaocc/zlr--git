@@ -17,6 +17,21 @@ window_t *gli_focuswin = NULL; /* The window selected by the player */
 
 void (*gli_interrupt_handler)(void) = NULL;
 
+/* RGB color values for garglk_set_zcolors(), from Z-machine standard 1.1 draft 9 */
+static unsigned char zcolor_rgb[][3] = {
+	{ 0, 0, 0 },		/* zcolor_Black */
+	{ 239, 0, 0 },		/* zcolor_Red */
+	{ 0, 214, 0 },		/* zcolor_Green */
+	{ 239, 239, 0 },	/* zcolor_Yellow */
+	{ 0, 107, 181 },	/* zcolor_Blue */
+	{ 255, 0, 255 },	/* zcolor_Magenta */
+	{ 0, 239, 239 },	/* zcolor_Cyan */
+	{ 255, 255, 255 },	/* zcolor_White */
+	{ 181, 181, 181 },	/* zcolor_LightGrey */
+	{ 140, 140, 140 },	/* zcolor_MediumGrey */
+	{ 90, 90, 90 },		/* zcolor_DarkGrey */
+};
+
 /* Set up the window system. This is called from main(). */
 void gli_initialize_windows()
 {
@@ -61,7 +76,7 @@ window_t *gli_new_window(glui32 type, glui32 rock)
 	win->line_terminators = NULL;
     win->mouse_request = FALSE;
 
-    win->style = style_Normal;
+	attrset(&win->attr, style_Normal);
 
     win->str = gli_stream_open_window(win);
     win->echostr = NULL;
@@ -1222,3 +1237,58 @@ void glk_window_set_background_color(winid_t win, glui32 color)
 	win_graphics_set_background_color(win->data, color);
 }
 
+void attrset(attr_t *attr, glui32 style)
+{
+	attr->bgcolor = 0;
+	attr->fgcolor = 0;
+	attr->reverse = FALSE;
+	attr->style = style;
+}
+
+int attrfont(style_t *styles, attr_t *attr)
+{
+	return styles[attr->style].font;
+}
+
+unsigned char *attrbg(style_t *styles, attr_t *attr)
+{
+	if (!attr->reverse) {
+		if (attr->bgcolor > zcolor_Default && attr->bgcolor < zcolor_NUMCOLORS)
+			return zcolor_rgb[attr->bgcolor - zcolor_Black];
+		else
+			return styles[attr->style].bg;
+	} else {
+		if (attr->fgcolor > zcolor_Default && attr->fgcolor < zcolor_NUMCOLORS)
+			return zcolor_rgb[attr->fgcolor - zcolor_Black];
+		else
+			return styles[attr->style].fg;
+	}
+}
+
+unsigned char *attrfg(style_t *styles, attr_t *attr)
+{
+	if (!attr->reverse) {
+		if (attr->fgcolor > zcolor_Default && attr->fgcolor < zcolor_NUMCOLORS)
+			return zcolor_rgb[attr->fgcolor - zcolor_Black];
+		else
+			return styles[attr->style].fg;
+	} else {
+		if (attr->bgcolor > zcolor_Default && attr->bgcolor < zcolor_NUMCOLORS)
+			return zcolor_rgb[attr->bgcolor - zcolor_Black];
+		else
+			return styles[attr->style].bg;
+	}
+}
+
+int attrequal(attr_t *a1, attr_t *a2)
+{
+	if (a1->style != a2->style)
+		return FALSE;
+	if (a1->reverse != a2->reverse)
+		return FALSE;
+	if (a1->fgcolor != a2->fgcolor)
+		return FALSE;
+	if (a1->bgcolor != a2->bgcolor)
+		return FALSE;
+	return TRUE;
+}

@@ -393,4 +393,22 @@ extern void garglk_set_line_terminators(winid_t win, const glui32 *keycodes, glu
 extern void garglk_unput_string(char *str);
 extern void garglk_unput_string_uni(glui32 *str);
 
+#define zcolor_Current		(0)
+#define zcolor_Default		(1)
+#define zcolor_Black		(2)
+#define zcolor_Red			(3)
+#define zcolor_Green		(4)
+#define zcolor_Yellow		(5)
+#define zcolor_Blue			(6)
+#define zcolor_Magenta		(7)
+#define zcolor_Cyan			(8)
+#define zcolor_White		(9)
+#define zcolor_LightGrey	(10)
+#define zcolor_MediumGrey	(11)
+#define zcolor_DarkGrey		(12)
+#define zcolor_NUMCOLORS	(13)
+
+extern void garglk_set_zcolors(glui32 fg, glui32 bg);
+extern void garglk_set_reversevideo(glui32 reverse);
+
 #endif /* GLK_H */

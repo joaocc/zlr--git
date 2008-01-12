@@ -261,6 +261,15 @@ struct glk_fileref_struct
  * Windows and all that
  */
 
+typedef struct attr_s
+{
+	unsigned bgcolor : 4;
+	unsigned fgcolor : 4;
+	unsigned style   : 4;
+	unsigned reverse : 1;
+	unsigned		 : 3;
+} attr_t;
+
 struct glk_window_struct
 {
     glui32 magicnum;
@@ -281,7 +290,7 @@ struct glk_window_struct
 	int char_request_uni;
     int mouse_request;
 
-    glui32 style;
+    attr_t attr;
 
     gidispatch_rock_t disprock;
     window_t *next, *prev; /* in the big linked list of windows */
@@ -311,7 +320,7 @@ typedef struct tgline_s
 {
     int dirty;
     glui32 chars[256];
-    unsigned char attrs[256];
+    attr_t attrs[256];
 } tgline_t;
 
 struct window_textgrid_s
@@ -328,7 +337,7 @@ struct window_textgrid_s
     int inorgx, inorgy;
     int inmax;
     int incurs, inlen;
-    glui32 origstyle;
+    attr_t origattr;
     gidispatch_rock_t inarrayrock;
 
 	/* style hints and settings */
@@ -341,7 +350,7 @@ typedef struct tbline_s
     picture_t *lpic, *rpic;
     int lm, rm;
     glui32 chars[TBLINELEN];
-    unsigned char attrs[TBLINELEN];
+    attr_t attrs[TBLINELEN];
 } tbline_t;
 
 struct window_textbuffer_s
@@ -356,7 +365,7 @@ struct window_textbuffer_s
 
     int numchars;		/* number of chars in last line: lines[0] */
     glui32 *chars;		/* alias to lines[0].chars */
-    unsigned char *attrs;	/* alias to lines[0].attrs */
+    attr_t *attrs;		/* alias to lines[0].attrs */
 
     /* adjust margins temporarily for images */
     int ladjw;
@@ -379,7 +388,7 @@ struct window_textbuffer_s
     int inmax;
     long infence;
     long incurs;
-    glui32 origstyle;
+    attr_t origattr;
     gidispatch_rock_t inarrayrock;
 
 	/* style hints and settings */
@@ -580,3 +589,9 @@ glui32 gli_getchar_utf8(FILE *fl);
 glui32 gli_parse_utf8(unsigned char *buf, glui32 buflen, glui32 *out, glui32 outlen);
 
 glui32 strlen_uni(glui32 *s);
+
+void attrset(attr_t *attr, glui32 style);
+int attrequal(attr_t *a1, attr_t *a2);
+unsigned char *attrfg(style_t *styles, attr_t *attr);
+unsigned char *attrbg(style_t *styles, attr_t *attr);
+int attrfont(style_t *styles, attr_t *attr);

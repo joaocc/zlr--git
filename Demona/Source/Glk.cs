@@ -237,6 +237,24 @@ namespace ZLR.Interfaces.Demona
         NotFound = 6,
     }
 
+    // zcolor_* constants
+    internal enum Zcolor
+    {
+        Current = 0,
+        Default = 1,
+        Black = 2,
+        Red = 3,
+        Green = 4,
+        Yellow = 5,
+        Blue = 6,
+        Magenta = 7,
+        Cyan = 8,
+        White = 9,
+        LightGrey = 10,
+        MediumGrey = 11,
+        DarkGrey = 12,
+    }
+
     // import the Glk functions from a DLL
     internal static class Glk
     {
@@ -549,6 +567,10 @@ namespace ZLR.Interfaces.Demona
         }
         [DllImport(GLKDLL)]
         public static extern void garglk_set_line_terminators(winid_t win, [In] KeyCode[] keycodes, uint numkeycodes);
+        [DllImport(GLKDLL)]
+        public static extern void garglk_set_zcolors(Zcolor fg, Zcolor bg);
+        [DllImport(GLKDLL)]
+        public static extern void garglk_set_reversevideo(bool reverse);
 
         #endregion
 

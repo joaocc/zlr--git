@@ -17,7 +17,7 @@ namespace ZLR.Interfaces.Demona
         private bool forceFixed;
         private int xpos, ypos; // in Glk coordinates (i.e. counting from 0)
         private uint screenWidth, screenHeight;
-        private TextStyle lastStyle;
+        private Style lastStyle = Style.Normal;
         private int targetSplit;
 
         private frefid_t transcriptFile;
@@ -590,54 +590,123 @@ namespace ZLR.Interfaces.Demona
         {
             Style glkStyle;
 
-            // the full range of styles is only available when force fixed is off, or
-            // when the upper window is selected (since force fixed has no effect there)
-            if (!forceFixed || currentWin == upperWin)
+            switch (style)
             {
-                switch (style)
+                case TextStyle.Roman:
+                    glkStyle = Style.Normal;
+                    Glk.garglk_set_reversevideo(false);
+                    break;
+
+                case TextStyle.Reverse:
+                    Glk.garglk_set_reversevideo(true);
+                    return;
+
+                case TextStyle.Bold:
+                    switch (lastStyle)
+                    {
+                        case Style.Normal:
+                            glkStyle = Style.Subheader; // prop bold
+                            break;
+
+                        case Style.Emphasized:
+                            glkStyle = Style.Alert; // prop bold+italic
+                            break;
+
+                        case Style.Preformatted:
+                            glkStyle = Style.Header; // fixed bold
+                            break;
+
+                        case Style.Note:
+                            glkStyle = Style.User1; // fixed bold+italic
+                            break;
+
+                        default:
+                            return;
+                    }
+                    break;
+
+                case TextStyle.Italic:
+                    switch (lastStyle)
+                    {
+                        case Style.Normal:
+                            glkStyle = Style.Emphasized; // prop italic
+                            break;
+
+                        case Style.Subheader:
+                            glkStyle = Style.Alert; // prop bold+italic
+                            break;
+
+                        case Style.Preformatted:
+                            glkStyle = Style.Normal; // fixed italic
+                            break;
+
+                        case Style.Header:
+                            glkStyle = Style.User1; // fixed bold+italic
+                            break;
+
+                        default:
+                            return;
+                    }
+                    break;
+
+                case TextStyle.FixedPitch:
+                    switch (lastStyle)
+                    {
+                        case Style.Normal:
+                            glkStyle = Style.Preformatted; // fixed roman
+                            break;
+
+                        case Style.Subheader:
+                            glkStyle = Style.Header; // fixed bold
+                            break;
+
+                        case Style.Emphasized:
+                            glkStyle = Style.Note; // fixed italic
+                            break;
+
+                        case Style.Alert:
+                            glkStyle = Style.User1; // fixed bold+italic
+                            break;
+
+                        default:
+                            return;
+                    }
+                    break;
+
+                default:
+                    return;
+            }
+
+            lastStyle = glkStyle;
+            RefreshTextStyle();
+        }
+
+        private void RefreshTextStyle()
+        {
+            Style glkStyle = lastStyle;
+
+            if (forceFixed)
+            {
+                switch (glkStyle)
                 {
-                    case TextStyle.Roman:
-                        glkStyle = Style.Normal;
+                    case Style.Normal:
+                        glkStyle = Style.Preformatted; // fixed roman
                         break;
 
-                    case TextStyle.Reverse:
-                        glkStyle = Style.User1;
+                    case Style.Subheader:
+                        glkStyle = Style.Header; // fixed bold
                         break;
 
-                    case TextStyle.Bold:
-                        glkStyle = Style.Subheader;
+                    case Style.Emphasized:
+                        glkStyle = Style.Note; // fixed italic
                         break;
 
-                    case TextStyle.Italic:
-                        glkStyle = Style.Emphasized;
+                    case Style.Alert:
+                        glkStyle = Style.User1; // fixed bold+italic
                         break;
-
-                    case TextStyle.FixedPitch:
-                        glkStyle = Style.Preformatted;
-                        break;
-
-                    default:
-                        return;
                 }
             }
-            else
-            {
-                // when force fixed is on in the lower window, just choose between preformatted and bold-preformatted
-                switch (style)
-                {
-                    case TextStyle.Reverse:
-                    case TextStyle.Bold:
-                    case TextStyle.Italic:
-                        glkStyle = Style.User2;
-                        break;
 
-                    default:
-                        glkStyle = Style.Preformatted;
-                        break;
-                }
-            }
-
-            lastStyle = style;
             Glk.glk_set_style(glkStyle);
         }
 
@@ -789,7 +858,7 @@ namespace ZLR.Interfaces.Demona
 
         void IZMachineIO.SetColors(short fg, short bg)
         {
-            // not supported
+            Glk.garglk_set_zcolors((Zcolor)fg, (Zcolor)bg);
         }
 
         short IZMachineIO.SetFont(short num)
@@ -866,7 +935,7 @@ namespace ZLR.Interfaces.Demona
                 if (forceFixed != value)
                 {
                     forceFixed = value;
-                    ((IZMachineIO)this).SetTextStyle(lastStyle);
+                    RefreshTextStyle();
                 }
             }
         }
@@ -893,7 +962,7 @@ namespace ZLR.Interfaces.Demona
 
         bool IZMachineIO.ColorsAvailable
         {
-            get { return false; }
+            get { return true; }
         }
 
         bool IZMachineIO.SoundSamplesAvailable
@@ -957,12 +1026,12 @@ namespace ZLR.Interfaces.Demona
 
         byte IZMachineIO.DefaultForeground
         {
-            get { return 9; }
+            get { return (byte)Zcolor.Black; }
         }
 
         byte IZMachineIO.DefaultBackground
         {
-            get { return 2; }
+            get { return (byte)Zcolor.White; }
         }
 
         UnicodeCaps IZMachineIO.CheckUnicode(char ch)

@@ -67,10 +67,10 @@ void win_textgrid_rearrange(window_t *win, rect_t *box)
     {
 		for (i = 0; i < sizeof(dwin->lines[k].chars) / sizeof(glui32); i++)
 			dwin->lines[k].chars[i] = ' ';
-		memset(dwin->lines[k].attrs, style_Normal, sizeof dwin->lines[k].attrs);
+		memset(dwin->lines[k].attrs, 0, sizeof dwin->lines[k].attrs);
     }
 
-	dwin->owner->style = style_Normal;
+	attrset(&dwin->owner->attr, style_Normal);
     dwin->width = newwid;
     dwin->height = newhgt;
 
@@ -79,7 +79,7 @@ void win_textgrid_rearrange(window_t *win, rect_t *box)
 		touch(dwin, k);
 		for (i = dwin->width; i < sizeof(dwin->lines[0].chars) / sizeof(glui32); i++) {
 			dwin->lines[k].chars[i] = ' ';
-			dwin->lines[k].attrs[i] = style_Normal;
+			attrset(&dwin->lines[k].attrs[i], style_Normal);
 		}
     }
 }
@@ -111,10 +111,10 @@ void win_textgrid_redraw(window_t *win)
 	    {
 		x = x0 + k * gli_cellw;
 		gli_draw_rect(x, y, gli_cellw, gli_leading,
-			dwin->styles[ln->attrs[k]].bg);
+			attrbg(dwin->styles, &ln->attrs[k]));
 		gli_draw_string_uni(x * GLI_SUBPIX, y + gli_baseline,
-			dwin->styles[ln->attrs[k]].font,
-			dwin->styles[ln->attrs[k]].fg,	
+			attrfont(dwin->styles, &ln->attrs[k]),
+			attrfg(dwin->styles, &ln->attrs[k]),
 			ln->chars + k, 1, -1);
 	    }
 	}
@@ -150,7 +150,7 @@ void win_textgrid_putchar_uni(window_t *win, glui32 ch)
 
     ln = &(dwin->lines[dwin->cury]);
     ln->chars[dwin->curx] = ch;
-    ln->attrs[dwin->curx] = (unsigned char)win->style;
+    ln->attrs[dwin->curx] = win->attr;
 
     dwin->curx++;
     /* We can leave the cursor outside the window, since it will be
@@ -192,7 +192,7 @@ int win_textgrid_unputchar_uni(window_t *win, glui32 ch)
     ln = &(dwin->lines[dwin->cury]);
 	if (ln->chars[dwin->curx] == ch) {
 		ln->chars[dwin->curx] = ' ';
-		ln->attrs[dwin->curx] = style_Normal;
+		attrset(&ln->attrs[dwin->curx], style_Normal);
 	    touch(dwin, dwin->cury);
 		return TRUE; /* deleted the char */
 	} else {
@@ -212,7 +212,7 @@ void win_textgrid_clear(window_t *win)
 	touch(dwin, k);
 	for (j = 0; j < sizeof dwin->lines[k].chars; j++)
 		dwin->lines[k].chars[j] = ' ';
-	memset(dwin->lines[k].attrs, style_Normal, sizeof dwin->lines[k].attrs);
+	memset(dwin->lines[k].attrs, 0, sizeof dwin->lines[k].attrs);
     }
 
     dwin->curx = 0;
@@ -263,8 +263,8 @@ void win_textgrid_init_line(window_t *win, char *buf, int maxlen, int initlen)
     dwin->incurs = 0;
     dwin->inorgx = dwin->curx;
     dwin->inorgy = dwin->cury;
-    dwin->origstyle = win->style;
-    win->style = style_Input;
+    dwin->origattr = win->attr;
+	attrset(&win->attr, style_Input);
 
     if (initlen > maxlen)
 	initlen = maxlen;
@@ -275,7 +275,7 @@ void win_textgrid_init_line(window_t *win, char *buf, int maxlen, int initlen)
 	tgline_t *ln = &(dwin->lines[dwin->inorgy]);
 
 	for (ix=0; ix<initlen; ix++) {
-	    ln->attrs[dwin->inorgx+ix] = style_Input;
+		attrset(&ln->attrs[dwin->inorgx+ix], style_Input);
 	    ln->chars[dwin->inorgx+ix] = buf[ix];
 	}
 
@@ -305,8 +305,8 @@ void win_textgrid_init_line_uni(window_t *win, glui32 *buf, int maxlen, int init
     dwin->incurs = 0;
     dwin->inorgx = dwin->curx;
     dwin->inorgy = dwin->cury;
-    dwin->origstyle = win->style;
-    win->style = style_Input;
+    dwin->origattr = win->attr;
+    attrset(&win->attr, style_Input);
 
     if (initlen > maxlen)
 	initlen = maxlen;
@@ -317,7 +317,7 @@ void win_textgrid_init_line_uni(window_t *win, glui32 *buf, int maxlen, int init
 	tgline_t *ln = &(dwin->lines[dwin->inorgy]);
 
 	for (ix=0; ix<initlen; ix++) {
-	    ln->attrs[dwin->inorgx+ix] = style_Input;
+		attrset(&ln->attrs[dwin->inorgx+ix], style_Input);
 	    ln->chars[dwin->inorgx+ix] = buf[ix];
 	}
 
@@ -370,7 +370,7 @@ void win_textgrid_cancel_line(window_t *win, event_t *ev)
 
     dwin->cury = dwin->inorgy+1;
     dwin->curx = 0;
-    win->style = dwin->origstyle;
+	win->attr = dwin->origattr;
 
     ev->type = evtype_LineInput;
     ev->win = win;
@@ -435,7 +435,7 @@ static void acceptline(window_t *win, glui32 keycode)
 
     dwin->cury = dwin->inorgy+1;
     dwin->curx = 0;
-    win->style = dwin->origstyle;
+    win->attr = dwin->origattr;
 
 	if (win->line_terminators) {
 		glui32 val2 = keycode;
@@ -543,7 +543,7 @@ void gcmd_grid_accept_readline(window_t *win, glui32 arg)
 
 	for (ix=dwin->inlen; ix>dwin->incurs; ix--) 
 	    ln->chars[dwin->inorgx+ix] = ln->chars[dwin->inorgx+ix-1];
-	ln->attrs[dwin->inorgx+dwin->inlen] = style_Input;
+	attrset(&ln->attrs[dwin->inorgx+dwin->inlen], style_Input);
 	ln->chars[dwin->inorgx+dwin->incurs] = arg;
 
 	dwin->incurs++;

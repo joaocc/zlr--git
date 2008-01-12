@@ -97,3 +97,5 @@ glk_stream_open_file_uni
 glk_stream_open_memory_uni
 glk_request_char_event_uni
 glk_request_line_event_uni
+garglk_set_zcolors
+garglk_set_reversevideo

@@ -785,11 +785,53 @@ static void gli_set_style(stream_t *str, glui32 val)
 
   switch (str->type) {
   case strtype_Window:
-    str->win->style = val;
+    str->win->attr.style = val;
     if (str->win->echostr)
       gli_set_style(str->win->echostr, val);
     break;
   }
+}
+
+static void gli_set_zcolors(stream_t *str, glui32 fg, glui32 bg)
+{
+	if (!str || !str->writable)
+		return;
+
+	if (fg >= zcolor_NUMCOLORS)
+		fg = 0;
+	if (bg >= zcolor_NUMCOLORS)
+		bg = 0;
+
+	switch (str->type) {
+		case strtype_Window:
+			if (fg == zcolor_Default)
+				str->win->attr.fgcolor = 0;
+			else if (fg != zcolor_Current)
+				str->win->attr.fgcolor = fg;
+
+			if (bg == zcolor_Default)
+				str->win->attr.bgcolor = 0;
+			else if (bg != zcolor_Current)
+				str->win->attr.bgcolor = bg;
+
+			if (str->win->echostr)
+				gli_set_zcolors(str->win->echostr, fg, bg);
+			break;
+	}
+}
+
+static void gli_set_reversevideo(stream_t *str, glui32 reverse)
+{
+	if (!str || !str->writable)
+		return;
+
+	switch (str->type) {
+		case strtype_Window:
+			str->win->attr.reverse = (reverse != 0);
+			if (str->win->echostr)
+				gli_set_reversevideo(str->win->echostr, reverse);
+			break;
+	}
 }
 
 void gli_stream_echo_line(stream_t *str, char *buf, glui32 len)
@@ -1429,6 +1471,16 @@ void glk_set_style_stream(stream_t *str, glui32 val)
     return;
   }
   gli_set_style(str, val);
+}
+
+void garglk_set_zcolors(glui32 fg, glui32 bg)
+{
+	gli_set_zcolors(gli_currentstr, fg, bg);
+}
+
+void garglk_set_reversevideo(glui32 reverse)
+{
+	gli_set_reversevideo(gli_currentstr, reverse);
 }
 
 glsi32 glk_get_char_stream(stream_t *str)
