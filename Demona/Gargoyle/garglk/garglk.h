@@ -276,6 +276,7 @@ struct glk_window_struct
 
     int line_request;
 	int line_request_uni;
+	glui32 *line_terminators;
     int char_request;
 	int char_request_uni;
     int mouse_request;

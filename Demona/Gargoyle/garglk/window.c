@@ -58,6 +58,7 @@ window_t *gli_new_window(glui32 type, glui32 rock)
 	win->char_request_uni = FALSE;
     win->line_request = FALSE;
 	win->line_request_uni = FALSE;
+	win->line_terminators = NULL;
     win->mouse_request = FALSE;
 
     win->style = style_Normal;
@@ -804,12 +805,12 @@ void glk_request_char_event(window_t *win)
 void glk_request_char_event_uni(window_t *win)
 {
     if (!win) {
-        gli_strict_warning("request_char_event: invalid ref");
+        gli_strict_warning("request_char_event_uni: invalid ref");
         return;
     }
 
 	if (win->char_request || win->line_request || win->char_request_uni || win->line_request_uni) {
-        gli_strict_warning("request_char_event: window already has keyboard request");
+        gli_strict_warning("request_char_event_uni: window already has keyboard request");
         return;
     }
 
@@ -820,7 +821,7 @@ void glk_request_char_event_uni(window_t *win)
 			win->char_request_uni = TRUE;
 			break;
 		default:
-			gli_strict_warning("request_char_event: window does not support keyboard input");
+			gli_strict_warning("request_char_event_uni: window does not support keyboard input");
 			break;
 	}
 
@@ -860,12 +861,12 @@ void glk_request_line_event_uni(window_t *win, glui32 *buf, glui32 maxlen,
     glui32 initlen)
 {
     if (!win) {
-        gli_strict_warning("request_line_event: invalid ref");
+        gli_strict_warning("request_line_event_uni: invalid ref");
         return;
     }
 
 	if (win->char_request || win->line_request || win->char_request_uni || win->line_request_uni) {
-        gli_strict_warning("request_line_event: window already has keyboard request");
+        gli_strict_warning("request_line_event_uni: window already has keyboard request");
         return;
     }
 
@@ -880,15 +881,36 @@ void glk_request_line_event_uni(window_t *win, glui32 *buf, glui32 maxlen,
 			win_textgrid_init_line_uni(win, buf, maxlen, initlen);
 			break;
 		default:
-			gli_strict_warning("request_line_event: window does not support keyboard input");
+			gli_strict_warning("request_line_event_uni: window does not support keyboard input");
 			break;
 	}
 
 }
 
-void garglk_set_line_terminators(const glui32 *keycodes, glui32 numkeycodes)
+void garglk_set_line_terminators(window_t *win, const glui32 *keycodes, glui32 numkeycodes)
 {
-	//XXX implement garglk_set_line_terminators
+	if (!win) {
+		gli_strict_warning("set_line_terminators: invalid ref");
+		return;
+	}
+
+	if (!win->line_request && !win->line_request_uni) {
+		gli_strict_warning("set_line_terminators: window has no line input request");
+		return;
+	}
+
+	if (win->line_terminators)
+		free(win->line_terminators);
+
+	if (numkeycodes == 0) {
+		win->line_terminators = NULL;
+	} else {
+		win->line_terminators = malloc((numkeycodes + 1) * sizeof(glui32));
+		if (win->line_terminators) {
+			memcpy(win->line_terminators, keycodes, numkeycodes * sizeof(glui32));
+			win->line_terminators[numkeycodes] = 0;
+		}
+	}
 }
 
 void glk_request_mouse_event(window_t *win)

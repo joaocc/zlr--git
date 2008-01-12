@@ -547,6 +547,8 @@ namespace ZLR.Interfaces.Demona
             try { garglk_unput_string_uni(buf); }
             finally { Marshal.FreeHGlobal(buf); }
         }
+        [DllImport(GLKDLL)]
+        public static extern void garglk_set_line_terminators(winid_t win, [In] KeyCode[] keycodes, uint numkeycodes);
 
         #endregion
 

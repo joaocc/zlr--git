@@ -948,9 +948,14 @@ void win_textbuffer_cancel_line(window_t *win, event_t *ev)
     ev->type = evtype_LineInput;
     ev->win = win;
     ev->val1 = len;
+	ev->val2 = 0;
 
     win->line_request = FALSE;
 	win->line_request_uni = FALSE;
+	if (win->line_terminators) {
+		free(win->line_terminators);
+		win->line_terminators = NULL;
+	}
     dwin->inbuf = NULL;
     dwin->inmax = 0;
 
@@ -1024,7 +1029,7 @@ void gcmd_buffer_accept_readchar(window_t *win, glui32 arg)
 }
 
 /* Return or enter, during line input. Ends line input. */
-static void acceptline(window_t *win)
+static void acceptline(window_t *win, glui32 keycode)
 {
     int ix;
     int len;
@@ -1033,6 +1038,7 @@ static void acceptline(window_t *win)
     int inmax;
     gidispatch_rock_t inarrayrock;
     window_textbuffer_t *dwin = win->data;
+	int unicode = win->line_request_uni;
 
     if (!dwin->inbuf)
         return;
@@ -1086,7 +1092,7 @@ static void acceptline(window_t *win)
     if (len > inmax)
         len = inmax;
 
-	if (!win->line_request_uni) {
+	if (!unicode) {
 		for (ix=0; ix<len; ix++) {
 			glui32 ch = dwin->chars[dwin->infence+ix];
 			if (ch > 0xff)
@@ -1100,16 +1106,25 @@ static void acceptline(window_t *win)
 
     win->style = dwin->origstyle;
 
-    gli_event_store(evtype_LineInput, win, len, 0);
+	if (win->line_terminators) {
+		glui32 val2 = keycode;
+		if (val2 == keycode_Return)
+			val2 = 13;
+		gli_event_store(evtype_LineInput, win, len, val2);
+		free(win->line_terminators);
+		win->line_terminators = NULL;
+	} else
+		gli_event_store(evtype_LineInput, win, len, 0);
     win->line_request = FALSE;
 	win->line_request_uni = FALSE;
     dwin->inbuf = NULL;
     dwin->inmax = 0;
 
-    win_textbuffer_putchar_uni(win, '\n');
+	if (keycode == keycode_Return)
+		win_textbuffer_putchar_uni(win, '\n');
 
     if (gli_unregister_arr) {
-        (*gli_unregister_arr)(inbuf, inmax, "&+#!Cn", inarrayrock);
+		(*gli_unregister_arr)(inbuf, inmax, unicode ? "&+#!Iu" : "&+#!Cn", inarrayrock);
     }
 }
 
@@ -1131,6 +1146,15 @@ void gcmd_buffer_accept_readline(window_t *win, glui32 arg)
 
     if (!dwin->inbuf)
         return;
+
+	if (win->line_terminators) {
+		for (cx = win->line_terminators; *cx; cx++) {
+			if (*cx == arg) {
+				acceptline(win, arg);
+				return;
+			}
+		}
+	}
 
     switch (arg)
     {
@@ -1216,7 +1240,7 @@ void gcmd_buffer_accept_readline(window_t *win, glui32 arg)
             /* Regular keys */
 
         case keycode_Return:
-            acceptline(win);
+            acceptline(win, arg);
             break;
 
         default:

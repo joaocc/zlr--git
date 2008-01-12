@@ -28,6 +28,10 @@ namespace ZLR.Interfaces.Demona
         private IntPtr argv;
         private IntPtr[] argvStrings;
 
+        // used to temporarily cancel line input when the timer callback needs to print
+        private bool lineInputActive;
+        private event_t canceledLineEvent;
+
         public GlkIO(string[] args, string storyName)
         {
             // initialize Glk
@@ -166,6 +170,13 @@ namespace ZLR.Interfaces.Demona
                     Glk.glk_request_line_event(currentWin, buf, BUFSIZE, initlen);
                 Glk.glk_request_timer_events((uint)(time * 100));
 
+                KeyCode[] glkTerminators = null;
+                if (terminatingKeys != null && terminatingKeys.Length > 0)
+                {
+                    glkTerminators = GlkKeysFromZSCII(terminatingKeys);
+                    Glk.garglk_set_line_terminators(currentWin, glkTerminators, (uint)glkTerminators.Length);
+                }
+
                 terminator = 0;
 
                 event_t ev;
@@ -180,15 +191,28 @@ namespace ZLR.Interfaces.Demona
                             if (ev.win == currentWin)
                             {
                                 done = true;
-                                terminator = 13;
+                                if (glkTerminators == null || ev.val2 == 0)
+                                    terminator = 13;
+                                else
+                                    terminator = GlkKeyToZSCII((KeyCode)ev.val2);
                             }
                             break;
 
                         case EvType.Timer:
+                            lineInputActive = true;
                             if (callback() == true)
                             {
-                                Glk.glk_cancel_line_event(currentWin, out ev);
                                 done = true;
+                            }
+                            else if (!lineInputActive)
+                            {
+                                // the callback cancelled the line input request to print something...
+                                if (unicode)
+                                    Glk.glk_request_line_event_uni(currentWin, buf, BUFSIZE, canceledLineEvent.val1);
+                                else
+                                    Glk.glk_request_line_event(currentWin, buf, BUFSIZE, canceledLineEvent.val1);
+                                if (glkTerminators != null)
+                                    Glk.garglk_set_line_terminators(currentWin, glkTerminators, (uint)glkTerminators.Length);
                             }
                             break;
 
@@ -244,35 +268,9 @@ namespace ZLR.Interfaces.Demona
                         if (ev.win == currentWin)
                         {
                             if (ev.val1 <= 255 || (unicode && ev.val1 <= 0x10000))
-                            {
                                 result = translator((char)ev.val1);
-                            }
                             else
-                            {
-                                switch ((KeyCode)ev.val1)
-                                {
-                                    case KeyCode.Delete: result = 8; break;
-                                    case KeyCode.Return: result = 13; break;
-                                    case KeyCode.Escape: result = 27; break;
-                                    case KeyCode.Up: result = 129; break;
-                                    case KeyCode.Down: result = 130; break;
-                                    case KeyCode.Left: result = 131; break;
-                                    case KeyCode.Right: result = 132; break;
-                                    case KeyCode.Func1: result = 133; break;
-                                    case KeyCode.Func2: result = 134; break;
-                                    case KeyCode.Func3: result = 135; break;
-                                    case KeyCode.Func4: result = 136; break;
-                                    case KeyCode.Func5: result = 137; break;
-                                    case KeyCode.Func6: result = 138; break;
-                                    case KeyCode.Func7: result = 139; break;
-                                    case KeyCode.Func8: result = 140; break;
-                                    case KeyCode.Func9: result = 141; break;
-                                    case KeyCode.Func10: result = 142; break;
-                                    case KeyCode.Func11: result = 143; break;
-                                    case KeyCode.Func12: result = 144; break;
-                                    default: result = 0; break;
-                                }
-                            }
+                                result = GlkKeyToZSCII((KeyCode)ev.val1);
 
                             if (result != 0)
                                 done = true;
@@ -307,11 +305,92 @@ namespace ZLR.Interfaces.Demona
             return result;
         }
 
+        private static byte GlkKeyToZSCII(KeyCode key)
+        {
+            switch (key)
+            {
+                case KeyCode.Delete: return 8;
+                case KeyCode.Return: return 13;
+                case KeyCode.Escape: return 27;
+
+                case KeyCode.Up: return 129;
+                case KeyCode.Down: return 130;
+                case KeyCode.Left: return 131;
+                case KeyCode.Right: return 132;
+                case KeyCode.Func1: return 133;
+                case KeyCode.Func2: return 134;
+                case KeyCode.Func3: return 135;
+                case KeyCode.Func4: return 136;
+                case KeyCode.Func5: return 137;
+                case KeyCode.Func6: return 138;
+                case KeyCode.Func7: return 139;
+                case KeyCode.Func8: return 140;
+                case KeyCode.Func9: return 141;
+                case KeyCode.Func10: return 142;
+                case KeyCode.Func11: return 143;
+                case KeyCode.Func12: return 144;
+                default: return 0;
+            }
+        }
+
+        private static KeyCode[] GlkKeysFromZSCII(byte[] zkeys)
+        {
+            // 255 means every input-only key above 128, and ZLR ensures that it's the only key in the array if present
+            if (zkeys[0] == 255)
+                return new KeyCode[] {
+                    KeyCode.Up, KeyCode.Down, KeyCode.Left, KeyCode.Right,
+                    KeyCode.Func1, KeyCode.Func2, KeyCode.Func3, KeyCode.Func4,
+                    KeyCode.Func5, KeyCode.Func6, KeyCode.Func7, KeyCode.Func8,
+                    KeyCode.Func9, KeyCode.Func10, KeyCode.Func11, KeyCode.Func12,
+                };
+
+            List<KeyCode> result = new List<KeyCode>(zkeys.Length);
+            foreach (byte zk in zkeys)
+            {
+                switch (zk)
+                {
+                    // keys <= 128 aren't valid terminating keys, but just for completeness...
+                    case 8: result.Add(KeyCode.Delete); break;
+                    case 13: result.Add(KeyCode.Return); break;
+                    case 27: result.Add(KeyCode.Escape); break;
+
+                    case 129: result.Add(KeyCode.Up); break;
+                    case 130: result.Add(KeyCode.Down); break;
+                    case 131: result.Add(KeyCode.Left); break;
+                    case 132: result.Add(KeyCode.Right); break;
+                    case 133: result.Add(KeyCode.Func1); break;
+                    case 134: result.Add(KeyCode.Func2); break;
+                    case 135: result.Add(KeyCode.Func3); break;
+                    case 136: result.Add(KeyCode.Func4); break;
+                    case 137: result.Add(KeyCode.Func5); break;
+                    case 138: result.Add(KeyCode.Func6); break;
+                    case 139: result.Add(KeyCode.Func7); break;
+                    case 140: result.Add(KeyCode.Func8); break;
+                    case 141: result.Add(KeyCode.Func9); break;
+                    case 142: result.Add(KeyCode.Func10); break;
+                    case 143: result.Add(KeyCode.Func11); break;
+                    case 144: result.Add(KeyCode.Func12); break;
+                    // 145-154: num pad keys, not supported by Glk
+                    // 254: mouse click
+                }
+            }
+            return result.ToArray();
+        }
+
         private readonly char[] encodingChar = new char[1];
         private readonly byte[] encodedBytes = new byte[2];
 
         void IZMachineIO.PutChar(char ch)
         {
+            if (lineInputActive)
+            {
+                Glk.glk_cancel_line_event(currentWin, out canceledLineEvent);
+                lineInputActive = false;
+                // glk_cancel_line_event prints a newline
+                if (ch == '\n')
+                    return;
+            }
+
             if (unicode)
             {
                 Glk.glk_put_char_uni((uint)ch);
@@ -345,6 +424,15 @@ namespace ZLR.Interfaces.Demona
 
         void IZMachineIO.PutString(string str)
         {
+            if (lineInputActive)
+            {
+                Glk.glk_cancel_line_event(currentWin, out canceledLineEvent);
+                lineInputActive = false;
+                // glk_cancel_line_event prints a newline
+                if (str.Length > 0 && str[0] == '\n')
+                    str = str.Substring(1);
+            }
+
             if (unicode)
                 Glk.glk_put_string_uni(str);
             else
@@ -367,6 +455,12 @@ namespace ZLR.Interfaces.Demona
 
         void IZMachineIO.PutTextRectangle(string[] lines)
         {
+            if (lineInputActive)
+            {
+                Glk.glk_cancel_line_event(currentWin, out canceledLineEvent);
+                lineInputActive = false;
+            }
+
             if (currentWin == lowerWin)
             {
                 foreach (string str in lines)

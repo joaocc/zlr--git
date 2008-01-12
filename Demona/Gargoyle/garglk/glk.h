@@ -386,7 +386,7 @@ extern void garglk_set_style_stream_color(strid_t str, glui32 bg, glui32 fg);
 /* garglk_set_line_terminators - amends the current line input request to include terminating
  * key codes. any of the specified key codes will terminate input (without printing a newline),
  * and the key code will be returned in the event record as val2. */
-extern void garglk_set_line_terminators(const glui32 *keycodes, glui32 numkeycodes);
+extern void garglk_set_line_terminators(winid_t win, const glui32 *keycodes, glui32 numkeycodes);
 
 /* garglk_unput_string - removes the specified string from the end of the output buffer, if
  * indeed it is there. */

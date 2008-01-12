@@ -375,9 +375,14 @@ void win_textgrid_cancel_line(window_t *win, event_t *ev)
     ev->type = evtype_LineInput;
     ev->win = win;
     ev->val1 = dwin->inlen;
+	ev->val2 = 0;
 
     win->line_request = FALSE;
 	win->line_request_uni = FALSE;
+	if (win->line_terminators) {
+		free(win->line_terminators);
+		win->line_terminators = NULL;
+	}
     dwin->inbuf = NULL;
     dwin->inmax = 0;
     dwin->inorgx = 0;
@@ -399,7 +404,7 @@ void gcmd_grid_accept_readchar(window_t *win, glui32 arg)
 }
 
 /* Return or enter, during line input. Ends line input. */
-static void acceptline(window_t *win)
+static void acceptline(window_t *win, glui32 keycode)
 {
     int ix;
     void *inbuf;
@@ -432,7 +437,15 @@ static void acceptline(window_t *win)
     dwin->curx = 0;
     win->style = dwin->origstyle;
 
-    gli_event_store(evtype_LineInput, win, dwin->inlen, 0);
+	if (win->line_terminators) {
+		glui32 val2 = keycode;
+		if (val2 == keycode_Return)
+			val2 = 13;
+		gli_event_store(evtype_LineInput, win, dwin->inlen, val2);
+		free(win->line_terminators);
+		win->line_terminators = NULL;
+	} else
+		gli_event_store(evtype_LineInput, win, dwin->inlen, 0);
     win->line_request = FALSE;
 	win->line_request_uni = FALSE;
     dwin->inbuf = NULL;
@@ -441,7 +454,7 @@ static void acceptline(window_t *win)
     dwin->inorgy = 0;
 
     if (gli_unregister_arr) {
-	(*gli_unregister_arr)(inbuf, inmax, "&+#!Cn", inarrayrock);
+		(*gli_unregister_arr)(inbuf, inmax, unicode ? "&+#!Iu" : "&+#!Cn", inarrayrock);
     }
 }
 
@@ -454,6 +467,16 @@ void gcmd_grid_accept_readline(window_t *win, glui32 arg)
 
     if (!dwin->inbuf)
 	return;
+
+	if (win->line_terminators) {
+		glui32 *cx;
+		for (cx = win->line_terminators; *cx; cx++) {
+			if (*cx == arg) {
+				acceptline(win, arg);
+				return;
+			}
+		}
+	}
 
     switch (arg)
     {
@@ -508,7 +531,7 @@ void gcmd_grid_accept_readline(window_t *win, glui32 arg)
 	break;
 
     case keycode_Return:
-	acceptline(win);
+	acceptline(win, arg);
 	break;
 
     default:
