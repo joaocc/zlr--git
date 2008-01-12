@@ -65,21 +65,22 @@ void win_textgrid_rearrange(window_t *win, rect_t *box)
 
     for (k = dwin->height; k < newhgt; k++)
     {
-	memset(dwin->lines[k].chars, ' ', sizeof dwin->lines[k].chars);
-	memset(dwin->lines[k].attrs, style_Normal, sizeof dwin->lines[k].attrs);
+		for (i = 0; i < sizeof(dwin->lines[k].chars) / sizeof(glui32); i++)
+			dwin->lines[k].chars[i] = ' ';
+		memset(dwin->lines[k].attrs, style_Normal, sizeof dwin->lines[k].attrs);
     }
 
+	dwin->owner->style = style_Normal;
     dwin->width = newwid;
     dwin->height = newhgt;
 
     for (k = 0; k < dwin->height; k++)
     {
-	touch(dwin, k);
-	for (i = dwin->width; i < sizeof dwin->lines[0].chars; i++)
-	{
-	    dwin->lines[k].chars[i] = ' ';
-	    dwin->lines[k].attrs[i] = style_Normal;
-	}
+		touch(dwin, k);
+		for (i = dwin->width; i < sizeof(dwin->lines[0].chars) / sizeof(glui32); i++) {
+			dwin->lines[k].chars[i] = ' ';
+			dwin->lines[k].attrs[i] = style_Normal;
+		}
     }
 }
 

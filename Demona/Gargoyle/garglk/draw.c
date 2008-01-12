@@ -122,7 +122,7 @@ static void gammacopy_lcd(unsigned char *dst, unsigned char *src, int w, int h, 
 
 static int findhighglyph(glui32 cid, fentry_t *entries, int length)
 {
-	int start = 0, end = length, mid;
+	int start = 0, end = length, mid = 0;
 	while (start < end) {
 		mid = (start + end) / 2;
 		if (entries[mid].cid == cid)

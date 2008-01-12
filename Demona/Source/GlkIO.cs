@@ -18,6 +18,7 @@ namespace ZLR.Interfaces.Demona
         private int xpos, ypos; // in Glk coordinates (i.e. counting from 0)
         private uint screenWidth, screenHeight;
         private TextStyle lastStyle;
+        private int targetSplit;
 
         private frefid_t transcriptFile;
         private strid_t transcriptStream;
@@ -203,8 +204,9 @@ namespace ZLR.Interfaces.Demona
                 while (!done);
 
                 Glk.glk_request_timer_events(0);
+                PerformSplit(targetSplit);
 
-                // convert the string from Latin-1
+                // convert the string from Latin-1 or UTF-32
                 int length = (int)ev.val1;
                 if (unicode)
                     length *= 4;
@@ -220,6 +222,8 @@ namespace ZLR.Interfaces.Demona
 
         short IZMachineIO.ReadKey(int time, TimedInputCallback callback, CharTranslator translator)
         {
+            PerformSplit(targetSplit);
+
             if (unicode)
                 Glk.glk_request_char_event_uni(currentWin);
             else
@@ -299,6 +303,7 @@ namespace ZLR.Interfaces.Demona
             while (!done);
 
             Glk.glk_request_timer_events(0);
+
             return result;
         }
 
@@ -543,6 +548,27 @@ namespace ZLR.Interfaces.Demona
         }
 
         void IZMachineIO.SplitWindow(short lines)
+        {
+            uint curHeight;
+
+            if (upperWin.IsNull)
+            {
+                curHeight = 0;
+            }
+            else
+            {
+                WinMethod method;
+                winid_t keywin;
+                Glk.glk_window_get_arrangement(Glk.glk_window_get_parent(upperWin),
+                    out method, out curHeight, out keywin);
+            }
+
+            targetSplit = lines;
+            if (lines > curHeight)
+                PerformSplit(lines);
+        }
+
+        private void PerformSplit(int lines)
         {
             if (lines > 0)
             {
