@@ -7,23 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleZLR", "ConsoleZLR\Co
 		Release.AspNetCompiler.Debug = "False"
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Inform", "Inform", "{D8D57DAA-294B-480C-9CD4-D42B1D1062D5}"
-	ProjectSection(WebsiteProperties) = preProject
-		Debug.AspNetCompiler.Debug = "True"
-		Release.AspNetCompiler.Debug = "False"
-	EndProjectSection
-	ProjectSection(SolutionItems) = preProject
-		Natural\English.h = Natural\English.h
-		Natural\Grammar.h = Natural\Grammar.h
-		Natural\infix.h = Natural\infix.h
-		Natural\linklpa.h = Natural\linklpa.h
-		Natural\linklv.h = Natural\linklv.h
-		Natural\Parser.h = Natural\Parser.h
-		Natural\parserm.h = Natural\parserm.h
-		Natural\VerbLib.h = Natural\VerbLib.h
-		Natural\verblibm.h = Natural\verblibm.h
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZLR.VM", "ZLR\ZLR.VM.csproj", "{75CC483D-D28E-49EE-AB8F-F77CC3F58BFA}"
 	ProjectSection(WebsiteProperties) = preProject
 		Debug.AspNetCompiler.Debug = "True"
