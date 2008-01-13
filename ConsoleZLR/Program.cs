@@ -4,6 +4,7 @@ using System.Text;
 using System.IO;
 using ZLR.VM;
 using System.Threading;
+using System.Reflection;
 
 namespace ZLR.Interfaces.SystemConsole
 {
@@ -25,44 +26,9 @@ namespace ZLR.Interfaces.SystemConsole
             }
             else
             {
-                Console.WriteLine("*** Sample games ***");
-                Console.WriteLine();
-                Console.WriteLine("1) Hello");
-                Console.WriteLine("2) Montana Parks and the Trivial Example");
-                Console.WriteLine("3) Toyshop");
-                Console.WriteLine();
-                Console.Write("Press a key to select: ");
-
-                bool repeat;
-                do
-                {
-                    repeat = false;
-                    ConsoleKeyInfo info = Console.ReadKey();
-                    switch (info.KeyChar)
-                    {
-                        case '1':
-                            gameStream = new MemoryStream(Properties.Resources.hello_z5);
-                            debugStream = new MemoryStream(Properties.Resources.hello_dbg);
-                            fileName = "Hello";
-                            break;
-                        case '2':
-                            gameStream = new MemoryStream(Properties.Resources.montana_z5);
-                            debugStream = new MemoryStream(Properties.Resources.montana_dbg);
-                            fileName = "Montana";
-                            break;
-                        case '3':
-                            gameStream = new MemoryStream(Properties.Resources.toyshop_z5);
-                            debugStream = new MemoryStream(Properties.Resources.toyshop_dbg);
-                            fileName = "Toyshop";
-                            break;
-                        default:
-                            Console.WriteLine();
-                            Console.Write("Invalid selection. Try again: ");
-                            repeat = true;
-                            break;
-                    }
-                }
-                while (repeat);
+                string exe = Path.GetFileName(Assembly.GetExecutingAssembly().Location);
+                Console.WriteLine("Usage: {0} <game_file.z5/z8> [<debug_file.dbg>]");
+                return 1;
             }
 
             ZMachine zm = new ZMachine(gameStream, new ConsoleIO(fileName));

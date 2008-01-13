@@ -35,6 +35,11 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="TestCaseIO.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -42,6 +47,22 @@
       <Project>{75CC483D-D28E-49EE-AB8F-F77CC3F58BFA}</Project>
       <Name>ZLR.VM</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <SubType>Designer</SubType>
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\czech.z5" />
+    <None Include="Resources\etude.z5" />
+    <None Include="Resources\gntests.z5" />
+    <None Include="Resources\hello.z5" />
+    <None Include="Resources\montana.z5" />
+    <None Include="Resources\strictz.z5" />
+    <None Include="Resources\toyshop.z5" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

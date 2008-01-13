@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace ZLR.Interfaces.SystemConsole.Properties {
+namespace TestSuite.Properties {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace ZLR.Interfaces.SystemConsole.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("ZLR.Interfaces.SystemConsole.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("TestSuite.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -57,6 +57,55 @@ namespace ZLR.Interfaces.SystemConsole.Properties {
             }
             set {
                 resourceCulture = value;
+            }
+        }
+        
+        internal static byte[] czech {
+            get {
+                object obj = ResourceManager.GetObject("czech", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] etude {
+            get {
+                object obj = ResourceManager.GetObject("etude", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] gntests {
+            get {
+                object obj = ResourceManager.GetObject("gntests", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] hello {
+            get {
+                object obj = ResourceManager.GetObject("hello", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] montana {
+            get {
+                object obj = ResourceManager.GetObject("montana", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] strictz {
+            get {
+                object obj = ResourceManager.GetObject("strictz", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] toyshop {
+            get {
+                object obj = ResourceManager.GetObject("toyshop", resourceCulture);
+                return ((byte[])(obj));
             }
         }
     }

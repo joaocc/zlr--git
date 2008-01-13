@@ -52,18 +52,13 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\hello.dbg" />
-    <None Include="Resources\hello.z5" />
-    <None Include="Resources\montana.dbg" />
-    <None Include="Resources\montana.z5" />
-    <None Include="Resources\toyshop.dbg" />
-    <None Include="Resources\toyshop.z5" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\ZLR\ZLR.VM.csproj">
       <Project>{75CC483D-D28E-49EE-AB8F-F77CC3F58BFA}</Project>
       <Name>ZLR.VM</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Resources\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
@@ -74,9 +69,7 @@
   </Target>
   -->
   <PropertyGroup>
-    <PreBuildEvent>cd $(SolutionDir)
-call compile-game.bat hello
-call compile-game.bat montana
-call compile-game.bat toyshop</PreBuildEvent>
+    <PreBuildEvent>
+    </PreBuildEvent>
   </PropertyGroup>
 </Project>
