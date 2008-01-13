@@ -56,13 +56,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\czech.z5" />
-    <None Include="Resources\etude.z5" />
-    <None Include="Resources\gntests.z5" />
-    <None Include="Resources\hello.z5" />
-    <None Include="Resources\montana.z5" />
-    <None Include="Resources\strictz.z5" />
-    <None Include="Resources\toyshop.z5" />
+    <Folder Include="Resources\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
