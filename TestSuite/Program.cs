@@ -20,10 +20,9 @@ namespace TestSuite
                 Console.WriteLine("Test cases not found.");
                 return;
             }
-            else
-            {
-                Console.WriteLine("Using test cases in {0}.", testpath);
-            }
+
+            Console.WriteLine("Using test cases in {0}.", testpath);
+            TestCase[] testCases = TestCase.LoadAll(testpath);
             
             do
             {

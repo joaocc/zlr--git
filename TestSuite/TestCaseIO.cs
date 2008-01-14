@@ -6,11 +6,24 @@ using System.IO;
 
 namespace TestSuite
 {
-    // TODO: split TestCase stuff into its own application and make it work
-    class TestCase : IZMachineIO
+    class TestCaseIO : IZMachineIO
     {
         private Queue<string> inputBuffer = new Queue<string>();
         private StringBuilder outputBuffer = new StringBuilder();
+
+        public void SetInput(string inputText)
+        {
+            inputBuffer.Clear();
+
+            foreach (string line in inputText.Split('\n'))
+            {
+                string trimmed = line.Trim();
+                if (trimmed.Length == 0 || trimmed.StartsWith("#"))
+                    continue;
+
+                inputBuffer.Enqueue(trimmed);
+            }
+        }
 
         public string CollectOutput()
         {

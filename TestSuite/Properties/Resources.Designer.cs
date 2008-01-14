@@ -59,54 +59,5 @@ namespace TestSuite.Properties {
                 resourceCulture = value;
             }
         }
-        
-        internal static byte[] czech {
-            get {
-                object obj = ResourceManager.GetObject("czech", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        internal static byte[] etude {
-            get {
-                object obj = ResourceManager.GetObject("etude", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        internal static byte[] gntests {
-            get {
-                object obj = ResourceManager.GetObject("gntests", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        internal static byte[] hello {
-            get {
-                object obj = ResourceManager.GetObject("hello", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        internal static byte[] montana {
-            get {
-                object obj = ResourceManager.GetObject("montana", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        internal static byte[] strictz {
-            get {
-                object obj = ResourceManager.GetObject("strictz", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        internal static byte[] toyshop {
-            get {
-                object obj = ResourceManager.GetObject("toyshop", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
     }
 }
