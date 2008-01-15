@@ -9,6 +9,8 @@ namespace TestSuite
 {
     class Program
     {
+        private static Dictionary<string, TestCase> testCases;
+
         static void Main(string[] args)
         {
             Console.WriteLine("ZLR Test Suite {0}", ZMachine.ZLR_VERSION);
@@ -22,8 +24,11 @@ namespace TestSuite
             }
 
             Console.WriteLine("Using test cases in {0}.", testpath);
-            TestCase[] testCases = TestCase.LoadAll(testpath);
-            
+            testCases = TestCase.LoadAll(testpath);
+
+            List<string> testCaseNames = new List<string>(testCases.Keys);
+            testCaseNames.Sort();
+
             do
             {
                 Console.WriteLine();

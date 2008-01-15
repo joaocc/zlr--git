@@ -8,27 +8,40 @@ namespace TestSuite
 {
     abstract class TestCase
     {
-        public static TestCase[] LoadAll(string path)
+        public static Dictionary<string, TestCase> LoadAll(string path)
         {
-            List<TestCase> result = new List<TestCase>();
+            Dictionary<string, TestCase> result = new Dictionary<string, TestCase>();
 
             foreach (string file in Directory.GetFiles(path))
             {
+                string shortname = Path.GetFileNameWithoutExtension(file);
+
+                if (result.ContainsKey(shortname))
+                {
+                    int num = 2;
+                    string shortbase = shortname;
+                    do
+                    {
+                        shortname = shortbase + num.ToString();
+                        num++;
+                    } while (result.ContainsKey(shortname));
+                }
+
                 string ext = Path.GetExtension(file).ToLower();
                 switch (ext)
                 {
                     case ".z5":
                     case ".z8":
-                        result.Add(new CompiledTestCase(file));
+                        result.Add(shortname, new CompiledTestCase(file));
                         break;
 
                     case ".inf":
-                        result.Add(new InformTestCase(file));
+                        result.Add(shortname, new InformTestCase(file));
                         break;
                 }
             }
 
-            return result.ToArray();
+            return result;
         }
 
         public abstract Stream GetZCode();
