@@ -8,6 +8,38 @@ namespace TestSuite
 {
     abstract class TestCase
     {
+        private const string INPUT_SUFFIX = ".input.txt";
+        private const string OUTPUT_SUFFIX = ".output.txt";
+
+        protected readonly string testFile;
+
+        protected TestCase(string file)
+        {
+            this.testFile = file;
+        }
+
+        public abstract Stream GetZCode();
+
+        public string TestFile
+        {
+            get { return testFile; }
+        }
+
+        public string InputFile
+        {
+            get { return testFile + INPUT_SUFFIX; }
+        }
+
+        public string OutputFile
+        {
+            get { return testFile + OUTPUT_SUFFIX; }
+        }
+
+        public virtual void CleanUp()
+        {
+            // nada
+        }
+
         public static Dictionary<string, TestCase> LoadAll(string path)
         {
             Dictionary<string, TestCase> result = new Dictionary<string, TestCase>();
@@ -43,44 +75,34 @@ namespace TestSuite
 
             return result;
         }
-
-        public abstract Stream GetZCode();
-
-        public virtual void CleanUp()
-        {
-        }
     }
 
     class CompiledTestCase : TestCase
     {
-        private readonly string zfile;
-
-        public CompiledTestCase(string file)
-        {
-            zfile = file;
-        }
+        public CompiledTestCase(string file) : base(file) { }
 
         public override Stream GetZCode()
         {
-            return new FileStream(zfile, FileMode.Open, FileAccess.Read);
+            return new FileStream(testFile, FileMode.Open, FileAccess.Read);
         }
     }
 
-    class InformTestCase : TestCase
+    class InformTestCase : TestCase, IDisposable
     {
-        private readonly string inffile;
         private string zfile;
 
         public InformTestCase(string file)
+            : base(file)
         {
-            inffile = file;
+            // finalizer only needs to be called once we've compiled the test
+            GC.SuppressFinalize(this);
         }
 
         public override Stream GetZCode()
         {
-            string path = Path.GetDirectoryName(inffile);
+            string path = Path.GetDirectoryName(testFile);
             string compiler = Path.Combine(path, "compile-game.bat");
-            string infbase = Path.GetFileNameWithoutExtension(inffile);
+            string infbase = Path.GetFileNameWithoutExtension(testFile);
 
             ProcessStartInfo info = new ProcessStartInfo();
             info.WorkingDirectory = path;
@@ -100,6 +122,7 @@ namespace TestSuite
                 throw new Exception("Failed to compile test case");
 
             zfile = outfile;
+            GC.ReRegisterForFinalize(this);
             return new FileStream(outfile, FileMode.Open, FileAccess.Read);
         }
 
@@ -107,9 +130,28 @@ namespace TestSuite
         {
             if (zfile != null)
             {
-                File.Delete(zfile);
+                try
+                {
+                    File.Delete(zfile);
+                }
+                catch
+                {
+                    return;
+                }
+
                 zfile = null;
+                GC.SuppressFinalize(this);
             }
+        }
+
+        void IDisposable.Dispose()
+        {
+            CleanUp();
+        }
+
+        ~InformTestCase()
+        {
+            CleanUp();
         }
     }
 }

@@ -266,7 +266,23 @@ namespace ZLR.VM
 #endif
 
             running = true;
-            JitLoop();
+            try
+            {
+                JitLoop();
+            }
+            finally
+            {
+                if (cmdRdr != null)
+                {
+                    cmdRdr.Dispose();
+                    cmdRdr = null;
+                }
+                if (cmdWtr != null)
+                {
+                    cmdWtr.Dispose();
+                    cmdWtr = null;
+                }
+            }
 
 #if BENCHMARK
             // show performance report

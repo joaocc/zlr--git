@@ -406,6 +406,57 @@ namespace ZLR.VM
             }
         }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether the player's inputs are to be
+        /// written to a command file.
+        /// </summary>
+        /// <remarks>
+        /// <para>This property enables or disables output stream 4.</para>
+        /// <para>When this property is set to true, <see cref="IZMachineIO.OpenCommandFile"/>
+        /// will be called to get a stream for the command file. The property will be
+        /// reset to false after the game finishes running.</para>
+        /// </remarks>
+        public bool WritingCommandsToFile
+        {
+            get
+            {
+                return (cmdWtr != null);
+            }
+            set
+            {
+                if (value)
+                    SetOutputStream(4, 0);
+                else
+                    SetOutputStream(-4, 0);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the player's inputs are to be
+        /// read from a command file.
+        /// </summary>
+        /// <remarks>
+        /// <para>This property switches between input stream 1 (true) and input stream 0
+        /// (false).</para>
+        /// <para>When this property is set to true, <see cref="IZMachineIO.OpenCommandFile"/>
+        /// will be called to get a stream for the command file. The property will be
+        /// reset to false after the game finishes running.</para>
+        /// </remarks>
+        public bool ReadingCommandsFromFile
+        {
+            get
+            {
+                return (cmdRdr != null);
+            }
+            set
+            {
+                if (value)
+                    SetInputStream(1);
+                else
+                    SetInputStream(0);
+            }
+        }
+
         private class CommandFileReader : IDisposable
         {
             private StreamReader rdr;
