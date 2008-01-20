@@ -1,0 +1,31 @@
+
+
+
+
+
+Montana Parks and the Trivial Example
+An Interactive Fiction by Taradino Cassatt
+Release 1 / Serial number 071208 / Inform 7 build 5J39 (I6/v6.31 lib 6/11N) SD
+
+Shrine
+After rescuing that jungle princess, decoding the treasure map you found, and fighting off those rabid jaguars as you made your way through the rainforest, your well-deserved reward is at hand.
+
+You can see a pedestal (on which is a golden idol) here.
+
+>                                                                                Shrine0/1As good-looking as ever.
+
+>                                                                                Shrine0/2You are carrying nothing.
+
+>                                                                                Shrine0/3It resembles a bald, nude man with hands crossed over his chest, pointing a sword at his feet.
+
+>                                                                                Shrine0/4The pedestal clicks almost imperceptibly. You remember the princess's warning, quickly drop to one knee, and just barely avoid the poison dart aimed for your head. Heaving a sigh of relief, you stick the idol in your knapsack and head back to the museum.
+
+
+
+    *** You have won ***
+
+
+In that game you scored 0 out of a possible 0, in 4 turns.
+
+Would you like to RESTART, RESTORE a saved game or QUIT?
+>                                                                                 Shrine0/4

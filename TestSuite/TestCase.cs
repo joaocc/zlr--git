@@ -10,6 +10,7 @@ namespace TestSuite
     {
         private const string INPUT_SUFFIX = ".input.txt";
         private const string OUTPUT_SUFFIX = ".output.txt";
+        private const string FAILURE_SUFFIX = ".failed-output.txt";
 
         protected readonly string testFile;
 
@@ -33,6 +34,11 @@ namespace TestSuite
         public string OutputFile
         {
             get { return testFile + OUTPUT_SUFFIX; }
+        }
+
+        public string FailureFile
+        {
+            get { return testFile + FAILURE_SUFFIX; }
         }
 
         public virtual void CleanUp()
@@ -133,6 +139,7 @@ namespace TestSuite
                 try
                 {
                     File.Delete(zfile);
+                    File.Delete(Path.ChangeExtension(zfile, ".dbg"));
                 }
                 catch
                 {

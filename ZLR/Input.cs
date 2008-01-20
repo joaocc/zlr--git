@@ -38,9 +38,10 @@ namespace ZLR.VM
                 else
                 {
                     str = cmdRdr.ReadLine(out terminator);
-                    io.PutString(str);
                     if (terminator == 13)
-                        io.PutChar('\n');
+                        io.PutCommand(str + "\n");
+                    else
+                        io.PutCommand(str);
                 }
 
                 if (cmdWtr != null)

@@ -255,6 +255,11 @@ namespace ZLR.Interfaces.SystemConsole
             return Array.IndexOf(terminatingKeys, key) >= 0;
         }
 
+        public void PutCommand(string command)
+        {
+            PutString(command);
+        }
+
         public short ReadKey(int time, TimedInputCallback callback, CharTranslator translator)
         {
             FlushBuffer();

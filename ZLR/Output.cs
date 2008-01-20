@@ -89,7 +89,7 @@ namespace ZLR.VM
         #region Input
 
         /// <summary>
-        /// Reads a line of input from the player (or command file).
+        /// Reads a line of input from the player.
         /// </summary>
         /// <param name="initial">The initial string which has been supplied for the player's
         /// input, or an empty string if no initial input has been supplied.</param>
@@ -114,7 +114,7 @@ namespace ZLR.VM
         /// </remarks>
         string ReadLine(string initial, int time, TimedInputCallback callback, byte[] terminatingKeys, out byte terminator);
         /// <summary>
-        /// Reads a single key of input from the player (or command file), without echoing it.
+        /// Reads a single key of input from the player, without echoing it.
         /// </summary>
         /// <param name="time">The callback interval for timed input, in tenths of a second.
         /// If this is nonzero, <paramref name="callback"/> should be called every <paramref name="time"/>/10
@@ -127,7 +127,13 @@ namespace ZLR.VM
         /// <returns>The ZSCII value of the key that was pressed, or 0 if input was cancelled by the
         /// timer callback.</returns>
         short ReadKey(int time, TimedInputCallback callback, CharTranslator translator);
-
+        /// <summary>
+        /// Displays a command that has been read from the command file.
+        /// </summary>
+        /// <param name="command">The command read from the file. If the command was terminated
+        /// by pressing the enter key, this string will end with a newline.</param>
+        void PutCommand(string command);
+        
         #endregion
 
         #region Output

@@ -21,25 +21,19 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_16965A2CF9A048A481D3B042E0E7EEA8"
-        "OwnerKey" = "8:_2E4AC6C25CC44E789EAE61E2861B76F5"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_2E4AC6C25CC44E789EAE61E2861B76F5"
+        "MsmKey" = "8:_7E210ED17E935A8571C1EECFC1814D85"
         "OwnerKey" = "8:_07ADCF089F3B44BA8A71A4C67410C23A"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_2FF007AF6E2DCEF9300CED8F6E32C622"
-        "OwnerKey" = "8:_DB42F6D1D8224140A61BB1455F3656F2"
+        "MsmKey" = "8:_81F2A62A75E547DC9AD9072392A0090B"
+        "OwnerKey" = "8:_8C201A3EA5774739933B94776EB2A5E0"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_7E210ED17E935A8571C1EECFC1814D85"
+        "MsmKey" = "8:_8C201A3EA5774739933B94776EB2A5E0"
         "OwnerKey" = "8:_07ADCF089F3B44BA8A71A4C67410C23A"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -57,6 +51,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_F0AA591AB50F4BDFD1DCD9092453A0A3"
+        "OwnerKey" = "8:_DB42F6D1D8224140A61BB1455F3656F2"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_F41AE3E97A794904A3DC545EEBE14DF6"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -70,7 +70,7 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_2FF007AF6E2DCEF9300CED8F6E32C622"
+        "OwnerKey" = "8:_F0AA591AB50F4BDFD1DCD9092453A0A3"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -168,37 +168,6 @@
         }
         "File"
         {
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_2FF007AF6E2DCEF9300CED8F6E32C622"
-            {
-            "AssemblyRegister" = "3:1"
-            "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:ZLR.VM, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL"
-                "ScatterAssemblies"
-                {
-                    "_2FF007AF6E2DCEF9300CED8F6E32C622"
-                    {
-                    "Name" = "8:ZLR.VM.dll"
-                    "Attributes" = "3:512"
-                    }
-                }
-            "SourcePath" = "8:ZLR.VM.dll"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_AB72223FECF8414FB361BD0AC0774465"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_7E210ED17E935A8571C1EECFC1814D85"
             {
             "SourcePath" = "8:comdlg32.dll"
@@ -237,6 +206,37 @@
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_F0AA591AB50F4BDFD1DCD9092453A0A3"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:ZLR.VM, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL"
+                "ScatterAssemblies"
+                {
+                    "_F0AA591AB50F4BDFD1DCD9092453A0A3"
+                    {
+                    "Name" = "8:ZLR.VM.dll"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:ZLR.VM.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_AB72223FECF8414FB361BD0AC0774465"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F41AE3E97A794904A3DC545EEBE14DF6"
@@ -371,14 +371,14 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Demona"
-        "ProductCode" = "8:{7E6FE2E8-72D2-40BC-9542-AB7EC0D79E8B}"
-        "PackageCode" = "8:{E4FF9227-4F7E-4C1C-AA3D-827830A2C4F9}"
+        "ProductCode" = "8:{041C4738-9DCE-41FB-8B9D-3D8D81A0AF42}"
+        "PackageCode" = "8:{09395F48-3AE5-463C-9296-2A9F16E17571}"
         "UpgradeCode" = "8:{62484948-D4A8-4406-9531-270A0E16C763}"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:FALSE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:0.06"
+        "ProductVersion" = "8:0.07"
         "Manufacturer" = "8:ZLR"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:http://zlr.sourceforge.net/"
@@ -925,7 +925,7 @@
         }
         "MergeModule"
         {
-            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_16965A2CF9A048A481D3B042E0E7EEA8"
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_81F2A62A75E547DC9AD9072392A0090B"
             {
             "UseDynamicProperties" = "11:TRUE"
             "IsDependency" = "11:TRUE"
@@ -939,7 +939,7 @@
             "Feature" = "8:"
             "IsolateTo" = "8:"
             }
-            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_2E4AC6C25CC44E789EAE61E2861B76F5"
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_8C201A3EA5774739933B94776EB2A5E0"
             {
             "UseDynamicProperties" = "11:TRUE"
             "IsDependency" = "11:TRUE"

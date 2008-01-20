@@ -103,6 +103,12 @@ namespace ZLR.VM
 
         private short RandomImpl(short range)
         {
+            if (predictableRng && range <= 0)
+            {
+                // don't change anything
+                return 0;
+            }
+
             if (range == 0)
             {
                 rng = new Random();

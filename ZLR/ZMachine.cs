@@ -24,7 +24,7 @@ namespace ZLR.VM
 {
     partial class ZMachine
     {
-        public static readonly string ZLR_VERSION = "0.06";
+        public static readonly string ZLR_VERSION = "0.07";
 
         private struct CachedCode
         {
@@ -67,6 +67,7 @@ namespace ZLR.VM
         Stack<CallFrame> callStack = new Stack<CallFrame>();
         CallFrame topFrame;
         Random rng = new Random();
+        bool predictableRng;
         byte[] wordSeparators;
         int romStart;
         List<UndoState> undoStates = new List<UndoState>();
@@ -243,6 +244,21 @@ namespace ZLR.VM
             }
             else
                 return false;
+        }
+
+        public bool PredictableRandom
+        {
+            get { return predictableRng; }
+            set
+            {
+                if (value != predictableRng)
+                {
+                    if (value)
+                        rng = new Random(12345);
+                    else
+                        rng = new Random();
+                }
+            }
         }
 
         public void Run()

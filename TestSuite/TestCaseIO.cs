@@ -6,22 +6,26 @@ using System.IO;
 
 namespace TestSuite
 {
-    class ReplayIO : IZMachineIO
+    abstract class TestCaseIO
     {
-        private readonly Queue<string> inputBuffer = new Queue<string>();
-        private readonly StringBuilder outputBuffer = new StringBuilder();
-        private readonly string inputFile;
-
-        public ReplayIO(string prevInputFile)
-        {
-            this.inputFile = prevInputFile;
-        }
+        protected readonly StringBuilder outputBuffer = new StringBuilder();
 
         public string CollectOutput()
         {
             string result = outputBuffer.ToString();
             outputBuffer.Length = 0;
             return result;
+        }
+    }
+
+    class ReplayIO : TestCaseIO, IZMachineIO
+    {
+        private readonly Queue<string> inputBuffer = new Queue<string>();
+        private readonly string inputFile;
+
+        public ReplayIO(string prevInputFile)
+        {
+            this.inputFile = prevInputFile;
         }
 
         #region Z-machine I/O implementation
@@ -31,6 +35,11 @@ namespace TestSuite
         {
             terminator = 13;
             return inputBuffer.Dequeue();
+        }
+
+        void IZMachineIO.PutCommand(string command)
+        {
+            // nada
         }
 
         short IZMachineIO.ReadKey(int time, TimedInputCallback callback, CharTranslator translator)
@@ -175,22 +184,22 @@ namespace TestSuite
 
         byte IZMachineIO.WidthChars
         {
-            get { return 100; }
+            get { return 80; }
         }
 
         short IZMachineIO.WidthUnits
         {
-            get { return 100; }
+            get { return 80; }
         }
 
         byte IZMachineIO.HeightChars
         {
-            get { return 100; }
+            get { return 25; }
         }
 
         short IZMachineIO.HeightUnits
         {
-            get { return 100; }
+            get { return 25; }
         }
 
         byte IZMachineIO.FontHeight
@@ -254,21 +263,13 @@ namespace TestSuite
         #endregion
     }
 
-    class RecordingIO : IZMachineIO
+    class RecordingIO : TestCaseIO, IZMachineIO
     {
-        private readonly StringBuilder outputBuffer = new StringBuilder();
         private readonly string inputFile;
 
         public RecordingIO(string newInputFile)
         {
             this.inputFile = newInputFile;
-        }
-
-        public string CollectOutput()
-        {
-            string result = outputBuffer.ToString();
-            outputBuffer.Length = 0;
-            return result;
         }
 
         #region IZMachineIO Members
@@ -277,6 +278,11 @@ namespace TestSuite
         {
             terminator = 13;
             return Console.ReadLine();
+        }
+
+        void IZMachineIO.PutCommand(string command)
+        {
+            // nada
         }
 
         short IZMachineIO.ReadKey(int time, TimedInputCallback callback, CharTranslator translator)

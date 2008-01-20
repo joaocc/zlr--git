@@ -244,6 +244,13 @@ namespace ZLR.Interfaces.Demona
             }
         }
 
+        void IZMachineIO.PutCommand(string command)
+        {
+            Glk.glk_set_style(Style.Input);
+            ((IZMachineIO)this).PutString(command);
+            RefreshTextStyle();
+        }
+
         short IZMachineIO.ReadKey(int time, TimedInputCallback callback, CharTranslator translator)
         {
             PerformSplit(targetSplit);
