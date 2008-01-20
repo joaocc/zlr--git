@@ -27,7 +27,7 @@ namespace ZLR.Interfaces.SystemConsole
             else
             {
                 string exe = Path.GetFileName(Assembly.GetExecutingAssembly().Location);
-                Console.WriteLine("Usage: {0} <game_file.z5/z8> [<debug_file.dbg>]");
+                Console.WriteLine("Usage: {0} <game_file.z5/z8> [<debug_file.dbg>]", exe);
                 return 1;
             }
 
