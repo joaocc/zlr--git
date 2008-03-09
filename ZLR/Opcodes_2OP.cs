@@ -216,11 +216,11 @@ namespace ZLR.VM
 
             il.Emit(OpCodes.Ldarg_0);
             LoadOperand(il, 0);
-            il.Emit(OpCodes.Conv_U2);
             LoadOperand(il, 1);
             il.Emit(OpCodes.Ldc_I4_2);
             il.Emit(OpCodes.Mul);
             il.Emit(OpCodes.Add);
+            il.Emit(OpCodes.Conv_U2);
             il.Emit(OpCodes.Call, getWordMI);
             StoreResult(il);
         }
@@ -232,9 +232,9 @@ namespace ZLR.VM
 
             il.Emit(OpCodes.Ldarg_0);
             LoadOperand(il, 0);
-            il.Emit(OpCodes.Conv_U2);
             LoadOperand(il, 1);
             il.Emit(OpCodes.Add);
+            il.Emit(OpCodes.Conv_U2);
             il.Emit(OpCodes.Call, getByteMI);
             StoreResult(il);
         }
