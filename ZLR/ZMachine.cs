@@ -324,6 +324,14 @@ namespace ZLR.VM
 #endif // BENCHMARK
         }
 
+        public void Reset()
+        {
+            if (running)
+                throw new InvalidOperationException("Cannot reset while running");
+
+            Restart();
+        }
+
         private void BeginExternalWait()
         {
 #if BENCHMARK

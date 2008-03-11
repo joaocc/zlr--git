@@ -106,8 +106,6 @@ namespace ZLR.VM
 
         private short FilterInput(short ch)
         {
-            bool ok = true;
-
             // only allow characters that are defined for input: section 3.8
             if (ch < 32 && (ch != 8 && ch != 13 && ch != 27))
                 return 0;
