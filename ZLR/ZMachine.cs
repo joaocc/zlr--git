@@ -288,6 +288,7 @@ namespace ZLR.VM
             }
             finally
             {
+                running = false;
                 if (cmdRdr != null)
                 {
                     cmdRdr.Dispose();
