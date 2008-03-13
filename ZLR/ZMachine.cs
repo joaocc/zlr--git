@@ -99,7 +99,7 @@ namespace ZLR.VM
         public ZMachine(Stream gameStream, IZMachineIO io)
         {
             if (gameStream == null)
-                throw new ArgumentNullException("gameFile");
+                throw new ArgumentNullException("gameStream");
             if (io == null)
                 throw new ArgumentNullException("io");
 
