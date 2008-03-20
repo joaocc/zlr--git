@@ -15,23 +15,43 @@ namespace ZLR.Interfaces.SystemConsole
             Console.Title = "ConsoleZLR";
 
             Stream gameStream = null, debugStream = null;
-            string fileName = null;
+            string fileName = null, commandFile = null;
             if (args.Length >= 1 && args[0].Length > 0)
             {
-                gameStream = new FileStream(args[0], FileMode.Open, FileAccess.Read);
-                fileName = Path.GetFileName(args[0]);
+                int n = 0;
 
-                if (args.Length >= 2)
-                    debugStream = new FileStream(args[1], FileMode.Open, FileAccess.Read);
+                if (args[n].ToLower() == "-commands")
+                {
+                    if (args.Length > n + 1)
+                    {
+                        commandFile = args[n + 1];
+                        n += 2;
+                        if (args.Length <= n)
+                            return Usage();
+                    }
+                    else
+                        return Usage();
+                }
+
+                gameStream = new FileStream(args[n], FileMode.Open, FileAccess.Read);
+                fileName = Path.GetFileName(args[n]);
+
+                if (args.Length > n + 1)
+                    debugStream = new FileStream(args[n + 1], FileMode.Open, FileAccess.Read);
             }
             else
             {
-                string exe = Path.GetFileName(Assembly.GetExecutingAssembly().Location);
-                Console.WriteLine("Usage: {0} <game_file.z5/z8> [<debug_file.dbg>]", exe);
-                return 1;
+                return Usage();
             }
 
-            ZMachine zm = new ZMachine(gameStream, new ConsoleIO(fileName));
+            ConsoleIO io = new ConsoleIO(fileName);
+            ZMachine zm = new ZMachine(gameStream, io);
+            if (commandFile != null)
+            {
+                io.SuppliedCommandFile = commandFile;
+                io.HideMorePrompts = true;
+                zm.ReadingCommandsFromFile = true;
+            }
             if (debugStream != null)
                 zm.LoadDebugInfo(debugStream);
 
@@ -51,6 +71,13 @@ namespace ZLR.Interfaces.SystemConsole
             Console.WriteLine("Press any key to exit...");
             Console.ReadKey(true);
             return 0;
+        }
+
+        private static int Usage()
+        {
+            string exe = Path.GetFileName(Assembly.GetExecutingAssembly().Location);
+            Console.WriteLine("Usage: {0} [-commands <commandfile.txt>] <game_file.z5/z8> [<debug_file.dbg>]", exe);
+            return 1;
         }
     }
 }

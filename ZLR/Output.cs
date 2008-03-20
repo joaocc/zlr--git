@@ -86,6 +86,7 @@ namespace ZLR.VM
     /// </summary>
     public interface IZMachineIO
     {
+        // TODO: let the I/O module know whether we're using a command file, so it can disable the "more" prompts
         #region Input
 
         /// <summary>

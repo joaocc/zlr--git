@@ -10,6 +10,8 @@ namespace ZLR.Interfaces.SystemConsole
     internal class ConsoleIO : IZMachineIO
     {
         private readonly string fileBase;
+        private string suppliedCommandFile;
+        private bool hideMorePrompts;
         private int split = 0;
         private bool upper = false;
         private int xupper = 1, yupper = 1, xlower = 1, ylower = 1;
@@ -39,6 +41,18 @@ namespace ZLR.Interfaces.SystemConsole
             Console.BufferWidth = Console.WindowWidth;
 
             Console.Title = fileName + " - ConsoleZLR";
+        }
+
+        public string SuppliedCommandFile
+        {
+            get { return suppliedCommandFile; }
+            set { suppliedCommandFile = value; }
+        }
+
+        public bool HideMorePrompts
+        {
+            get { return hideMorePrompts; }
+            set { hideMorePrompts = value; }
         }
 
         public string ReadLine(string initial, int time, TimedInputCallback callback,
@@ -332,18 +346,6 @@ namespace ZLR.Interfaces.SystemConsole
                 case ConsoleKey.NumPad9: return 154;
                 default: return 0;
             }
-        }
-
-        public bool ReadingCommandsFromFile
-        {
-            get { return false; }
-            set { /* nada */ }
-        }
-
-        public bool WritingCommandsToFile
-        {
-            get { return false; }
-            set { /* nada */ }
         }
 
         public void PutChar(char ch)
@@ -925,41 +927,49 @@ namespace ZLR.Interfaces.SystemConsole
             lineCount = 0;
 
             string filename;
-            do
+            if (suppliedCommandFile != null)
             {
-                Console.Write("Enter the name of a command file to {0} (blank to cancel): ",
-                    writing ? "record" : "play back");
-                filename = Console.ReadLine();
-                if (filename == "")
-                    return null;
-
-                if (writing)
+                filename = suppliedCommandFile;
+                suppliedCommandFile = null;
+            }
+            else
+            {
+                do
                 {
-                    // if the file exists, prompt to overwrite it
-                    if (File.Exists(filename))
-                    {
-                        string yorn;
-                        do
-                        {
-                            Console.Write("\"{0}\" exists. Are you sure (y/n)? ", filename);
-                            yorn = Console.ReadLine().ToLower().Trim();
-                        }
-                        while (yorn.Length == 0);
+                    Console.Write("Enter the name of a command file to {0} (blank to cancel): ",
+                        writing ? "record" : "play back");
+                    filename = Console.ReadLine();
+                    if (filename == "")
+                        return null;
 
-                        if (yorn[0] == 'y')
+                    if (writing)
+                    {
+                        // if the file exists, prompt to overwrite it
+                        if (File.Exists(filename))
+                        {
+                            string yorn;
+                            do
+                            {
+                                Console.Write("\"{0}\" exists. Are you sure (y/n)? ", filename);
+                                yorn = Console.ReadLine().ToLower().Trim();
+                            }
+                            while (yorn.Length == 0);
+
+                            if (yorn[0] == 'y')
+                                break;
+                        }
+                        else
                             break;
                     }
                     else
-                        break;
+                    {
+                        // the file must already exist
+                        if (File.Exists(filename))
+                            break;
+                    }
                 }
-                else
-                {
-                    // the file must already exist
-                    if (File.Exists(filename))
-                        break;
-                }
+                while (true);
             }
-            while (true);
 
             return new FileStream(filename,
                     writing ? FileMode.Create : FileMode.Open,
@@ -1055,7 +1065,7 @@ namespace ZLR.Interfaces.SystemConsole
 
         private void CheckMore()
         {
-            if (!upper && Console.CursorLeft == 0)
+            if (!hideMorePrompts && !upper && Console.CursorLeft == 0)
             {
                 lineCount++;
                 if (lineCount >= Console.WindowHeight - split - 1)
