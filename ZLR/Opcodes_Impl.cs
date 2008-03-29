@@ -126,12 +126,19 @@ namespace ZLR.VM
 
         private void SaveUndo(byte dest, int nextPC)
         {
-            UndoState curState = new UndoState(zmem, romStart, stack, callStack, nextPC, dest);
-            if (undoStates.Count >= maxUndoDepth)
-                undoStates.RemoveAt(0);
-            undoStates.Add(curState);
+            if (maxUndoDepth > 0)
+            {
+                UndoState curState = new UndoState(zmem, romStart, stack, callStack, nextPC, dest);
+                if (undoStates.Count >= maxUndoDepth)
+                    undoStates.RemoveAt(0);
+                undoStates.Add(curState);
 
-            StoreResult(dest, 1);
+                StoreResult(dest, 1);
+            }
+            else
+            {
+                StoreResult(dest, 0);
+            }
         }
 
         private void RestoreUndo(byte dest, int failurePC)
