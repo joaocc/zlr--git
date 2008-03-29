@@ -51,7 +51,8 @@ namespace ZLR.VM
         int compilationStart;
         ILGenerator il;
         LocalBuilder tempArrayLocal, tempWordLocal, stackLocal, localsLocal;
-        private Dictionary<int, CachedCode> cache;
+        LruCache<int, CachedCode> cache;
+        int cacheSize;
 
         // compilation and runtime state
         int pc;
@@ -88,6 +89,7 @@ namespace ZLR.VM
         DebugInfo debugFile;
 
         const int MAX_UNDO_STATES = 3;
+        const int DEFAULT_CACHE_SIZE = 35000;
 
         /// <summary>
         /// Initializes a new instance of the ZLR engine from a given stream.
@@ -104,6 +106,7 @@ namespace ZLR.VM
                 throw new ArgumentNullException("io");
 
             this.io = io;
+            this.cacheSize = DEFAULT_CACHE_SIZE;
 
             // check for Blorb
             byte[] temp = new byte[12];
@@ -134,6 +137,12 @@ namespace ZLR.VM
                 throw new ArgumentException("Z-code version must be 5 or 8");
 
             io.SizeChanged += new EventHandler(io_SizeChanged);
+        }
+
+        public int CodeCacheSize
+        {
+            get { return cacheSize; }
+            set { cacheSize = value; }
         }
 
         public void LoadDebugInfo(Stream fromStream)
@@ -270,7 +279,7 @@ namespace ZLR.VM
 
             pc = (ushort)GetWord(0x06);
 
-            cache = new Dictionary<int, CachedCode>(2000);
+            cache = new LruCache<int, CachedCode>(cacheSize);
 
 #if BENCHMARK
             // reset performance stats
@@ -313,13 +322,10 @@ namespace ZLR.VM
 #if DISABLE_CACHE
             io.PutString("Code cache was disabled.\n");
 #else
-            long cacheCycles = 0;
-            foreach (CachedCode entry in cache.Values)
-                cacheCycles += entry.Cycles;
-            io.PutString(string.Format("Cached: {1} instructions in {0} fragments; {2:0.0}x reuse.\n",
+            io.PutString(string.Format("Final cache use: {1} instructions in {0} fragments\n",
                 cache.Count,
-                cacheCycles,
-                ((double)cycles - cacheCycles) / cacheCycles));
+                cache.CurrentSize));
+            io.PutString(string.Format("Peak cache use: {0} instructions\n", cache.PeakSize));
             io.PutString(string.Format("Cache hits: {0}. Misses: {1}.\n", cacheHits, cacheMisses));
 #endif // DISABLE_CACHE
 #endif // BENCHMARK
@@ -395,7 +401,7 @@ namespace ZLR.VM
 #endif
 #if !DISABLE_CACHE
                     if (thisPC >= romStart)
-                        cache.Add(thisPC, entry);
+                        cache.Add(thisPC, entry, count);
 #endif
                 }
 #if BENCHMARK
@@ -1197,10 +1203,9 @@ namespace ZLR.VM
             private int savedPC;
             private byte savedDest;
 
-            public UndoState(byte[] zmem, int romStart, Stack<short> stack, Stack<CallFrame> callStack,
+            public UndoState(byte[] zmem, int ramLength, Stack<short> stack, Stack<CallFrame> callStack,
                 int pc, byte dest)
             {
-                int ramLength = zmem.Length - romStart;
                 ram = new byte[ramLength];
                 Array.Copy(zmem, ram, ramLength);
 
