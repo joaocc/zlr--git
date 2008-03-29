@@ -52,7 +52,8 @@ namespace ZLR.VM
         ILGenerator il;
         LocalBuilder tempArrayLocal, tempWordLocal, stackLocal, localsLocal;
         LruCache<int, CachedCode> cache;
-        int cacheSize;
+        int cacheSize = DEFAULT_CACHE_SIZE;
+        int maxUndoDepth = DEFAULT_MAX_UNDO_DEPTH;
 
         // compilation and runtime state
         int pc;
@@ -88,7 +89,7 @@ namespace ZLR.VM
 
         DebugInfo debugFile;
 
-        const int MAX_UNDO_STATES = 3;
+        const int DEFAULT_MAX_UNDO_DEPTH = 3;
         const int DEFAULT_CACHE_SIZE = 35000;
 
         /// <summary>
@@ -106,7 +107,6 @@ namespace ZLR.VM
                 throw new ArgumentNullException("io");
 
             this.io = io;
-            this.cacheSize = DEFAULT_CACHE_SIZE;
 
             // check for Blorb
             byte[] temp = new byte[12];
@@ -142,7 +142,27 @@ namespace ZLR.VM
         public int CodeCacheSize
         {
             get { return cacheSize; }
-            set { cacheSize = value; }
+            set
+            {
+                if (running)
+                    throw new InvalidOperationException("Can't change code cache size while running");
+                if (value < 0)
+                    throw new ArgumentOutOfRangeException("Code cache size may not be negative");
+                cacheSize = value;
+            }
+        }
+
+        public int MaxUndoDepth
+        {
+            get { return MaxUndoDepth; }
+            set
+            {
+                if (running)
+                    throw new InvalidOperationException("Can't change max undo depth while running");
+                if (value < 0)
+                    throw new ArgumentOutOfRangeException("Max undo depth may not be negative");
+                maxUndoDepth = value;
+            }
         }
 
         public void LoadDebugInfo(Stream fromStream)
@@ -266,6 +286,7 @@ namespace ZLR.VM
                         rng = new Random(12345);
                     else
                         rng = new Random();
+                    predictableRng = value;
                 }
             }
         }
