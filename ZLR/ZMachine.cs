@@ -57,6 +57,7 @@ namespace ZLR.VM
 
         // compilation and runtime state
         int pc;
+        bool clearable;
 
         // runtime state
         Stream gameFile;
@@ -365,6 +366,8 @@ namespace ZLR.VM
 #if BENCHMARK
             waitStartTime = Environment.TickCount;
 #endif
+
+            clearable = true;
         }
 
         private void EndExternalWait()
@@ -372,6 +375,16 @@ namespace ZLR.VM
 #if BENCHMARK
             creditedTime += Environment.TickCount - waitStartTime;
 #endif
+
+            clearable = false;
+        }
+
+        public void ClearCache()
+        {
+            if (!clearable)
+                throw new InvalidOperationException("Code cache may only be cleared while waiting for input");
+
+            cache.Clear();
         }
 
         /// <summary>

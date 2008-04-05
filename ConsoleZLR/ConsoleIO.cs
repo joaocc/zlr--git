@@ -37,6 +37,18 @@ namespace ZLR.Interfaces.SystemConsole
 
             fileBase = Path.GetFileName(fileName);
 
+            try
+            {
+                // constrain the buffer height to something reasonable before the
+                // game has a chance to print too much, which will prevent us from
+                // shrinking the buffer later
+                Console.BufferHeight = 25;
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                // whoops, someone already printed too much, let's hope for the best
+            }
+
             origBufHeight = Console.BufferHeight;
             Console.BufferWidth = Console.WindowWidth;
 

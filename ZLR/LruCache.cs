@@ -62,8 +62,31 @@ namespace ZLR.VM
             get { return peakSize; }
         }
 
+        public IEnumerable<K> Keys
+        {
+            get { return dict.Keys; }
+        }
+
+        public IEnumerable<V> Values
+        {
+            get
+            {
+                foreach (Entry e in llist)
+                    yield return e.Value;
+            }
+        }
+
+        /// <summary>
+        /// Stores a value into the cache.
+        /// </summary>
+        /// <param name="key">The cache key or address.</param>
+        /// <param name="value">The value to store.</param>
+        /// <param name="size">The amount of cache space this value occupied by this value.</param>
         public void Add(K key, V value, int size)
         {
+            if (dict.ContainsKey(key))
+                throw new ArgumentException("Key already exists in cache", "key");
+
             LinkedListNode<Entry> node = new LinkedListNode<Entry>(new Entry(key, value, size));
 
             while (currentSize + size > maxSize && dict.Count > 0)
@@ -82,6 +105,22 @@ namespace ZLR.VM
                 peakSize = currentSize;
         }
 
+        /// <summary>
+        /// Empties the cache.
+        /// </summary>
+        public void Clear()
+        {
+            dict.Clear();
+            llist.Clear();
+            currentSize = 0;
+        }
+
+        /// <summary>
+        /// Attempts to read a value from the cache.
+        /// </summary>
+        /// <param name="key">The cache key or address to search for.</param>
+        /// <param name="value">Set to the cached value, if it was found.</param>
+        /// <returns><b>true</b> if the value was found in the cache.</returns>
         public bool TryGetValue(K key, out V value)
         {
             LinkedListNode<Entry> node;
@@ -99,20 +138,6 @@ namespace ZLR.VM
 
             value = node.Value.Value;
             return true;
-        }
-
-        public IEnumerable<K> Keys
-        {
-            get { return dict.Keys; }
-        }
-
-        public IEnumerable<V> Values
-        {
-            get
-            {
-                foreach (Entry e in llist)
-                    yield return e.Value;
-            }
         }
     }
 }
