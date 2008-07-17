@@ -839,8 +839,9 @@ namespace ZLR.VM
                 // is skip the opcode and its operands and hope it won't branch or store.
                 if (count != OpCount.Ext || opnum < 29)
                     throw new NotImplementedException(string.Format(
-                        "Opcode {0}",
-                        FormatOpcode(count, form, opnum)));
+                        "Opcode {0} at ${1:x4}",
+                        FormatOpcode(count, form, opnum),
+                        opc));
             }
 
 #if TRACING

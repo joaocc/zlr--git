@@ -23,6 +23,7 @@ namespace ZLR.VM
             {
                 if (resultStorage != -1)
                     StoreResult((byte)resultStorage, 0);
+                pc = returnPC;
                 return;
             }
 
