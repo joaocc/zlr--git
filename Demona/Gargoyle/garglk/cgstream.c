@@ -473,6 +473,9 @@ stream_t *glk_stream_get_current()
 
 static void gli_put_char(stream_t *str, unsigned char ch)
 {
+  glui32 **ubp;
+  unsigned char **bp;
+
   if (!str || !str->writable)
     return;
 
@@ -483,10 +486,12 @@ static void gli_put_char(stream_t *str, unsigned char ch)
     if (str->bufptr < str->bufend) {
 	  if (str->unicode) {
         *((glui32 *)str->bufptr) = ch;
-        ((glui32 *)str->bufptr)++;
+		ubp = (glui32 **)(&str->bufptr);
+		(*ubp)++;
 	  } else {
         *((unsigned char *)str->bufptr) = ch;
-        ((unsigned char *)str->bufptr)++;
+		bp = (unsigned char **)(&str->bufptr);
+        (*bp)++;
 	  }
       if (str->bufptr > str->bufeof)
 	    str->bufeof = str->bufptr;
@@ -525,10 +530,10 @@ static void gli_put_char_uni(stream_t *str, glui32 ch)
     if (str->bufptr < str->bufend) {
 	  if (str->unicode) {
         *((glui32 *)str->bufptr) = ch;
-        ((glui32 *)str->bufptr)++;
+        *((glui32 **)&str->bufptr)++;
 	  } else {
         *((unsigned char *)str->bufptr) = (unsigned char)ch;
-        ((unsigned char *)str->bufptr)++;
+        *((unsigned char **)&str->bufptr)++;
 	  }
       if (str->bufptr > str->bufeof)
 	    str->bufeof = str->bufptr;
@@ -857,13 +862,13 @@ static glsi32 gli_get_char(stream_t *str)
 		if (!str->unicode) {
 		  unsigned char ch;
 		  ch = *((unsigned char *)str->bufptr);
-		  ((unsigned char *)str->bufptr)++;
+		  *((unsigned char **)&str->bufptr)++;
 		  str->readcount++;
 		  return ch;
 		} else {
 		  glui32 ch;
 		  ch = *((glui32 *)str->bufptr);
-		  ((glui32 *)str->bufptr)++;
+		  *((glui32 **)&str->bufptr)++;
 		  str->readcount++;
 		  if (ch > 0xff)
 			  ch = '?';
@@ -906,13 +911,13 @@ static glsi32 gli_get_char_uni(stream_t *str)
 		if (!str->unicode) {
 		  unsigned char ch;
 		  ch = *((unsigned char *)str->bufptr);
-		  ((unsigned char *)str->bufptr)++;
+		  *((unsigned char **)&str->bufptr)++;
 		  str->readcount++;
 		  return ch;
 		} else {
 		  glui32 ch;
 		  ch = *((glui32 *)str->bufptr);
-		  ((glui32 *)str->bufptr)++;
+		  *((glui32 **)&str->bufptr)++;
 		  str->readcount++;
 		  return ch;
 		}
@@ -1163,7 +1168,7 @@ static glui32 gli_get_line(stream_t *str, char *cbuf, glui32 len)
                     gotnewline = (cbuf[lx] == '\n');
                 }
                 cbuf[lx] = '\0';
-                (char *)str->bufptr += lx;
+                *((char **)&str->bufptr) += lx;
             }
             else {
                 if (str->bufptr >= str->bufend) {
@@ -1188,7 +1193,7 @@ static glui32 gli_get_line(stream_t *str, char *cbuf, glui32 len)
                     gotnewline = (ch == '\n');
                 }
                 cbuf[lx] = '\0';
-                (glui32 *)str->bufptr += lx;
+                *((glui32 **)&str->bufptr) += lx;
             }
             str->readcount += lx;
             return lx;
@@ -1273,7 +1278,7 @@ static glui32 gli_get_line_uni(stream_t *str, glui32 *ubuf, glui32 len)
                     gotnewline = (ubuf[lx] == '\n');
                 }
                 ubuf[lx] = '\0';
-                (unsigned char *)str->bufptr += lx;
+                *((unsigned char **)&str->bufptr) += lx;
             }
             else {
                 if (str->bufptr >= str->bufend) {
@@ -1296,7 +1301,7 @@ static glui32 gli_get_line_uni(stream_t *str, glui32 *ubuf, glui32 len)
                     gotnewline = (ch == '\n');
                 }
                 ubuf[lx] = '\0';
-                (glui32 *)str->bufptr += lx;
+                *((glui32 **)&str->bufptr) += lx;
             }
             str->readcount += lx;
             return lx;

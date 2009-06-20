@@ -349,9 +349,76 @@ namespace ZLR.VM
                 cache.CurrentSize));
             io.PutString(string.Format("Peak cache use: {0} instructions\n", cache.PeakSize));
             io.PutString(string.Format("Cache hits: {0}. Misses: {1}.\n", cacheHits, cacheMisses));
+            MeasureCacheOverlap();
 #endif // DISABLE_CACHE
 #endif // BENCHMARK
         }
+
+#if BENCHMARK
+        private struct Range
+        {
+            public readonly int Start, End;
+
+            public Range(int start, int end)
+            {
+                this.Start = start;
+                this.End = end;
+            }
+        }
+
+        private void MeasureCacheOverlap()
+        {
+            Range[] ranges = new Range[cache.Count];
+            int i = 0;
+            int min = int.MaxValue, max = int.MinValue;
+
+            foreach (int key in cache.Keys)
+            {
+                CachedCode value;
+                if (cache.TryGetValue(key, out value) == true)
+                {
+                    Range thisRange = new Range(key, value.NextPC);
+
+                    if (thisRange.Start < min)
+                        min = thisRange.Start;
+                    if (thisRange.End > max)
+                        max = thisRange.End;
+
+                    ranges[i++] = thisRange;
+                }
+            }
+
+            System.Diagnostics.Debug.Assert(i == ranges.Length);
+
+            int codeSize = max - min;
+            ushort[] overlaps = new ushort[codeSize];
+            for (i = 0; i < ranges.Length; i++)
+                for (int j = ranges[i].Start; j < ranges[i].End; j++)
+                    overlaps[j - min]++;
+
+            max = 0;
+            long totalLaps = 0;
+            long denominator = overlaps.Length;
+            for (i = 0; i < overlaps.Length; i++)
+            {
+                ushort val = overlaps[i];
+                if (val == 0)
+                {
+                    denominator--;
+                }
+                else
+                {
+                    totalLaps += val;
+                    if (val > max)
+                        max = val;
+                }
+            }
+
+            io.PutString(string.Format("Cache overlaps: average {0} per used cell, maximum {1}\n",
+                (double)totalLaps / (double)denominator,
+                max));
+        }
+#endif
 
         public void Reset()
         {
@@ -623,7 +690,7 @@ namespace ZLR.VM
             lastOp = null;
             bool needRet = false;
 #if BENCHMARK
-            FieldInfo cyclesFI = typeof(ZMachine).GetField("cycles", BindingFlags.NonPublic| BindingFlags.Instance);
+            FieldInfo cyclesFI = typeof(ZMachine).GetField("cycles", BindingFlags.NonPublic | BindingFlags.Instance);
 #endif
             while (node != null && compiling)
             {

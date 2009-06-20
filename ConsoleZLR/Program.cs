@@ -16,6 +16,8 @@ namespace ZLR.Interfaces.SystemConsole
 
             Stream gameStream = null, debugStream = null;
             string fileName = null, commandFile = null;
+            bool dumb = false;
+
             if (args.Length >= 1 && args[0].Length > 0)
             {
                 int n = 0;
@@ -32,6 +34,11 @@ namespace ZLR.Interfaces.SystemConsole
                     else
                         return Usage();
                 }
+                else if (args[n].ToLower() == "-dumb")
+                {
+                    n++;
+                    dumb = true;
+                }
 
                 gameStream = new FileStream(args[n], FileMode.Open, FileAccess.Read);
                 fileName = Path.GetFileName(args[n]);
@@ -44,14 +51,26 @@ namespace ZLR.Interfaces.SystemConsole
                 return Usage();
             }
 
-            ConsoleIO io = new ConsoleIO(fileName);
+            IZMachineIO io;
+
+            if (dumb)
+            {
+                io = new DumbIO();
+            }
+            else
+            {
+                ConsoleIO cio = new ConsoleIO(fileName);
+                if (commandFile != null)
+                {
+                    cio.SuppliedCommandFile = commandFile;
+                    cio.HideMorePrompts = true;
+                }
+                io = cio;
+            }
+
             ZMachine zm = new ZMachine(gameStream, io);
             if (commandFile != null)
-            {
-                io.SuppliedCommandFile = commandFile;
-                io.HideMorePrompts = true;
                 zm.ReadingCommandsFromFile = true;
-            }
             if (debugStream != null)
                 zm.LoadDebugInfo(debugStream);
 

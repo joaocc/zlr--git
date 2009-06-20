@@ -139,5 +139,15 @@ namespace ZLR.VM
             value = node.Value.Value;
             return true;
         }
+
+        /// <summary>
+        /// Checks whether the cache contains a key.
+        /// </summary>
+        /// <param name="key">The key to search for.</param>
+        /// <returns><b>true</b> if the key is present in the cache.</returns>
+        public bool ContainsKey(K key)
+        {
+            return dict.ContainsKey(key);
+        }
     }
 }
