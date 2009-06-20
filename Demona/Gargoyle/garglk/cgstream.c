@@ -518,6 +518,8 @@ static void gli_put_char(stream_t *str, unsigned char ch)
   }
 }
 
+#define incbufptr(type, stream)		do { type *tmp = (stream)->bufptr; tmp++; (stream)->bufptr = tmp; } while (0)
+
 static void gli_put_char_uni(stream_t *str, glui32 ch)
 {
   if (!str || !str->writable)
@@ -530,10 +532,10 @@ static void gli_put_char_uni(stream_t *str, glui32 ch)
     if (str->bufptr < str->bufend) {
 	  if (str->unicode) {
         *((glui32 *)str->bufptr) = ch;
-        *((glui32 **)&str->bufptr)++;
+		incbufptr(glui32, str);
 	  } else {
         *((unsigned char *)str->bufptr) = (unsigned char)ch;
-        *((unsigned char **)&str->bufptr)++;
+		incbufptr(unsigned char, str);
 	  }
       if (str->bufptr > str->bufeof)
 	    str->bufeof = str->bufptr;
@@ -862,13 +864,13 @@ static glsi32 gli_get_char(stream_t *str)
 		if (!str->unicode) {
 		  unsigned char ch;
 		  ch = *((unsigned char *)str->bufptr);
-		  *((unsigned char **)&str->bufptr)++;
+		  incbufptr(unsigned char, str);
 		  str->readcount++;
 		  return ch;
 		} else {
 		  glui32 ch;
 		  ch = *((glui32 *)str->bufptr);
-		  *((glui32 **)&str->bufptr)++;
+		  incbufptr(glui32, str);
 		  str->readcount++;
 		  if (ch > 0xff)
 			  ch = '?';
@@ -911,13 +913,13 @@ static glsi32 gli_get_char_uni(stream_t *str)
 		if (!str->unicode) {
 		  unsigned char ch;
 		  ch = *((unsigned char *)str->bufptr);
-		  *((unsigned char **)&str->bufptr)++;
+		  incbufptr(unsigned char, str);
 		  str->readcount++;
 		  return ch;
 		} else {
 		  glui32 ch;
 		  ch = *((glui32 *)str->bufptr);
-		  *((glui32 **)&str->bufptr)++;
+		  incbufptr(glui32, str);
 		  str->readcount++;
 		  return ch;
 		}
