@@ -31,6 +31,8 @@ namespace ZLR.VM
         }
     }
 
+    internal delegate string VariableNameProvider(byte num);
+
     internal partial class Opcode
     {
         public readonly int PC, ZCodeLength;
@@ -83,6 +85,85 @@ namespace ZLR.VM
         public override string ToString()
         {
             return OpcodeName(compiler);
+        }
+
+        public string Disassemble(VariableNameProvider varNamer)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append(OpcodeName(compiler));
+
+            for (int i = 0; i < argc; i++)
+            {
+                sb.Append(' ');
+
+                switch (operandTypes[i])
+                {
+                    case OperandType.LargeConst:
+                        sb.Append("long_");
+                        sb.Append(operandValues[i]);
+                        break;
+
+                    case OperandType.SmallConst:
+                        sb.Append("short_");
+                        sb.Append(operandValues[i]);
+                        break;
+
+                    case OperandType.Variable:
+                        if (operandValues[i] == 0)
+                            sb.Append("sp");
+                        else
+                            sb.Append(varNamer((byte)operandValues[i]));
+                        break;
+                }
+            }
+
+            if (attribute.Text)
+            {
+                string tstr;
+                if (operandText.Length <= 10)
+                    tstr = operandText;
+                else
+                    tstr = operandText.Substring(0, 7) + "...";
+                sb.Append(" \"");
+                sb.Append(tstr);
+                sb.Append('"');
+            }
+
+            if (attribute.Store)
+            {
+                sb.Append(" -> ");
+                if (resultStorage == 0)
+                    sb.Append("sp");
+                else
+                    sb.Append(varNamer((byte)resultStorage));
+            }
+
+            if (attribute.Branch)
+            {
+                sb.Append(" ?");
+                if (!branchIfTrue)
+                    sb.Append('~');
+
+                switch (branchOffset)
+                {
+                    case 0:
+                        sb.Append("rfalse");
+                        break;
+
+                    case 1:
+                        sb.Append("rtrue");
+                        break;
+
+                    default:
+                        int off = branchOffset - 2;
+                        if (off >= 0)
+                            sb.Append('+');
+                        sb.Append(off);
+                        break;
+                }
+            }
+
+            return sb.ToString();
         }
 
         /// <summary>

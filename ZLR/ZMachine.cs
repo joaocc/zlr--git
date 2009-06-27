@@ -58,6 +58,7 @@ namespace ZLR.VM
         // compilation and runtime state
         int pc;
         bool clearable;
+        bool debugging;
 
         // runtime state
         Stream gameFile;
@@ -173,6 +174,11 @@ namespace ZLR.VM
                 throw new ArgumentException("Debug file does not match loaded story file");
 
             debugFile = di;
+        }
+
+        public DebugInfo DebugInfo
+        {
+            get { return debugFile; }
         }
 
         private CallFrame TopFrame
@@ -475,16 +481,6 @@ namespace ZLR.VM
                 Console.WriteLine();
 #endif
 
-                // Work around some kind of CLR bug!
-                // The release build crashes with a NullReferenceException if this test is removed.
-                // Cache can *never* be null, of course, since it's initialized outside this loop
-                // and never changed. But it seems to magically become null unless we remind .NET
-                // to check first. (Note: the bug doesn't occur when running under the debugger,
-                // even in release builds.)
-                //if (cache == null)
-                //    throw new Exception("Something impossible happened");
-                // NOTE: fixed it by making cache a field instead.
-
                 CachedCode entry;
                 int thisPC = pc;
 #if !DISABLE_CACHE
@@ -689,6 +685,7 @@ namespace ZLR.VM
             compiling = true;
             lastOp = null;
             bool needRet = false;
+            MethodInfo debugChkMI = typeof(ZMachine).GetMethod("DebugCheck", BindingFlags.NonPublic | BindingFlags.Instance);
 #if BENCHMARK
             FieldInfo cyclesFI = typeof(ZMachine).GetField("cycles", BindingFlags.NonPublic | BindingFlags.Instance);
 #endif
@@ -706,6 +703,18 @@ namespace ZLR.VM
 
                     pc = node.PC + node.ZCodeLength;
                     il.MarkLabel(node.Label);
+
+                    if (debugging)
+                    {
+                        // return immediately if DebugCheck(address) returns true
+                        Label noBreakLabel = il.DefineLabel();
+                        il.Emit(OpCodes.Ldarg_0);
+                        il.Emit(OpCodes.Ldc_I4, node.PC);
+                        il.Emit(OpCodes.Call, debugChkMI);
+                        il.Emit(OpCodes.Brfalse_S, noBreakLabel);
+                        il.Emit(OpCodes.Ret);
+                        il.MarkLabel(noBreakLabel);
+                    }
 
 #if BENCHMARK
                     il.Emit(OpCodes.Ldarg_0);
@@ -1010,7 +1019,7 @@ namespace ZLR.VM
                 text, resultStorage, branchIfTrue, branchOffset);
         }
 
-        private string FormatOpCount(OpCount opc)
+        private static string FormatOpCount(OpCount opc)
         {
             switch (opc)
             {
@@ -1023,7 +1032,7 @@ namespace ZLR.VM
             }
         }
 
-        private string FormatOpcode(OpCount opc, OpForm form, int opnum)
+        internal static string FormatOpcode(OpCount opc, OpForm form, int opnum)
         {
             StringBuilder sb = new StringBuilder(FormatOpCount(opc));
             sb.Append(':');
@@ -1270,7 +1279,7 @@ namespace ZLR.VM
             traps.Handle(address, length);
         }
 
-        internal class CallFrame
+        internal class CallFrame : ICallFrame
         {
             public CallFrame(int returnPC, int prevStackDepth, int numLocals, int argCount,
                 int resultStorage)
@@ -1295,6 +1304,35 @@ namespace ZLR.VM
                 Array.Copy(Locals, result.Locals, Locals.Length);
                 return result;
             }
+
+            #region ICallFrame Members
+
+            int ICallFrame.ReturnPC
+            {
+                get { return ReturnPC; }
+            }
+
+            int ICallFrame.PrevStackDepth
+            {
+                get { return PrevStackDepth; }
+            }
+
+            short[] ICallFrame.Locals
+            {
+                get { return Locals; }
+            }
+
+            int ICallFrame.ArgCount
+            {
+                get { return ArgCount; }
+            }
+
+            int ICallFrame.ResultStorage
+            {
+                get { return ResultStorage; }
+            }
+
+            #endregion
         }
 
         private class UndoState

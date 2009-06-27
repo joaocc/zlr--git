@@ -14,31 +14,31 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZLR.VM", "ZLR\ZLR.VM.csproj
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demona", "Demona\Demona.csproj", "{2B837CC9-6BD8-484C-B7F9-75D3F18FD251}"
-	ProjectSection(WebsiteProperties) = preProject
-		Debug.AspNetCompiler.Debug = "True"
-		Release.AspNetCompiler.Debug = "False"
-	EndProjectSection
 	ProjectSection(ProjectDependencies) = postProject
 		{63A5651F-ABA6-4857-955E-57B3A8DD75B0} = {63A5651F-ABA6-4857-955E-57B3A8DD75B0}
 	EndProjectSection
-EndProject
-Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "DemonaSetup", "DemonaSetup\DemonaSetup.vdproj", "{9CC9A9CC-357C-4615-B29A-067FE13ADDC7}"
 	ProjectSection(WebsiteProperties) = preProject
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.Debug = "False"
 	EndProjectSection
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "DemonaSetup", "DemonaSetup\DemonaSetup.vdproj", "{9CC9A9CC-357C-4615-B29A-067FE13ADDC7}"
 	ProjectSection(ProjectDependencies) = postProject
 		{75CC483D-D28E-49EE-AB8F-F77CC3F58BFA} = {75CC483D-D28E-49EE-AB8F-F77CC3F58BFA}
 	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Gargoyle", "Gargoyle", "{32E3D7B7-0213-41F0-B31E-45A3AFBCAC88}"
 	ProjectSection(WebsiteProperties) = preProject
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.Debug = "False"
 	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Gargoyle", "Gargoyle", "{32E3D7B7-0213-41F0-B31E-45A3AFBCAC88}"
 	ProjectSection(SolutionItems) = preProject
 		Demona\Gargoyle\support\sdl\SDL.def = Demona\Gargoyle\support\sdl\SDL.def
 		Demona\Gargoyle\support\sdl\SDL_mixer.def = Demona\Gargoyle\support\sdl\SDL_mixer.def
+	EndProjectSection
+	ProjectSection(WebsiteProperties) = preProject
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.Debug = "False"
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libgarglk", "Demona\Gargoyle\garglk\libgarglk.vcproj", "{63A5651F-ABA6-4857-955E-57B3A8DD75B0}"
@@ -127,7 +127,6 @@ Global
 		{9CC9A9CC-357C-4615-B29A-067FE13ADDC7}.Release|Win32.Build.0 = Release
 		{63A5651F-ABA6-4857-955E-57B3A8DD75B0}.Debug|Any CPU.ActiveCfg = Debug|Win32
 		{63A5651F-ABA6-4857-955E-57B3A8DD75B0}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
-		{63A5651F-ABA6-4857-955E-57B3A8DD75B0}.Debug|Mixed Platforms.Build.0 = Debug|Win32
 		{63A5651F-ABA6-4857-955E-57B3A8DD75B0}.Debug|Win32.ActiveCfg = Debug|Win32
 		{63A5651F-ABA6-4857-955E-57B3A8DD75B0}.Debug|Win32.Build.0 = Debug|Win32
 		{63A5651F-ABA6-4857-955E-57B3A8DD75B0}.Release|Any CPU.ActiveCfg = Release|Win32
@@ -137,7 +136,6 @@ Global
 		{63A5651F-ABA6-4857-955E-57B3A8DD75B0}.Release|Win32.Build.0 = Release|Win32
 		{AE2C588F-5884-4853-BF3D-A582B887BE08}.Debug|Any CPU.ActiveCfg = Debug|Win32
 		{AE2C588F-5884-4853-BF3D-A582B887BE08}.Debug|Mixed Platforms.ActiveCfg = Release|Win32
-		{AE2C588F-5884-4853-BF3D-A582B887BE08}.Debug|Mixed Platforms.Build.0 = Release|Win32
 		{AE2C588F-5884-4853-BF3D-A582B887BE08}.Debug|Win32.ActiveCfg = Debug|Win32
 		{AE2C588F-5884-4853-BF3D-A582B887BE08}.Debug|Win32.Build.0 = Debug|Win32
 		{AE2C588F-5884-4853-BF3D-A582B887BE08}.Release|Any CPU.ActiveCfg = Release|Win32
@@ -147,7 +145,6 @@ Global
 		{AE2C588F-5884-4853-BF3D-A582B887BE08}.Release|Win32.Build.0 = Release|Win32
 		{7C5BB22E-1358-4F21-A322-4801F7E660E7}.Debug|Any CPU.ActiveCfg = Debug|Win32
 		{7C5BB22E-1358-4F21-A322-4801F7E660E7}.Debug|Mixed Platforms.ActiveCfg = Release|Win32
-		{7C5BB22E-1358-4F21-A322-4801F7E660E7}.Debug|Mixed Platforms.Build.0 = Release|Win32
 		{7C5BB22E-1358-4F21-A322-4801F7E660E7}.Debug|Win32.ActiveCfg = Debug|Win32
 		{7C5BB22E-1358-4F21-A322-4801F7E660E7}.Debug|Win32.Build.0 = Debug|Win32
 		{7C5BB22E-1358-4F21-A322-4801F7E660E7}.Release|Any CPU.ActiveCfg = Release|Win32
@@ -157,7 +154,6 @@ Global
 		{7C5BB22E-1358-4F21-A322-4801F7E660E7}.Release|Win32.Build.0 = Release|Win32
 		{164BB4B3-636C-40E3-8647-9C0D284E4F46}.Debug|Any CPU.ActiveCfg = Debug|Win32
 		{164BB4B3-636C-40E3-8647-9C0D284E4F46}.Debug|Mixed Platforms.ActiveCfg = Release|Win32
-		{164BB4B3-636C-40E3-8647-9C0D284E4F46}.Debug|Mixed Platforms.Build.0 = Release|Win32
 		{164BB4B3-636C-40E3-8647-9C0D284E4F46}.Debug|Win32.ActiveCfg = Debug|Win32
 		{164BB4B3-636C-40E3-8647-9C0D284E4F46}.Debug|Win32.Build.0 = Debug|Win32
 		{164BB4B3-636C-40E3-8647-9C0D284E4F46}.Release|Any CPU.ActiveCfg = Release|Win32
@@ -167,7 +163,6 @@ Global
 		{164BB4B3-636C-40E3-8647-9C0D284E4F46}.Release|Win32.Build.0 = Release|Win32
 		{EDF8C11C-EAEC-4D4D-A67D-A09528B5E3D7}.Debug|Any CPU.ActiveCfg = Debug|Win32
 		{EDF8C11C-EAEC-4D4D-A67D-A09528B5E3D7}.Debug|Mixed Platforms.ActiveCfg = Release|Win32
-		{EDF8C11C-EAEC-4D4D-A67D-A09528B5E3D7}.Debug|Mixed Platforms.Build.0 = Release|Win32
 		{EDF8C11C-EAEC-4D4D-A67D-A09528B5E3D7}.Debug|Win32.ActiveCfg = Debug|Win32
 		{EDF8C11C-EAEC-4D4D-A67D-A09528B5E3D7}.Debug|Win32.Build.0 = Debug|Win32
 		{EDF8C11C-EAEC-4D4D-A67D-A09528B5E3D7}.Release|Any CPU.ActiveCfg = Release|Win32

@@ -33,6 +33,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Debugger.cs" />
     <Compile Include="DebugInfo.cs" />
     <Compile Include="IFF.cs" />
     <Compile Include="Input.cs" />

@@ -43,10 +43,13 @@ namespace ZLR.VM.Debugging
 
                 int i, codeArea = 0;
                 byte b;
-                ushort w;
+                ushort w, w2;
                 string str;
                 LineRef line;
                 RoutineInfo routine = null;
+                List<string> localList = new List<string>();
+                List<LineInfo> lineList = new List<LineInfo>();
+                List<ushort> offsetList = new List<ushort>();
 
                 while (fromStream.Position < fromStream.Length)
                 {
@@ -115,10 +118,14 @@ namespace ZLR.VM.Debugging
                             routine.CodeStart = ReadAddress(br);
                             routineStarts[w] = routine.CodeStart;
                             routine.Name = ReadString(br);
-                            while (ReadString(br) != "")
+                            localList.Clear();
+                            while ((str = ReadString(br)) != "")
                             {
-                                // skip local variable names
+                                localList.Add(str);
                             }
+                            routine.Locals = localList.ToArray();
+                            lineList.Clear();
+                            offsetList.Clear();
                             break;
 
                         case 10:
@@ -127,8 +134,16 @@ namespace ZLR.VM.Debugging
                             w = ReadWord(br);
                             while (w-- > 0)
                             {
-                                ReadLineRef(br);
-                                ReadWord(br);
+                                line = ReadLineRef(br);
+                                w2 = ReadWord(br);
+                                if (line.IsValid)
+                                {
+                                    lineList.Add(new LineInfo(
+                                        filenames[line.FileNum],
+                                        line.LineNum,
+                                        line.Column));
+                                    offsetList.Add(w2);
+                                }
                             }
                             break;
 
@@ -139,6 +154,8 @@ namespace ZLR.VM.Debugging
                             ReadLineRef(br); // skip defn end
                             i = ReadAddress(br);
                             routine.CodeLength = i - routine.CodeStart;
+                            routine.LineInfos = lineList.ToArray();
+                            routine.LineOffsets = offsetList.ToArray();
                             break;
 
                         case 13:
@@ -244,6 +261,49 @@ namespace ZLR.VM.Debugging
 
             return null;
         }
+
+        public RoutineInfo FindRoutine(string name)
+        {
+            for (int i = 0; i < routines.Count; i++)
+                if (routines[i].Name == name)
+                    return routines[i];
+
+            return null;
+        }
+
+        public LineInfo? FindLine(int pc)
+        {
+            RoutineInfo rtn = FindRoutine(pc);
+            if (rtn == null)
+                return null;
+
+            ushort offset = (ushort)(pc - rtn.CodeStart);
+            int idx = Array.BinarySearch(rtn.LineOffsets, offset);
+            if (idx >= 0)
+                return rtn.LineInfos[idx];
+
+            idx = ~idx - 1;
+            if (idx >= 0 && idx < rtn.LineInfos.Length)
+                return rtn.LineInfos[idx];
+
+            return null;
+        }
+
+        public int FindCodeAddress(string filename, int line)
+        {
+            for (int i = 0; i < routines.Count; i++)
+            {
+                RoutineInfo rtn = routines[i];
+                if (rtn.DefinedAt.File != filename)
+                    continue;
+
+                for (int j = 0; j < rtn.LineInfos.Length; j++)
+                    if (rtn.LineInfos[j].Line == line)
+                        return rtn.CodeStart + rtn.LineOffsets[j];
+            }
+
+            return -1;
+        }
     }
 
     public class RoutineInfo
@@ -253,6 +313,8 @@ namespace ZLR.VM.Debugging
         public int CodeLength;
         public LineInfo DefinedAt;
         public string[] Locals;
+        public ushort[] LineOffsets;
+        public LineInfo[] LineInfos;
     }
 
     public struct LineInfo
