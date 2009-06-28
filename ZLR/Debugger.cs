@@ -116,13 +116,11 @@ namespace ZLR.VM
                 zm.Restart();
                 if (zm.cache == null)
                     zm.cache = new LruCache<int, CachedCode>(zm.cacheSize);
+                zm.debugState = DebuggerState.Paused;
             }
 
-            public void StepInto()
+            private void OneStep()
             {
-                zm.stepping = 1;
-                zm.running = true;
-
                 CachedCode entry;
                 int thisPC = zm.pc;
                 if (thisPC < zm.romStart || zm.cache.TryGetValue(thisPC, out entry) == false)
@@ -135,6 +133,14 @@ namespace ZLR.VM
                 }
                 zm.pc = entry.NextPC;
                 entry.Code();
+            }
+
+            public void StepInto()
+            {
+                zm.stepping = 1;
+                zm.running = true;
+
+                OneStep();
 
                 zm.stepping = -1;
                 zm.debugState = zm.running ? DebuggerState.Paused : DebuggerState.Stopped;
@@ -151,10 +157,14 @@ namespace ZLR.VM
 
             public void Run()
             {
+                // step ahead if the current line has a breakpoint on it
+                if (zm.breakpoints.ContainsKey(zm.pc))
+                    StepInto();
+
                 zm.running = true;
                 zm.debugState = DebuggerState.Running;
                 while (zm.running && zm.debugState == DebuggerState.Running)
-                    zm.JitLoop();
+                    OneStep();
 
                 zm.debugState = zm.running ? DebuggerState.Paused : DebuggerState.Stopped;
             }

@@ -23,29 +23,33 @@ namespace ZLR.Interfaces.SystemConsole
             {
                 int n = 0;
 
-                if (args[n].ToLower() == "-commands")
+                do
                 {
-                    if (args.Length > n + 1)
+                    if (args[n].ToLower() == "-commands")
                     {
-                        commandFile = args[n + 1];
-                        n += 2;
-                        if (args.Length <= n)
+                        if (args.Length > n + 1)
+                        {
+                            commandFile = args[n + 1];
+                            n += 2;
+                            if (args.Length <= n)
+                                return Usage();
+                        }
+                        else
                             return Usage();
                     }
+                    else if (args[n].ToLower() == "-dumb")
+                    {
+                        n++;
+                        dumb = true;
+                    }
+                    else if (args[n].ToLower() == "-debug")
+                    {
+                        n++;
+                        debugger = true;
+                    }
                     else
-                        return Usage();
-                }
-                else if (args[n].ToLower() == "-dumb")
-                {
-                    n++;
-                    dumb = true;
-                }
-                else if (args[n].ToLower() == "-debug")
-                {
-                    n++;
-                    dumb = true;
-                    debugger = true;
-                }
+                        break;
+                } while (true);
 
                 gameStream = new FileStream(args[n], FileMode.Open, FileAccess.Read);
                 fileName = Path.GetFileName(args[n]);
@@ -123,23 +127,30 @@ namespace ZLR.Interfaces.SystemConsole
             char[] delim = new char[] { ' ' };
             while (true)
             {
-                Console.Write("${0:x5}   ", dbg.CurrentPC);
-                Console.WriteLine(dbg.Disassemble(dbg.CurrentPC));
-
-                if (zm.DebugInfo != null)
+                if (dbg.State == DebuggerState.Paused)
                 {
-                    RoutineInfo rtn = zm.DebugInfo.FindRoutine(dbg.CurrentPC);
-                    if (rtn != null)
+                    if (zm.DebugInfo != null)
                     {
-                        Console.Write("(in ");
-                        Console.Write(rtn.Name);
+                        RoutineInfo rtn = zm.DebugInfo.FindRoutine(dbg.CurrentPC);
+                        if (rtn != null)
+                        {
+                            Console.Write("(in ");
+                            Console.Write(rtn.Name);
 
-                        LineInfo? li = zm.DebugInfo.FindLine(dbg.CurrentPC);
-                        if (li != null)
-                            Console.WriteLine(" at {0}:{1})", li.Value.File, li.Value.Line);
-                        else
-                            Console.WriteLine(")");
+                            LineInfo? li = zm.DebugInfo.FindLine(dbg.CurrentPC);
+                            if (li != null)
+                                Console.WriteLine(" at {0}:{1})", li.Value.File, li.Value.Line);
+                            else
+                                Console.WriteLine(")");
+                        }
                     }
+
+                    Console.Write("${0:x5}   ", dbg.CurrentPC);
+                    Console.WriteLine(dbg.Disassemble(dbg.CurrentPC));
+                }
+                else if (dbg.State == DebuggerState.Stopped)
+                {
+                    Console.WriteLine("Debugger is stopped.");
                 }
 
                 Console.Write("D> ");
@@ -169,16 +180,20 @@ namespace ZLR.Interfaces.SystemConsole
 
                     case "s":
                     case "step":
-                        dbg.StepInto();
+                        if (dbg.State == DebuggerState.Paused)
+                            dbg.StepInto();
                         break;
 
                     case "o":
                     case "over":
-                        dbg.StepOver();
+                        if (dbg.State == DebuggerState.Paused)
+                            dbg.StepOver();
                         break;
 
                     case "r":
                     case "run":
+                        if (dbg.State == DebuggerState.Stopped)
+                            dbg.Restart();
                         dbg.Run();
                         break;
 
