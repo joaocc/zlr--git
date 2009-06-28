@@ -29,6 +29,7 @@ namespace ZLR.Interfaces.SystemConsole
         private List<string> history = new List<string>();
 
         private int origBufHeight;
+        private bool weakConsole;
 
         public ConsoleIO(string fileName)
         {
@@ -39,20 +40,29 @@ namespace ZLR.Interfaces.SystemConsole
 
             try
             {
-                // constrain the buffer height to something reasonable before the
-                // game has a chance to print too much, which will prevent us from
-                // shrinking the buffer later
-                Console.BufferHeight = 25;
+                try
+                {
+                    // constrain the buffer height to something reasonable before the
+                    // game has a chance to print too much, which will prevent us from
+                    // shrinking the buffer later
+                    Console.BufferHeight = 25;
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    // whoops, someone already printed too much, let's hope for the best
+                }
+
+                Console.BufferWidth = Console.WindowWidth;
+
+                Console.Title = fileName + " - ConsoleZLR";
             }
-            catch (ArgumentOutOfRangeException)
+            catch (NotSupportedException)
             {
-                // whoops, someone already printed too much, let's hope for the best
+                // Mono's Console class doesn't support changing some of these properties
+                weakConsole = true;
             }
 
             origBufHeight = Console.BufferHeight;
-            Console.BufferWidth = Console.WindowWidth;
-
-            Console.Title = fileName + " - ConsoleZLR";
         }
 
         public string SuppliedCommandFile
@@ -497,10 +507,13 @@ namespace ZLR.Interfaces.SystemConsole
                 lines = 0;
 
             split = Math.Min(lines, Console.WindowHeight);
-            if (split == 0)
-                Console.BufferHeight = origBufHeight;
-            else
-                Console.BufferHeight = Console.WindowHeight;
+            if (!weakConsole)
+            {
+                if (split == 0)
+                    Console.BufferHeight = origBufHeight;
+                else
+                    Console.BufferHeight = Console.WindowHeight;
+            }
 
             if (upper)
             {
