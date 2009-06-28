@@ -10,6 +10,7 @@ namespace ZLR.VM
 
     public partial class ZMachine
     {
+#pragma warning disable 0169
         private short ReadImpl(ushort buffer, ushort parse, ushort time, ushort routine)
         {
             byte max = GetByte(buffer);
@@ -93,6 +94,7 @@ namespace ZLR.VM
                 EndExternalWait();
             }
         }
+#pragma warning restore 0169
 
         private bool HandleInputTimer(ushort routine)
         {

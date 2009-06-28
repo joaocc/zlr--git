@@ -56,6 +56,7 @@ namespace ZLR.VM
                 StoreResult((byte)frame.ResultStorage, result);
         }
 
+#pragma warning disable 0169
         private void StoreVariableImpl(byte dest, short result)
         {
             if (dest == 0)
@@ -160,6 +161,7 @@ namespace ZLR.VM
                 StoreResult(dest, 2);
             }
         }
+#pragma warning restore 0169
 
         private void SetTopFrame()
         {
@@ -185,6 +187,7 @@ namespace ZLR.VM
             pc = (ushort)GetWord(0x06);
         }
 
+#pragma warning disable 0169
         private bool VerifyGameFile()
         {
             try
@@ -345,6 +348,7 @@ namespace ZLR.VM
 
             TrapMemory(second, (ushort)size);
         }
+#pragma warning restore 0169
 
         private void ZeroMemory(ushort address, short size)
         {
@@ -354,6 +358,7 @@ namespace ZLR.VM
             TrapMemory(address, (ushort)size);
         }
 
+#pragma warning disable 0169
         private void SoundEffectImpl(ushort number, short effect, ushort volRepeats, ushort routine)
         {
             if (effect == 0)
@@ -407,5 +412,6 @@ namespace ZLR.VM
             for (int i = 0; i < result.Length; i++)
                 SetByte(dest + i, result[i]);
         }
+#pragma warning restore 0169
     }
 }

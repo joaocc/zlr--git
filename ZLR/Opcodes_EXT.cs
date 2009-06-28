@@ -6,6 +6,7 @@ namespace ZLR.VM
 {
     partial class Opcode
     {
+#pragma warning disable 0169
         [Opcode(OpCount.Ext, 0, true)]
         private void op_save(ILGenerator il)
         {
@@ -179,5 +180,6 @@ namespace ZLR.VM
             il.Emit(OpCodes.Call, checkUnicodeMI);
             StoreResult(il);
         }
+#pragma warning restore 0169
     }
 }

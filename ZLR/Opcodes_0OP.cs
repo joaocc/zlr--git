@@ -7,6 +7,7 @@ namespace ZLR.VM
 {
     partial class Opcode
     {
+#pragma warning disable 0169
         [Opcode(OpCount.Zero, 176, Terminates = true)]
         private void op_rtrue(ILGenerator il)
         {
@@ -112,5 +113,6 @@ namespace ZLR.VM
             if (branchIfTrue)
                 Branch(il);
         }
+#pragma warning restore 0169
     }
 }

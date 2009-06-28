@@ -211,6 +211,7 @@ namespace ZLR.VM
             zmem[address] = value;
         }
 
+#pragma warning disable 0169
         private void SetByteChecked(int address, byte value)
         {
             if (address < romStart && (address >= 64 || ValidHeaderWrite(address, ref value)))
@@ -224,6 +225,7 @@ namespace ZLR.VM
                 io.ForceFixedPitch = ((b & 2) != 0);
             }
         }
+#pragma warning restore 0169
 
         private void SetWord(int address, short value)
         {

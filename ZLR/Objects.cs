@@ -48,6 +48,7 @@ namespace ZLR.VM
             return 0;
         }
 
+#pragma warning disable 0169
         private short GetNextProp(ushort obj, short prop)
         {
             if (obj == 0)
@@ -113,6 +114,7 @@ namespace ZLR.VM
                     SetWord(addr, value);
             }
         }
+#pragma warning restore 0169
 
         private short GetPropLength(ushort address)
         {
@@ -176,6 +178,7 @@ namespace ZLR.VM
                 SetWord(GetObjectAddress(obj) + 10, (short)value);
         }
 
+#pragma warning disable 0169
         private void InsertObject(ushort obj, ushort dest)
         {
             if (obj == 0)
@@ -208,12 +211,14 @@ namespace ZLR.VM
             if (dest != 0)
                 SetObjectChild(dest, obj);
         }
+#pragma warning restore 0169
 
         private int GetObjectAddress(ushort obj)
         {
             return objectTable + 2 * 63 + 14 * (obj - 1);
         }
 
+#pragma warning disable 0169
         private string GetObjectName(ushort obj)
         {
             if (obj == 0)
@@ -248,5 +253,6 @@ namespace ZLR.VM
                 flags &= (byte)~bit;
             SetByte(address, flags);
         }
+#pragma warning restore 0169
     }
 }

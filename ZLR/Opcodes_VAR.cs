@@ -6,6 +6,7 @@ namespace ZLR.VM
 {
     partial class Opcode
     {
+#pragma warning disable 0169
         [Opcode(OpCount.Var, 224, true, Terminates = true)]
         private void op_call_vs(ILGenerator il)
         {
@@ -446,5 +447,6 @@ namespace ZLR.VM
             LoadOperand(il, 0);
             Branch(il, OpCodes.Bge, OpCodes.Blt);
         }
+#pragma warning restore 0169
     }
 }

@@ -6,6 +6,7 @@ namespace ZLR.VM
 {
     partial class Opcode
     {
+#pragma warning disable 0169
         [Opcode(OpCount.One, 128, false, true, false)]
         private void op_jz(ILGenerator il)
         {
@@ -183,5 +184,6 @@ namespace ZLR.VM
         {
             EnterFunction(il, false);
         }
+#pragma warning restore 0169
     }
 }

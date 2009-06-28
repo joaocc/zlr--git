@@ -8,6 +8,7 @@ namespace ZLR.VM
 {
     public partial class ZMachine
     {
+#pragma warning disable 0169
         private void SaveQuetzal(byte dest, int nextPC)
         {
             Quetzal quetzal = new Quetzal();
@@ -92,6 +93,7 @@ namespace ZLR.VM
                 }
             }
         }
+#pragma warning restore 0169
 
         private byte[] CompressRAM()
         {

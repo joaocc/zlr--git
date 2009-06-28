@@ -72,6 +72,7 @@ namespace ZLR.VM
             return new Debugger(this);
         }
 
+#pragma warning disable 0169
         private bool DebugCheck(int pc)
         {
             if (stepping >= 0)
@@ -92,6 +93,7 @@ namespace ZLR.VM
             // continue
             return false;
         }
+#pragma warning restore 0169
 
         private class Debugger : IDebugger
         {

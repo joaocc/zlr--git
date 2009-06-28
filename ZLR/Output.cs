@@ -512,6 +512,7 @@ namespace ZLR.VM
     {
         private const int DICT_WORD_SIZE = 9;
 
+#pragma warning disable 0169
         private void PrintZSCII(short zc)
         {
             if (zc == 0)
@@ -564,6 +565,7 @@ namespace ZLR.VM
                     io.PutTranscriptString(str);
             }
         }
+#pragma warning restore 0169
 
         private char CharFromZSCII(short ch)
         {
@@ -814,6 +816,7 @@ namespace ZLR.VM
             }
         }
 
+#pragma warning disable 0169
         private void GetCursorPos(ushort address)
         {
             short x, y;
@@ -821,5 +824,6 @@ namespace ZLR.VM
             SetWordChecked(address, y);
             SetWordChecked(address + 2, x);
         }
+#pragma warning restore 0169
     }
 }
