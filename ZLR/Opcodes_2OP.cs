@@ -88,7 +88,7 @@ namespace ZLR.VM
             Branch(il, OpCodes.Bgt, OpCodes.Ble);
         }
 
-        [Opcode(OpCount.Two, 4, false, true, false)]
+        [Opcode(OpCount.Two, 4, false, true, false, IndirectVar = true)]
         private void op_dec_chk(ILGenerator il)
         {
             MethodInfo impl = typeof(ZMachine).GetMethod("IncImpl", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -102,7 +102,7 @@ namespace ZLR.VM
             Branch(il, OpCodes.Blt, OpCodes.Bge);
         }
 
-        [Opcode(OpCount.Two, 5, false, true, false)]
+        [Opcode(OpCount.Two, 5, false, true, false, IndirectVar = true)]
         private void op_inc_chk(ILGenerator il)
         {
             MethodInfo impl = typeof(ZMachine).GetMethod("IncImpl", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -188,7 +188,7 @@ namespace ZLR.VM
             il.Emit(OpCodes.Call, setAttrMI);
         }
 
-        [Opcode(OpCount.Two, 13)]
+        [Opcode(OpCount.Two, 13, IndirectVar = true)]
         private void op_store(ILGenerator il)
         {
             MethodInfo impl = typeof(ZMachine).GetMethod("StoreVariableImpl", BindingFlags.NonPublic | BindingFlags.Instance);

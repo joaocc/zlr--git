@@ -144,7 +144,7 @@ namespace ZLR.VM
             PushOntoStack(il);
         }
 
-        [Opcode(OpCount.Var, 233)]
+        [Opcode(OpCount.Var, 233, IndirectVar = true)]
         private void op_pull(ILGenerator il)
         {
             MethodInfo impl = typeof(ZMachine).GetMethod("StoreVariableImpl", BindingFlags.NonPublic | BindingFlags.Instance);

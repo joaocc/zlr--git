@@ -96,24 +96,50 @@ namespace ZLR.VM
             {
                 sb.Append(' ');
 
-                switch (operandTypes[i])
+                if (i == 0 && attribute.IndirectVar)
                 {
-                    case OperandType.LargeConst:
-                        sb.Append("long_");
-                        sb.Append(operandValues[i]);
-                        break;
+                    switch (operandTypes[i])
+                    {
+                        case OperandType.LargeConst:
+                        case OperandType.SmallConst:
+                            sb.Append('\'');
+                            if (operandValues[i] == 0)
+                                sb.Append("sp");
+                            else
+                                sb.Append(varNamer((byte)operandValues[i]));
+                            break;
 
-                    case OperandType.SmallConst:
-                        sb.Append("short_");
-                        sb.Append(operandValues[i]);
-                        break;
+                        case OperandType.Variable:
+                            sb.Append('[');
+                            if (operandValues[i] == 0)
+                                sb.Append("sp");
+                            else
+                                sb.Append(varNamer((byte)operandValues[i]));
+                            sb.Append(']');
+                            break;
+                    }
+                }
+                else
+                {
+                    switch (operandTypes[i])
+                    {
+                        case OperandType.LargeConst:
+                            sb.Append("long_");
+                            sb.Append(operandValues[i]);
+                            break;
 
-                    case OperandType.Variable:
-                        if (operandValues[i] == 0)
-                            sb.Append("sp");
-                        else
-                            sb.Append(varNamer((byte)operandValues[i]));
-                        break;
+                        case OperandType.SmallConst:
+                            sb.Append("short_");
+                            sb.Append(operandValues[i]);
+                            break;
+
+                        case OperandType.Variable:
+                            if (operandValues[i] == 0)
+                                sb.Append("sp");
+                            else
+                                sb.Append(varNamer((byte)operandValues[i]));
+                            break;
+                    }
                 }
             }
 
@@ -631,7 +657,7 @@ namespace ZLR.VM
         private OpCount _count;
         private byte _opnum;
         private bool _store, _branch, _text;
-        private bool _noReturn;
+        private bool _noReturn, _indirect;
 
         public OpCount OpCount { get { return _count; } }
         public byte Number { get { return _opnum; } }
@@ -643,6 +669,12 @@ namespace ZLR.VM
         {
             get { return _noReturn; }
             set { _noReturn = value; }
+        }
+
+        public bool IndirectVar
+        {
+            get { return _indirect; }
+            set { _indirect = value; }
         }
     }
 }

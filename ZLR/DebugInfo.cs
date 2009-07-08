@@ -26,6 +26,7 @@ namespace ZLR.VM.Debugging
         }
 
         private List<RoutineInfo> routines = new List<RoutineInfo>();
+        private DoubleMap<string, byte> globals = new DoubleMap<string, byte>();
         private byte[] matchingHeader;
 
         public DebugInfo(Stream fromStream)
@@ -86,8 +87,9 @@ namespace ZLR.VM.Debugging
 
                         case 4:
                             // GLOBAL_DBR
-                            br.ReadByte();
-                            ReadString(br);
+                            b = br.ReadByte();
+                            str = ReadString(br);
+                            globals.Add(str, b);
                             break;
 
                         case 12: // ARRAY_DBR
@@ -241,6 +243,11 @@ namespace ZLR.VM.Debugging
             get { return routines; }
         }
 
+        public DoubleMap<string, byte> Globals
+        {
+            get { return globals; }
+        }
+
         public RoutineInfo FindRoutine(int pc)
         {
             int start = 0, end = routines.Count;
@@ -294,11 +301,8 @@ namespace ZLR.VM.Debugging
             for (int i = 0; i < routines.Count; i++)
             {
                 RoutineInfo rtn = routines[i];
-                if (rtn.DefinedAt.File != filename)
-                    continue;
-
                 for (int j = 0; j < rtn.LineInfos.Length; j++)
-                    if (rtn.LineInfos[j].Line == line)
+                    if (rtn.LineInfos[j].File == filename && rtn.LineInfos[j].Line == line)
                         return rtn.CodeStart + rtn.LineOffsets[j];
             }
 
@@ -328,6 +332,95 @@ namespace ZLR.VM.Debugging
             this.File = file;
             this.Line = line;
             this.Position = position;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is LineInfo)
+                return Equals((LineInfo)obj);
+            else
+                return false;
+        }
+
+        public bool Equals(LineInfo other)
+        {
+            return
+                this.File == other.File &&
+                this.Line == other.Line &&
+                this.Position == other.Position;
+        }
+
+        public static bool operator ==(LineInfo a, LineInfo b)
+        {
+            return a.Equals(b);
+        }
+
+        public static bool operator !=(LineInfo a, LineInfo b)
+        {
+            return !a.Equals(b);
+        }
+    }
+
+    public class DoubleMap<K, V>
+    {
+        private Dictionary<K, V> forward = new Dictionary<K, V>();
+        private Dictionary<V, K> backward = new Dictionary<V, K>();
+
+        public void Add(K key, V value)
+        {
+            if (forward.ContainsKey(key))
+                throw new InvalidOperationException("key already present");
+            if (backward.ContainsKey(value))
+                throw new InvalidOperationException("value already present");
+
+            forward.Add(key, value);
+            backward.Add(value, key);
+        }
+
+        public void Remove(K key)
+        {
+            V value;
+            if (forward.TryGetValue(key, out value))
+            {
+                forward.Remove(key);
+                backward.Remove(value);
+            }
+        }
+
+        public void Remove(V value)
+        {
+            K key;
+            if (backward.TryGetValue(value, out key))
+            {
+                forward.Remove(key);
+                backward.Remove(value);
+            }
+        }
+
+        public bool Contains(K key)
+        {
+            return forward.ContainsKey(key);
+        }
+
+        public bool Contains(V value)
+        {
+            return backward.ContainsKey(value);
+        }
+
+        public V this[K key]
+        {
+            get
+            {
+                return forward[key];
+            }
+        }
+
+        public K this[V value]
+        {
+            get
+            {
+                return backward[value];
+            }
         }
     }
 }

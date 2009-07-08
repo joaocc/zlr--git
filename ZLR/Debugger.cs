@@ -19,9 +19,11 @@ namespace ZLR.VM.Debugging
 
         void StepInto();
         void StepOver();
+        void StepUp();
 
         void Run();
         void SetBreakpoint(int address, bool enabled);
+        int[] GetBreakpoints();
 
         short Call(short packedAddress, short[] args);
 
@@ -155,6 +157,15 @@ namespace ZLR.VM
                     StepInto();
             }
 
+            public void StepUp()
+            {
+                int callDepth = zm.callStack.Count;
+                StepInto();
+
+                while (zm.callStack.Count >= callDepth)
+                    StepInto();
+            }
+
             public void Run()
             {
                 // step ahead if the current line has a breakpoint on it
@@ -175,6 +186,11 @@ namespace ZLR.VM
                     zm.breakpoints[address] = true;
                 else
                     zm.breakpoints.Remove(address);
+            }
+
+            public int[] GetBreakpoints()
+            {
+                return new List<int>(zm.breakpoints.Keys).ToArray();
             }
 
             public short Call(short packedAddress, short[] args)
@@ -240,9 +256,11 @@ namespace ZLR.VM
                     return opcode.Disassemble(delegate(byte varnum)
                     {
                         if (rtn != null && varnum - 1 < rtn.Locals.Length)
-                            return rtn.Locals[varnum - 1];
+                            return "local_" + varnum + "(" + rtn.Locals[varnum - 1] + ")";
                         else if (varnum < 16)
                             return "local_" + varnum;
+                        else if (zm.debugFile != null && zm.debugFile.Globals.Contains(varnum))
+                            return "global_" + varnum + "(" + zm.debugFile.Globals[varnum] + ")";
                         else
                             return "global_" + varnum;
                     });

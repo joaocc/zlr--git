@@ -64,7 +64,7 @@ namespace ZLR.VM
             StoreResult(il);
         }
 
-        [Opcode(OpCount.One, 133)]
+        [Opcode(OpCount.One, 133, IndirectVar = true)]
         private void op_inc(ILGenerator il)
         {
             MethodInfo impl = typeof(ZMachine).GetMethod("IncImpl", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -76,7 +76,7 @@ namespace ZLR.VM
             il.Emit(OpCodes.Pop);
         }
 
-        [Opcode(OpCount.One, 134)]
+        [Opcode(OpCount.One, 134, IndirectVar = true)]
         private void op_dec(ILGenerator il)
         {
             MethodInfo impl = typeof(ZMachine).GetMethod("IncImpl", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -168,7 +168,7 @@ namespace ZLR.VM
             il.Emit(OpCodes.Call, printStringMI);
         }
 
-        [Opcode(OpCount.One, 142, true)]
+        [Opcode(OpCount.One, 142, true, IndirectVar = true)]
         private void op_load(ILGenerator il)
         {
             MethodInfo impl = typeof(ZMachine).GetMethod("LoadVariableImpl", BindingFlags.NonPublic | BindingFlags.Instance);
