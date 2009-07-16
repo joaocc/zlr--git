@@ -361,10 +361,25 @@ namespace ZLR.VM.Debugging
         }
     }
 
-    public class DoubleMap<K, V>
+    public class DoubleMap<K, V> : IEnumerable<KeyValuePair<K, V>>
     {
         private Dictionary<K, V> forward = new Dictionary<K, V>();
         private Dictionary<V, K> backward = new Dictionary<V, K>();
+
+        public int Count
+        {
+            get { return forward.Count; }
+        }
+
+        public IEnumerable<K> Keys
+        {
+            get { return forward.Keys; }
+        }
+
+        public IEnumerable<V> Values
+        {
+            get { return forward.Values; }
+        }
 
         public void Add(K key, V value)
         {
@@ -421,6 +436,16 @@ namespace ZLR.VM.Debugging
             {
                 return backward[value];
             }
+        }
+
+        public IEnumerator<KeyValuePair<K, V>> GetEnumerator()
+        {
+            return forward.GetEnumerator();
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }
