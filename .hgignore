@@ -1,0 +1,3 @@
+glob:*.ncb
+glob:bin
+glob:obj
