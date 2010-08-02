@@ -350,6 +350,14 @@ namespace ZLR.VM.Debugging
                 this.Position == other.Position;
         }
 
+        public override int GetHashCode()
+        {
+            int result = Line.GetHashCode() ^ Position.GetHashCode();
+            if (File != null)
+                result ^= File.GetHashCode();
+            return result;
+        }
+
         public static bool operator ==(LineInfo a, LineInfo b)
         {
             return a.Equals(b);
