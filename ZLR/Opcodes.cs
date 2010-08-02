@@ -244,11 +244,11 @@ namespace ZLR.VM
 
         #region Static - Opcode Dictionary
 
-        private static Dictionary<byte, OpcodeInfo> oneOpInfos = new Dictionary<byte, OpcodeInfo>();
-        private static Dictionary<byte, OpcodeInfo> twoOpInfos = new Dictionary<byte, OpcodeInfo>();
-        private static Dictionary<byte, OpcodeInfo> zeroOpInfos = new Dictionary<byte, OpcodeInfo>();
-        private static Dictionary<byte, OpcodeInfo> varOpInfos = new Dictionary<byte, OpcodeInfo>();
-        private static Dictionary<byte, OpcodeInfo> extOpInfos = new Dictionary<byte, OpcodeInfo>();
+        private static Dictionary<byte, OpcodeInfo[]> oneOpInfos = new Dictionary<byte, OpcodeInfo[]>();
+        private static Dictionary<byte, OpcodeInfo[]> twoOpInfos = new Dictionary<byte, OpcodeInfo[]>();
+        private static Dictionary<byte, OpcodeInfo[]> zeroOpInfos = new Dictionary<byte, OpcodeInfo[]>();
+        private static Dictionary<byte, OpcodeInfo[]> varOpInfos = new Dictionary<byte, OpcodeInfo[]>();
+        private static Dictionary<byte, OpcodeInfo[]> extOpInfos = new Dictionary<byte, OpcodeInfo[]>();
 
         static Opcode()
         {
@@ -267,33 +267,60 @@ namespace ZLR.VM
                 {
                     OpcodeCompiler del = (OpcodeCompiler)Delegate.CreateDelegate(
                         typeof(OpcodeCompiler), null, mi);
-                    OpcodeAttribute a = attrs[0];
-                    OpcodeInfo info = new OpcodeInfo(a, del);
-                    switch (a.OpCount)
+                    foreach (OpcodeAttribute a in attrs)
                     {
-                        case OpCount.Zero:
-                            zeroOpInfos.Add((byte)(a.Number - 176), info);
-                            break;
-                        case OpCount.One:
-                            oneOpInfos.Add((byte)(a.Number - 128), info);
-                            break;
-                        case OpCount.Two:
-                            twoOpInfos.Add(a.Number, info);
-                            break;
-                        case OpCount.Var:
-                            varOpInfos.Add((byte)(a.Number - 224), info);
-                            break;
-                        case OpCount.Ext:
-                            extOpInfos.Add(a.Number, info);
-                            break;
+                        OpcodeInfo info = new OpcodeInfo(a, del);
+
+                        byte num;
+                        Dictionary<byte, OpcodeInfo[]> dict;
+
+                        switch (a.OpCount)
+                        {
+                            case OpCount.Zero:
+                                dict = zeroOpInfos;
+                                num = (byte)(a.Number - 176);
+                                break;
+                            case OpCount.One:
+                                dict = oneOpInfos;
+                                num = (byte)(a.Number - 128);
+                                break;
+                            case OpCount.Two:
+                                dict = twoOpInfos;
+                                num = a.Number;
+                                break;
+                            case OpCount.Var:
+                                dict = varOpInfos;
+                                num = (byte)(a.Number - 224);
+                                break;
+                            case OpCount.Ext:
+                                dict = extOpInfos;
+                                num = a.Number;
+                                break;
+                            default:
+                                throw new Exception("BUG:BADOPCOUNT");
+                        }
+
+                        OpcodeInfo[] array;
+                        if (dict.TryGetValue(num, out array) == false)
+                        {
+                            array = new OpcodeInfo[] { info };
+                            dict.Add(num, array);
+                        }
+                        else
+                        {
+                            OpcodeInfo[] newArray = new OpcodeInfo[array.Length + 1];
+                            Array.Copy(array, newArray, array.Length);
+                            newArray[newArray.Length - 1] = info;
+                            dict[num] = newArray;
+                        }
                     }
                 }
             }
         }
 
-        public static bool FindOpcodeInfo(OpCount count, byte opnum, out OpcodeInfo result)
+        public static bool FindOpcodeInfo(OpCount count, byte opnum, byte zversion, out OpcodeInfo result)
         {
-            Dictionary<byte, OpcodeInfo> dict;
+            Dictionary<byte, OpcodeInfo[]> dict;
 
             switch (count)
             {
@@ -316,7 +343,19 @@ namespace ZLR.VM
                     throw new ArgumentOutOfRangeException("count");
             }
 
-            return dict.TryGetValue(opnum, out result);
+            OpcodeInfo[] array;
+            if (dict.TryGetValue(opnum, out array))
+            {
+                foreach (OpcodeInfo info in array)
+                    if (zversion >= info.Attr.MinVersion && zversion <= info.Attr.MaxVersion)
+                    {
+                        result = info;
+                        return true;
+                    }
+            }
+
+            result = default(OpcodeInfo);
+            return false;
         }
 
         public static string OpcodeName(OpcodeCompiler handler)
@@ -631,7 +670,7 @@ namespace ZLR.VM
         }
     }
 
-    [AttributeUsage(AttributeTargets.Method)]
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
     internal class OpcodeAttribute : Attribute
     {
         public OpcodeAttribute(OpCount count, byte opnum)
@@ -658,6 +697,7 @@ namespace ZLR.VM
         private byte _opnum;
         private bool _store, _branch, _text;
         private bool _noReturn, _indirect;
+        private byte _minVer = 1, _maxVer = 8;
 
         public OpCount OpCount { get { return _count; } }
         public byte Number { get { return _opnum; } }
@@ -675,6 +715,18 @@ namespace ZLR.VM
         {
             get { return _indirect; }
             set { _indirect = value; }
+        }
+
+        public byte MinVersion
+        {
+            get { return _minVer; }
+            set { _minVer = value; }
+        }
+
+        public byte MaxVersion
+        {
+            get { return _maxVer; }
+            set { _maxVer = value; }
         }
     }
 }
