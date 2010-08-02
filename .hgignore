@@ -1,3 +1,5 @@
 glob:*.ncb
 glob:bin
 glob:obj
+glob:*.suo
+glob:*.user
