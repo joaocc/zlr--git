@@ -118,6 +118,9 @@ namespace ZLR.VM
 
         private short GetPropLength(ushort address)
         {
+            if (address == 0)
+                return 0;
+
             byte b = GetByte(address - 1);
             if ((b & 128) == 0)
             {
