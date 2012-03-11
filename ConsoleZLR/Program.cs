@@ -415,7 +415,7 @@ namespace ZLR.Interfaces.SystemConsole
                             {
                                 short value = dbg.StackPop();
                                 temp.Push(value);
-                                Console.WriteLine("    {0} (${0:x4})", value);
+                                Console.WriteLine("    ${0:x4} (${0})", value);
                             }
                             while (temp.Count > 0)
                                 dbg.StackPush(temp.Pop());
