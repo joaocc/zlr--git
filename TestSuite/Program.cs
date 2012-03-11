@@ -201,8 +201,12 @@ namespace TestSuite
 
         private static bool OutputDiffers(string expected, string actual)
         {
-            // ignore differing serial numbers, since they're based on the compilation date
-            Regex rex = new Regex(@"(serial number|sn) \d{6}", RegexOptions.IgnoreCase);
+            // ignore compilation dates and tool versions in the output
+            Regex rex = new Regex(
+                @"serial number \d{6}|sn \d{6}|" +                              // serial number
+                @"inform \d+ build .{4}|i\d/v\d\.\d+|lib \d+/\d+n?( [sd]+)?|" +  // I7 versions
+                @"inform v\d\.\d+|library \d+/\d+n?( [sd]+)?",                  // I6 versions
+                RegexOptions.IgnoreCase);
             expected = rex.Replace(expected, "");
             actual = rex.Replace(actual, "");
 
