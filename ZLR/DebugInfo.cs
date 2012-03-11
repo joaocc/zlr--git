@@ -334,6 +334,14 @@ namespace ZLR.VM.Debugging
             this.Position = position;
         }
 
+        public override int GetHashCode()
+        {
+            int result = Line.GetHashCode() ^ Position.GetHashCode();
+            if (File != null)
+                result ^= File.GetHashCode();
+            return result;
+        }
+
         public override bool Equals(object obj)
         {
             if (obj is LineInfo)

@@ -20,6 +20,8 @@ using System.Text;
 using ZLR.IFF;
 using ZLR.VM.Debugging;
 
+using SystemDebugger = System.Diagnostics.Debugger;
+
 namespace ZLR.VM
 {
     partial class ZMachine
@@ -903,6 +905,7 @@ namespace ZLR.VM
                     case OperandType.Omitted:
                         // shouldn't get here!
                         Console.WriteLine("[BUG:OMITTED]");
+                        SystemDebugger.Break();
                         argv[i] = 0;
                         break;
                 }
@@ -917,7 +920,7 @@ namespace ZLR.VM
                 // is skip the opcode and its operands and hope it won't branch or store.
                 if (count != OpCount.Ext || opnum < 29)
                     throw new NotImplementedException(string.Format(
-                        "Opcode {0} at ${1:x4}",
+                        "Opcode {0} at ${1:x5}",
                         FormatOpcode(count, form, opnum),
                         opc));
             }
