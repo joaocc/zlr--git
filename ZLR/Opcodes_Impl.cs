@@ -292,7 +292,7 @@ namespace ZLR.VM
             }
         }
 
-        private ushort ScanTableImpl(short x, ushort table, ushort tableLen, byte form)
+        private int ScanTableImpl(short x, ushort table, ushort tableLen, byte form)
         {
             if (form == 0)
                 form = 0x82;
@@ -307,14 +307,14 @@ namespace ZLR.VM
             {
                 for (int i = 0; i < tableLen; i += entryLen)
                     if (GetWord(table + i) == x)
-                        return (ushort)(table + i);
+                        return 0x10000 | (table + i);
             }
             else
             {
                 byte b = (byte)x;
                 for (int i = 0; i < tableLen; i += entryLen)
                     if (GetByte(table + i) == b)
-                        return (ushort)(table + i);
+                        return 0x10000 | (table + i);
             }
 
             return 0;
