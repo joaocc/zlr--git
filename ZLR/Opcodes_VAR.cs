@@ -337,7 +337,7 @@ namespace ZLR.VM
             StoreResult(il);
         }
 
-        [Opcode(OpCount.Var, 247, true)]
+        [Opcode(OpCount.Var, 247, true, true, false)]
         private void op_scan_table(ILGenerator il)
         {
             MethodInfo impl = typeof(ZMachine).GetMethod("ScanTableImpl", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -348,7 +348,10 @@ namespace ZLR.VM
             LoadOperand(il, 2);
             LoadOperand(il, 3);
             il.Emit(OpCodes.Call, impl);
+            il.Emit(OpCodes.Dup);
+            il.Emit(OpCodes.Conv_U2);
             StoreResult(il);
+            Branch(il, OpCodes.Brtrue, OpCodes.Brfalse);
         }
 
         [Opcode(OpCount.Var, 248, true)]
