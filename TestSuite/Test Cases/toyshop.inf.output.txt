@@ -1,0 +1,66 @@
+
+
+
+
+
+
+"What's so special about Inform," is the last thing you remember saying to the mad alchemist. Big mistake...
+
+TOYSHOP
+An Interactive Demonstration
+Copyright (c) 1994 by Graham Nelson. All rights given away.
+Release 4 / Serial number 961111 / Inform v6.31 Library 6/11N SD
+
+Toyshop (on the high chair)
+The centre of a long east-west hall. Shelves are lined with toys, painted clowns face you from the walls and the floor is lightly padded with colourful mats. A doorway leads north, with a red warning triangle above it.
+
+A balloon nestles on the ceiling, its long string hanging.
+
+A little red car is parked here.
+
+>                                                                                ToyshopScore: 0Moves: 0Large enough to sit inside. Among the controls is a prominent on/off switch. The numberplate is KAR 1.
+The little red car is currently switched off.
+
+>                                                                                ToyshopScore: 0Moves: 1You get off the high chair.
+
+Toyshop
+
+A balloon nestles on the ceiling, its long string hanging.
+
+A little red car is parked here.
+
+You can also see a high chair here.
+You get into the little red car.
+
+In the little red car you can see a small note.
+
+A breeze blows the balloon away to the West End.
+
+>                                                                                ToyshopScore: 0Moves: 3You switch the little red car on.
+
+A breeze blows the balloon in from the West End.
+
+>                                                                                ToyshopScore: 0Moves: 4Brmm!  Brmm!
+
+West End (in the little red car)
+The western end of the toyshop is blue, and soldiers and model aircraft line the shelves. A small office lies to the south.
+
+A boy called Christopher sits here, playing with a fluorescent juggling ball.
+
+You can also see a green cube, a red cube, a yellow cube and a blue cube here.
+
+In the little red car you can see a small note.
+
+Christopher yawns.
+
+[Your score has just gone up by one point.]
+
+>                                                                                West EndScore: 1Moves: 5You need to be holding the red cube before you can put it on top of something else.
+
+>                                                                                West EndScore: 1Moves: 6Taken.
+
+A breeze blows the balloon in from the Toyshop.
+
+>                                                                                West EndScore: 1Moves: 7You put the red cube on the blue cube.
+
+>                                                                                West EndScore: 1Moves: 8Are you sure you want to quit?                                                                                 West EndScore: 1Moves: 8

@@ -1,0 +1,83 @@
+
+This is a collection of the six test programs which came attached to the Z-Spec 0.99 file (spec.tex.) No changes have been made, except for the idiot menu system glued to the front.
+
+1: Fonts; 2: Accents; 3: InputCodes, 4: Colours, 5: Header, 6: TimedInput, 0: Exit
+Font 1 unavailable...............................................................................................Font 2 unavailable...............................................................................................Font 3 unavailable...............................................................................................Font 4 unavailable...............................................................................................
+1: Fonts; 2: Accents; 3: InputCodes, 4: Colours, 5: Header, 6: TimedInput, 0: Exit
+Font 1 unavailable.
+Font 4 unavailable.
+
+1: Fonts; 2: Accents; 3: InputCodes, 4: Colours, 5: Header, 6: TimedInput, 0: Exit
+Keyboard input code testing
+(Press keys to see how they respond, and press SPACE to finish.)
+
+0 error: code 0 should not have been returned
+0 error: code 0 should not have been returned
+0 error: code 0 should not have been returned
+0 error: code 0 should not have been returned
+97 character 'a'
+115 character 's'
+100 character 'd'
+102 character 'f'
+103 character 'g'
+104 character 'h'
+106 character 'j'
+107 character 'k'
+108 character 'l'
+32 
+1: Fonts; 2: Accents; 3: InputCodes, 4: Colours, 5: Header, 6: TimedInput, 0: Exit
+Colour display testing
+Fine: the interpreter says colours are unavailable.
+
+1: Fonts; 2: Accents; 3: InputCodes, 4: Colours, 5: Header, 6: TimedInput, 0: Exit
+Interpreter declarations:
+
+(In Flags 1...)
+Colours available?  no
+Boldface available?  no
+Italic available?  no
+Fixed-pitch font available?  no
+Timed keyboard input available?  no
+
+(In Flags 2.  The following four questions have meaningful answers only if bits 3, 4, 5 and 7 of Flags 2 were set in advance: to do this, alter the game file by setting byte 16 to 184 and then run it again.)
+Pictures available?  no
+UNDO available?  yes
+Mouse available?  no
+Sound effects available?  no
+
+Interpreter (machine) number 6 version A
+
+Screen height: 25 lines
+Screen width: 80 fixed-pitch font characters
+Screen height in units: 25
+Screen width in units: 80
+Font height in units: 1
+Font width (of a '0') in units: 1
+
+Font 1 available?  no
+Font 2 available?  no
+Font 3 available?  no
+Font 4 available?  no
+
+Standard specification claimed by the interpreter: 1.0
+
+
+(Press SPACE to clear.)
+
+1: Fonts; 2: Accents; 3: InputCodes, 4: Colours, 5: Header, 6: TimedInput, 0: Exit
+Testing timed input
+
+If you press no keys, five messages should appear, one second apart.  If you do press a key, the test should finish at once.
+
+
+Test complete.
+
+Now the same test for 1/10th of a second (though probably not all interpreters will be fast enough to make the interval quite that brief).
+
+
+Test complete.
+
+
+Please press SPACE.
+
+1: Fonts; 2: Accents; 3: InputCodes, 4: Colours, 5: Header, 6: TimedInput, 0: Exit

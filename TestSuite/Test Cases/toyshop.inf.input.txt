@@ -1,0 +1,9 @@
+x car
+get up then get in car
+turn on car
+w
+put red cube on blue cube
+get red cube
+put it on the blue cube
+quit
+y
