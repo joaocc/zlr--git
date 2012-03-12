@@ -1096,8 +1096,8 @@ namespace ZLR.VM
             abbrevTable = (ushort)GetWord(0x18);
 
             // load character tables (setting up memory traps if needed)
-            LoadAlphabets();
             LoadExtraChars();
+            LoadAlphabets();
             LoadTerminatingChars();
             LoadWordSeparators();
 
