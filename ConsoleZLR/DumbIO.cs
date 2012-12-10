@@ -24,7 +24,7 @@ namespace ZLR.Interfaces.SystemConsole
             byte[] terminatingKeys, out byte terminator)
         {
             terminator = 13;
-            return Console.ReadLine();
+            return Console.ReadLine() ?? "";
         }
 
         public short ReadKey(int time, TimedInputCallback callback, CharTranslator translator)
