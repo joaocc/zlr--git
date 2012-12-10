@@ -11,6 +11,8 @@ namespace ZLR.Interfaces.SystemConsole
 {
     class Program
     {
+        enum DisplayType { FullScreen, Dumb, DumbBottomWinOnly }
+
         static int Main(string[] args)
         {
             Console.Title = "ConsoleZLR";
@@ -18,7 +20,8 @@ namespace ZLR.Interfaces.SystemConsole
             Stream gameStream = null, debugStream = null;
             string gameDir = null, debugDir = null;
             string fileName = null, commandFile = null;
-            bool dumb = false, debugger = false;
+            DisplayType displayType = DisplayType.FullScreen;
+            bool debugger = false;
 
             if (args.Length >= 1 && args[0].Length > 0)
             {
@@ -41,7 +44,12 @@ namespace ZLR.Interfaces.SystemConsole
                     else if (args[n].ToLower() == "-dumb")
                     {
                         n++;
-                        dumb = true;
+                        displayType = DisplayType.Dumb;
+                    }
+                    else if (args[n].ToLower() == "-dumb2")
+                    {
+                        n++;
+                        displayType = DisplayType.DumbBottomWinOnly;
                     }
                     else if (args[n].ToLower() == "-debug")
                     {
@@ -69,19 +77,28 @@ namespace ZLR.Interfaces.SystemConsole
 
             IZMachineIO io;
 
-            if (dumb)
+            switch (displayType)
             {
-                io = new DumbIO();
-            }
-            else
-            {
-                ConsoleIO cio = new ConsoleIO(fileName);
-                if (commandFile != null)
-                {
-                    cio.SuppliedCommandFile = commandFile;
-                    cio.HideMorePrompts = true;
-                }
-                io = cio;
+                case DisplayType.Dumb:
+                    io = new DumbIO();
+                    break;
+
+                case DisplayType.DumbBottomWinOnly:
+                    io = new DumbIO(true);
+                    break;
+
+                case DisplayType.FullScreen:
+                    ConsoleIO cio = new ConsoleIO(fileName);
+                    if (commandFile != null)
+                    {
+                        cio.SuppliedCommandFile = commandFile;
+                        cio.HideMorePrompts = true;
+                    }
+                    io = cio;
+                    break;
+
+                default:
+                    throw new NotImplementedException();
             }
 
             ZMachine zm = new ZMachine(gameStream, io);
@@ -123,7 +140,7 @@ namespace ZLR.Interfaces.SystemConsole
         private static int Usage()
         {
             string exe = Path.GetFileName(Assembly.GetExecutingAssembly().Location);
-            Console.WriteLine("Usage: {0} [-commands <commandfile.txt>] <game_file.z5/z8> [<debug_file.dbg>]", exe);
+            Console.WriteLine("Usage: {0} [-commands <commandfile.txt>] [-dumb | -dumb2] [-debug] <game_file.z5/z8> [<debug_file.dbg>]", exe);
             return 1;
         }
 
