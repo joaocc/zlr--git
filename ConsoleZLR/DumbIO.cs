@@ -7,6 +7,19 @@ namespace ZLR.Interfaces.SystemConsole
 {
     class DumbIO : IZMachineIO
     {
+        private readonly bool bottomWinOnly;
+        private short curWin = 0;
+
+        public DumbIO()
+            : this(false)
+        {
+        }
+
+        public DumbIO(bool bottomWinOnly)
+        {
+            this.bottomWinOnly = bottomWinOnly;
+        }
+
         public string ReadLine(string initial, int time, TimedInputCallback callback,
             byte[] terminatingKeys, out byte terminator)
         {
@@ -32,18 +45,21 @@ namespace ZLR.Interfaces.SystemConsole
 
         public void PutChar(char ch)
         {
-            Console.Write(ch);
+            if (!bottomWinOnly || curWin == 0)
+                Console.Write(ch);
         }
 
         public void PutString(string str)
         {
-            Console.Write(str);
+            if (!bottomWinOnly || curWin == 0) 
+                Console.Write(str);
         }
 
         public void PutTextRectangle(string[] lines)
         {
-            foreach (string str in lines)
-                Console.WriteLine(str);
+            if (!bottomWinOnly || curWin == 0) 
+                foreach (string str in lines)
+                    Console.WriteLine(str);
         }
 
         public bool Buffering
@@ -104,7 +120,7 @@ namespace ZLR.Interfaces.SystemConsole
 
         public void SelectWindow(short num)
         {
-            // nada
+            curWin = num;
         }
 
         public void EraseWindow(short num)
