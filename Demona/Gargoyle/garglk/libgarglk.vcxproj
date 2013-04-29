@@ -1,0 +1,171 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{63A5651F-ABA6-4857-955E-57B3A8DD75B0}</ProjectGuid>
+    <RootNamespace>libgarglk</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v110</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>NotSet</CharacterSet>
+    <PlatformToolset>v110</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)Demona\bin\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)Demona\bin\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\support\jpeg-6b;$(ProjectDir)..\support\sdl;$(ProjectDir)..\support\libpng-1.2.8;$(ProjectDir)..\support\zlib-1.2.2;$(ProjectDir)..\support\freetype-2.1.10\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_WIN32_WINNT=0x0501;_USRDLL;LIBGARGLK_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <PreLinkEvent>
+      <Message>Creating import libraries for SDL...</Message>
+      <Command>lib "/def:$(ProjectDir)..\support\sdl\SDL.def" "/out:$(IntDir)SDL.lib"
+lib "/def:$(ProjectDir)..\support\sdl\SDL_mixer.def" "/out:$(IntDir)SDL_mixer.lib"
+</Command>
+    </PreLinkEvent>
+    <Link>
+      <AdditionalDependencies>$(IntDir)SDL.lib;$(IntDir)SDL_mixer.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ModuleDefinitionFile>libgarglk.def</ModuleDefinitionFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\support\jpeg-6b;$(ProjectDir)..\support\sdl;$(ProjectDir)..\support\libpng-1.2.8;$(ProjectDir)..\support\zlib-1.2.2;$(ProjectDir)..\support\freetype-2.1.10\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_WIN32_WINNT=0x0501;_USRDLL;LIBGARGLK_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <PreLinkEvent>
+      <Message>Creating import libraries for SDL...</Message>
+      <Command>lib "/def:$(ProjectDir)..\support\sdl\SDL.def" "/out:$(IntDir)SDL.lib"
+lib "/def:$(ProjectDir)..\support\sdl\SDL_mixer.def" "/out:$(IntDir)SDL_mixer.lib"
+</Command>
+    </PreLinkEvent>
+    <Link>
+      <AdditionalDependencies>$(IntDir)SDL.lib;$(IntDir)SDL_mixer.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ModuleDefinitionFile>libgarglk.def</ModuleDefinitionFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\support\freetype-2.1.10\libfreetype.vcxproj">
+      <Project>{ae2c588f-5884-4853-bf3d-a582b887be08}</Project>
+      <Private>false</Private>
+      <CopyLocalSatelliteAssemblies>true</CopyLocalSatelliteAssemblies>
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\support\libpng-1.2.8\libpng.vcxproj">
+      <Project>{7c5bb22e-1358-4f21-a322-4801f7e660e7}</Project>
+      <CopyLocalSatelliteAssemblies>true</CopyLocalSatelliteAssemblies>
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\support\jpeg-6b\libjpeg.vcxproj">
+      <Project>{164bb4b3-636c-40e3-8647-9c0d284e4f46}</Project>
+      <CopyLocalSatelliteAssemblies>true</CopyLocalSatelliteAssemblies>
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="cgblorb.c" />
+    <ClCompile Include="cgfref.c" />
+    <ClCompile Include="cggestal.c" />
+    <ClCompile Include="cgmisc.c" />
+    <ClCompile Include="cgstream.c" />
+    <ClCompile Include="cgstyle.c" />
+    <ClCompile Include="cgunicod.c" />
+    <ClCompile Include="cgunigen.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="config.c" />
+    <ClCompile Include="draw.c" />
+    <ClCompile Include="event.c" />
+    <ClCompile Include="fontdata.c" />
+    <ClCompile Include="gi_blorb.c" />
+    <ClCompile Include="gi_dispa.c" />
+    <ClCompile Include="glkstart.c" />
+    <ClCompile Include="imgload.c" />
+    <ClCompile Include="imgscale.c" />
+    <ClCompile Include="nohyper.c" />
+    <ClCompile Include="sndsdl.c" />
+    <ClCompile Include="syswin.c" />
+    <ClCompile Include="winblank.c" />
+    <ClCompile Include="window.c" />
+    <ClCompile Include="wingfx.c" />
+    <ClCompile Include="wingrid.c" />
+    <ClCompile Include="winpair.c" />
+    <ClCompile Include="wintext.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="libgarglk.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="garglk.h" />
+    <ClInclude Include="garversion.h" />
+    <ClInclude Include="gi_blorb.h" />
+    <ClInclude Include="gi_dispa.h" />
+    <ClInclude Include="glk.h" />
+    <ClInclude Include="glkstart.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
