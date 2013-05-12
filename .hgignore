@@ -1,5 +1,14 @@
-glob:*.ncb
-glob:bin
-glob:obj
-glob:*.suo
-glob:*.user
+syntax: glob
+*.ncb
+bin
+obj
+*.suo
+*.user
+*.orig
+Demona/Gargoyle/**/{Debug,Release}
+*.lib
+UpgradeLog*
+_UpgradeReport_Files
+*.sdf
+*.opensdf
+Demona/icon.res
