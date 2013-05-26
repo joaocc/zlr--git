@@ -99,6 +99,7 @@ namespace TestSuite
                     {
                         RecordingIO io = new RecordingIO(selected.InputFile);
                         ZMachine zm = new ZMachine(zcode, io);
+                        zm.PredictableRandom = true;
                         zm.WritingCommandsToFile = true;
 
                         string output = RunAndCollectOutput(zm, io);
@@ -165,6 +166,7 @@ namespace TestSuite
                                 ReplayIO io = new ReplayIO(test.InputFile);
                                 ZMachine zm = new ZMachine(zcode, io);
 
+                                zm.PredictableRandom = true;
                                 zm.ReadingCommandsFromFile = true;
 
                                 string output = RunAndCollectOutput(zm, io);

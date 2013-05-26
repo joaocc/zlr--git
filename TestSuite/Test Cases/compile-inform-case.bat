@@ -2,14 +2,15 @@
 if not exist inform6.exe goto noinform
 if "%1"=="" goto usage
 if not exist "%1.inf" goto nocode
-inform6 -wkDv5 +include_path=InformLibrary "%1.inf" "Compiled\%1.z5"
+if not exist Compiled\nul md Compiled
+inform6 -wkD +include_path=InformLibrary "%1.inf" "Compiled\%1.zcode"
 move /y gameinfo.dbg "Compiled\%1.dbg"
 exit /b
 
 :usage
 echo Usage: compile-game.bat {base}
 echo Reads {base}.inf in the current directory.
-echo Produces {base}.z5 and {base}.dbg in Compiled.
+echo Produces {base}.zcode and {base}.dbg in Compiled.
 pause
 exit /b
 
