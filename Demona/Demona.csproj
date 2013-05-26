@@ -10,7 +10,6 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ZLR.Interfaces.Demona</RootNamespace>
     <AssemblyName>Demona</AssemblyName>
-    <ApplicationIcon>zlr.ico</ApplicationIcon>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
@@ -52,9 +51,6 @@
     <WarningLevel>4</WarningLevel>
     <Win32Resource>icon.res</Win32Resource>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup>
-    <Win32Resource />
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -132,11 +128,6 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
-    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
-      <Visible>False</Visible>
-      <ProductName>Windows Installer 3.1</ProductName>
-      <Install>true</Install>
-    </BootstrapperPackage>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
@@ -147,6 +138,7 @@
   </Target>
   -->
   <PropertyGroup>
-    <PreBuildEvent>rem "$(DevEnvDir)..\..\SDK\v2.0\bin\rc.exe" /r "$(ProjectDir)icon.rc"</PreBuildEvent>
+    <PreBuildEvent>call "$(DevEnvDir)\..\..\VC\vcvarsall.bat"
+"%25WindowsSdkDir%25\bin\x86\rc.exe" /r "$(ProjectDir)icon.rc"</PreBuildEvent>
   </PropertyGroup>
 </Project>

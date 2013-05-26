@@ -137,8 +137,8 @@ namespace ZLR.VM
 
             zversion = zmem[0];
 
-            if (zversion != 5 && zversion != 8)
-                throw new ArgumentException("Z-code version must be 5 or 8");
+            if (zversion < 3 || (zversion > 5 && zversion != 8))
+                throw new ArgumentException("Z-code version must be 3, 4, 5, or 8");
 
             io.SizeChanged += new EventHandler(io_SizeChanged);
         }
@@ -913,7 +913,7 @@ namespace ZLR.VM
 
             // look up a method to compile this opcode
             OpcodeInfo info;
-            if (Opcode.FindOpcodeInfo(count, opnum, out info) == false)
+            if (Opcode.FindOpcodeInfo(count, opnum, zversion, out info) == false)
             {
                 // EXT:29 to EXT:255 are silently ignored.
                 // these are unrecognized custom opcodes, so the best we can do
