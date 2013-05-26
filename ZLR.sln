@@ -8,6 +8,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Gargoyle", "Gargoyle", "{32
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleZLR", "ConsoleZLR\ConsoleZLR.csproj", "{0FF5AD11-1849-4BDF-A2DE-D97586EE95B0}"
+	ProjectSection(ProjectDependencies) = postProject
+		{75CC483D-D28E-49EE-AB8F-F77CC3F58BFA} = {75CC483D-D28E-49EE-AB8F-F77CC3F58BFA}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZLR.VM", "ZLR\ZLR.VM.csproj", "{75CC483D-D28E-49EE-AB8F-F77CC3F58BFA}"
 EndProject
