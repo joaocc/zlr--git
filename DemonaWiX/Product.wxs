@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?include Includes.wxi ?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <Product Id="{041C4738-9DCE-41FB-8B9D-3D8D81A0AF42}" Codepage="1252" Language="1033" Manufacturer="ZLR" Name="Demona" UpgradeCode="{62484948-D4A8-4406-9531-270A0E16C763}" Version="$(var.ZlrVersion)">
+        <Package Compressed="yes" InstallerVersion="200" Languages="1033" Manufacturer="Jesse McGrew" Platform="x86" />
+      
+        <Property Id="ARPHELPLINK" Value="http://zlr.sourceforge.net/" />
+        <Property Id="ARPCONTACT" Value="Jesse McGrew" />
+        <Property Id="ARPURLINFOABOUT" Value="http://zlr.sourceforge.net/" />
+        <Property Id="ARPPRODUCTICON" Value="DemonaIcon.exe" />
+
+        <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+		    <MediaTemplate />
+
+        <UIRef Id="WixUI_Advanced"/>
+        <Property Id="ApplicationFolderName" Value="Demona" />
+        <Property Id="WixAppFolder" Value="WixPerMachineFolder" />
+
+        <Directory Id="TARGETDIR" Name="SourceDir">
+			      <Directory Id="ProgramFilesFolder">
+                <Directory Id="ZlrFolder" Name="ZLR">
+    				        <Directory Id="APPLICATIONFOLDER" Name="Demona" />
+                </Directory>
+            </Directory>
+            <Directory Id="DesktopFolder" SourceName="User's Desktop" />
+            <Directory Id="ProgramMenuFolder" SourceName="User's Programs Menu">
+                <Directory Id="D__StartMenuGroup" Name="Demona" />
+            </Directory>
+        </Directory>
+
+        <Icon Id="DemonaIcon.exe" SourceFile="$(var.Demona.TargetPath)" />
+
+        <ComponentGroup Id="CG__DemonaCore" Directory="APPLICATIONFOLDER" Source="$(var.Demona.TargetDir)">
+          <!-- <Component Id="C__BDA22E3908E941F9A8D06FBC9A63C6BF" Guid="{7428AA3C-75D1-1A10-691E-3BC5D28696B2}">
+                <File Id="_BDA22E3908E941F9A8D06FBC9A63C6BF" Name="zlr.ico" KeyPath="yes" />
+            </Component> -->
+            <Component Id="C__F0AA591AB50F4BDFD1DCD9092453A0A3" Guid="{14E51060-2A34-F14F-F338-A6B5D3E46398}">
+                <File Id="_F0AA591AB50F4BDFD1DCD9092453A0A3" Name="ZLR.VM.dll" KeyPath="yes" Assembly=".net" AssemblyManifest="_F0AA591AB50F4BDFD1DCD9092453A0A3" AssemblyApplication="_F0AA591AB50F4BDFD1DCD9092453A0A3" />
+            </Component>
+            <Component Id="C__FBED0CEF1C93BF331DA00E90446E84D8" Guid="{6E7A171F-FC41-2194-5868-A1F89D4526BD}">
+                <File Id="_FBED0CEF1C93BF331DA00E90446E84D8" Name="Demona.exe" KeyPath="yes" Assembly=".net" AssemblyManifest="_FBED0CEF1C93BF331DA00E90446E84D8" AssemblyApplication="_FBED0CEF1C93BF331DA00E90446E84D8" />
+            </Component>
+        </ComponentGroup>
+      
+        <ComponentGroup Id="CG__GargoyleDlls" Directory="APPLICATIONFOLDER" Source="$(var.Demona.TargetDir)">
+            <Component Id="C__69A7B4F13F125F74DC2B6E0F7678F416" Guid="{A0751953-5337-81DA-E528-5BE920D48736}">
+                <File Id="_69A7B4F13F125F74DC2B6E0F7678F416" Name="libgarglk.dll" KeyPath="yes" />
+            </Component>
+            <Component Id="C__1A5EE8FC8EBE175464FA8B63061772C2" Guid="{7A783D6B-1C92-59F7-BBBF-FC0182EAA22E}">
+                <File Id="_1A5EE8FC8EBE175464FA8B63061772C2" Name="SDL.dll" KeyPath="yes" />
+            </Component>
+            <Component Id="C__2595CDC25AD67FF40C0D62CC05055FB0" Guid="{70105E61-E96D-DE4E-3393-6790834867ED}">
+                <File Id="_2595CDC25AD67FF40C0D62CC05055FB0" Name="garglk.ini" KeyPath="yes" />
+            </Component>
+            <Component Id="C__50BC8D130E96795BB4153E0541642C3C" Guid="{B2759543-3DB3-C970-6AEA-77FDEF1152A7}">
+                <File Id="_50BC8D130E96795BB4153E0541642C3C" Name="vorbisfile.dll" KeyPath="yes" />
+            </Component>
+            <Component Id="C__6C2495B5BAFC1EBA174CD8B17A25173A" Guid="{5CDAF8A4-6845-66F1-E6CC-42F67DE1636A}">
+                <File Id="_6C2495B5BAFC1EBA174CD8B17A25173A" Name="SDL_mixer.dll" KeyPath="yes" />
+            </Component>
+            <Component Id="C__8EDCBA86CE608B6AA8564F90E17D123C" Guid="{74D4A94B-F140-9AEE-FD83-32F318E2746A}">
+                <File Id="_8EDCBA86CE608B6AA8564F90E17D123C" Name="vorbis.dll" KeyPath="yes" />
+            </Component>
+            <Component Id="C__95CCB986D684E19C12124FD6D70FDF36" Guid="{E0212DF1-531C-FB2F-46BC-C1CF9B795CDA}">
+                <File Id="_95CCB986D684E19C12124FD6D70FDF36" Name="smpeg.dll" KeyPath="yes" />
+            </Component>
+        </ComponentGroup>
+      
+        <Component Id="C__ZCodeAssociations" Directory="TARGETDIR" Guid="{C604EA3B-32DC-4E7B-A0DB-5ACC12925724}">
+            <ProgId Id="DemonaZCode" Description="Z-Machine story file" IconIndex="0">
+                <Extension Id="z1" ContentType="application/x-zmachine">
+                    <Verb Id="open" Command="&amp;Open" TargetFile="_FBED0CEF1C93BF331DA00E90446E84D8" Argument="&quot;%1&quot;" /> <!-- ICE69 warning here is harmless -->
+                </Extension>
+                <Extension Id="z2" ContentType="application/x-zmachine" />
+                <Extension Id="z3" ContentType="application/x-zmachine" />
+                <Extension Id="z4" ContentType="application/x-zmachine" />
+                <Extension Id="z5" ContentType="application/x-zmachine" />
+                <Extension Id="z7" ContentType="application/x-zmachine" />
+                <Extension Id="z8" ContentType="application/x-zmachine" />
+            </ProgId>
+            <ProgId Id="DemonaZBlorb" Description="Z-Machine story package" IconIndex="0">
+                <Extension Id="zblorb" ContentType="application/x-blorb-zmachine">
+                    <Verb Id="open" Command="&amp;Open" TargetFile="_FBED0CEF1C93BF331DA00E90446E84D8" Argument="&quot;%1&quot;" /> <!-- ICE69 warning here is harmless -->
+                </Extension>
+                <Extension Id="zlb" ContentType="application/x-blorb-zmachine" />
+            </ProgId>
+            <RegistryValue Root="HKMU" Key="Software\ZLR\Demona" Name="ZCodeAssociations" Type="integer" Value="1" KeyPath="yes" />
+        </Component>
+      
+        <Component Id="C__DesktopShortcut" Directory="DesktopFolder" Guid="{F42C3A00-6A3C-422E-8F28-299D67F5FE81}">
+            <Shortcut Id="_9080868E50E9401DA192A15CD046EAAE" Name="Demona" Icon="DemonaIcon.exe" IconIndex="0" Show="normal" WorkingDirectory="APPLICATIONFOLDER" />
+            <RegistryValue Root="HKCU" Key="Software\ZLR\Demona" Name="DesktopShortcut" Type="integer" Value="1" KeyPath="yes" />
+        </Component>
+      
+        <ComponentGroup Id="CG__StartMenuShortcut" Directory="D__StartMenuGroup">
+            <Component Id="C__StartMenuShortcut" Guid="{C066F624-10E1-4EF1-A6D3-1A6E94D2A550}">
+                <Shortcut Id="_01B82A0E951145538879319F679A97A2" Name="Demona" Icon="DemonaIcon.exe" IconIndex="0" Show="normal" WorkingDirectory="APPLICATIONFOLDER" />
+                <RegistryValue Root="HKCU" Key="Software\ZLR\Demona" Name="StartMenuShortcut" Type="integer" Value="1" KeyPath="yes" />
+                <RemoveFolder Id="_5CC39DBF797B41F28B588FA36100D32A" On="uninstall" />
+            </Component>
+        </ComponentGroup>
+      
+        <Feature Id="DefaultFeature" ConfigurableDirectory="APPLICATIONFOLDER" Level="1">
+            <ComponentGroupRef Id="CG__DemonaCore" />
+            <ComponentGroupRef Id="CG__GargoyleDlls"/>
+        </Feature>
+      
+        <Feature Id="F__ZCodeAssociations" Title="Associate Demona with Z-code files">
+            <ComponentGroupRef Id="CG__DemonaCore" />
+            <ComponentRef Id="C__ZCodeAssociations"/>
+        </Feature>
+      
+        <Feature Id="F__StartMenuShortcut" Level="1">
+            <ComponentGroupRef Id="CG__DemonaCore" />
+            <ComponentGroupRef Id="CG__StartMenuShortcut" />
+        </Feature>
+      
+        <Feature Id="F__DesktopShortcut" Level="1">
+            <ComponentRef Id="C__DesktopShortcut" />
+        </Feature>
+    </Product>
+</Wix>
+
+<!-- <?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+	<Product Id="*" Name="DemonaWiX" Language="1033" Version="1.0.0.0" Manufacturer="" UpgradeCode="3d7d6234-dd29-46c3-9950-f63190ed058c">
+		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+
+		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+		<MediaTemplate />
+
+		<Feature Id="ProductFeature" Title="DemonaWiX" Level="1">
+			<ComponentGroupRef Id="ProductComponents" />
+		</Feature>
+	</Product>
+
+	<Fragment>
+		<Directory Id="TARGETDIR" Name="SourceDir">
+			<Directory Id="ProgramFilesFolder">
+				<Directory Id="INSTALLFOLDER" Name="DemonaWiX" />
+			</Directory>
+		</Directory>
+	</Fragment>
+
+	<Fragment>
+		<ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+			<Component Id="ProductComponent">
+			</Component>
+		</ComponentGroup>
+	</Fragment>
+</Wix> -->
