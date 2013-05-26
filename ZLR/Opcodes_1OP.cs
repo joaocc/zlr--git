@@ -102,7 +102,7 @@ namespace ZLR.VM
             il.Emit(OpCodes.Call, printStringMI);
         }
 
-        [Opcode(OpCount.One, 136, true, Terminates = true)]
+        [Opcode(OpCount.One, 136, true, Terminates = true, MinVersion = 4)]
         private void op_call_1s(ILGenerator il)
         {
             EnterFunction(il, true);
@@ -163,6 +163,7 @@ namespace ZLR.VM
             il.Emit(OpCodes.Dup);
             il.Emit(OpCodes.Dup);
             LoadOperand(il, 0);
+            il.Emit(OpCodes.Ldc_I4_1);
             il.Emit(OpCodes.Call, unpackAddrMI);
             il.Emit(OpCodes.Call, decodeStringMI);
             il.Emit(OpCodes.Call, printStringMI);
@@ -179,7 +180,7 @@ namespace ZLR.VM
             StoreResult(il);
         }
 
-        [Opcode(OpCount.One, 143, Terminates = true)]
+        [Opcode(OpCount.One, 143, Terminates = true, MinVersion = 5)]
         private void op_call_1n(ILGenerator il)
         {
             EnterFunction(il, false);

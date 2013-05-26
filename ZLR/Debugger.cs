@@ -41,8 +41,8 @@ namespace ZLR.VM.Debugging
         void StackPush(short value);
         short StackPop();
 
-        int UnpackAddress(short packedAddress);
-        short PackAddress(int address);
+        int UnpackAddress(short packedAddress, bool forString);
+        short PackAddress(int address, bool forString);
     }
 
     public interface ICallFrame
@@ -128,8 +128,7 @@ namespace ZLR.VM
                 if (thisPC < zm.romStart || zm.cache.TryGetValue(thisPC, out entry) == false)
                 {
                     int count;
-                    entry.Code = zm.CompileZCode(out count);
-                    entry.NextPC = zm.pc;
+                    entry = new CachedCode(zm.pc, zm.CompileZCode(out count));
                     if (thisPC >= zm.romStart)
                         zm.cache.Add(thisPC, entry, count);
                 }
@@ -287,17 +286,37 @@ namespace ZLR.VM
                 return zm.stack.Pop();
             }
 
-            public int UnpackAddress(short packedAddress)
+            public int UnpackAddress(short packedAddress, bool forString)
             {
-                return zm.UnpackAddress(packedAddress);
+                return zm.UnpackAddress(packedAddress, forString);
             }
 
-            public short PackAddress(int address)
+            public short PackAddress(int address, bool forString)
             {
-                if (zm.zversion == 5)
-                    return (short)(address / 4);
-                else
-                    return (short)(address / 8);
+                switch (zm.zversion)
+                {
+                    case 1:
+                    case 2:
+                    case 3:
+                        return (short) (address/2);
+
+                    case 4:
+                    case 5:
+                        return (short) (address/4);
+
+                    case 6:
+                    case 7:
+                        const int HDR_CODE_OFFSET = 0x28;
+                        const int HDR_STR_OFFSET = 0x2A;
+                        var offset = ReadWord(forString ? HDR_STR_OFFSET : HDR_CODE_OFFSET)*8;
+                        return (short) ((address - offset)/4);
+
+                    case 8:
+                        return (short) (address/8);
+
+                    default:
+                        throw new NotImplementedException();
+                }
             }
 
             #endregion

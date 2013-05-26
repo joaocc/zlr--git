@@ -185,6 +185,17 @@ namespace ZLR.Interfaces.SystemConsole
             get { return false; }
         }
 
+        public bool VariablePitchAvailable
+        {
+            get { return false; }
+        }
+
+        public bool ScrollFromBottom
+        {
+            get { return false; }
+            set { /* nada */ }
+        }
+
         public bool GraphicsFontAvailable
         {
             get { return false; }
@@ -254,6 +265,11 @@ namespace ZLR.Interfaces.SystemConsole
         public UnicodeCaps CheckUnicode(char ch)
         {
             return UnicodeCaps.CanInput | UnicodeCaps.CanPrint;
+        }
+
+        public bool DrawCustomStatusLine(string location, short hoursOrScore, short minsOrTurns, bool useTime)
+        {
+            return false;
         }
     }
 }

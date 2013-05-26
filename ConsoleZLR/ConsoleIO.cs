@@ -18,6 +18,7 @@ namespace ZLR.Interfaces.SystemConsole
         private ConsoleColor bgupper = ConsoleColor.Black, fgupper = ConsoleColor.Gray;
         private ConsoleColor bglower = ConsoleColor.Black, fglower = ConsoleColor.Gray;
         private bool reverse, emphasis;
+        private bool scrollFromBottom;
 
         private const uint STYLE_FLAG = 0x80000000;
         private bool buffering = true;
@@ -608,7 +609,7 @@ namespace ZLR.Interfaces.SystemConsole
 
                 upper = false;
                 xlower = 1;
-                ylower = 1;
+                ylower = scrollFromBottom ? Console.WindowHeight - split : 1;
                 Console.SetCursorPosition(xlower - 1, ylower - 1 + split);
                 return;
             }
@@ -739,6 +740,42 @@ namespace ZLR.Interfaces.SystemConsole
         {
             get { return false; }
         }
+
+        public bool VariablePitchAvailable
+        {
+            get { return false; }
+        }
+
+        public bool ScrollFromBottom
+        {
+            get
+            {
+                return scrollFromBottom;
+            }
+            set
+            {
+                if (scrollFromBottom != value)
+                {
+                    scrollFromBottom = value;
+
+                    SaveCursorPos();
+
+                    if (value)
+                    {
+                        if (xlower == 1 && ylower == 1)
+                            ylower = Console.WindowHeight - split;
+                    }
+                    else
+                    {
+                        if (xlower == 1 && ylower == Console.WindowHeight - split)
+                            ylower = 1;
+                    }
+
+                    RestoreCursorPos();
+                }
+            }
+        }
+
 
         public bool TimedInputAvailable
         {
@@ -1066,6 +1103,11 @@ namespace ZLR.Interfaces.SystemConsole
         {
             // naive
             return UnicodeCaps.CanInput | UnicodeCaps.CanPrint;
+        }
+
+        public bool DrawCustomStatusLine(string location, short hoursOrScore, short minsOrTurns, bool useTime)
+        {
+            return false;
         }
 
         private void FlushBuffer()

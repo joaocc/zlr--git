@@ -9,7 +9,7 @@ namespace ZLR.VM
     public partial class ZMachine
     {
 #pragma warning disable 0169
-        private void SaveQuetzal(byte dest, int nextPC)
+        private bool SaveQuetzal(int nextPC)
         {
             Quetzal quetzal = new Quetzal();
             quetzal.AddBlock("IFhd", MakeIFHD(nextPC - 1));
@@ -20,33 +20,31 @@ namespace ZLR.VM
             {
                 if (stream == null)
                 {
-                    StoreResult(dest, 0);
-                    return;
+                    return false;
                 }
 
                 try
                 {
                     quetzal.WriteToStream(stream);
-                    StoreResult(dest, 1);
+                    return true;
                 }
                 catch
                 {
-                    StoreResult(dest, 0);
+                    return false;
                 }
             }
         }
 
-        private void RestoreQuetzal(byte dest, int failurePC)
+        private bool RestoreQuetzal(int failurePC)
         {
             // there are many ways this can go wrong, so let's just assume it will.
             // if the restore succeeds, what we change up here won't matter anyway.
-            StoreResult(dest, 0);
             pc = failurePC;
 
             using (Stream stream = io.OpenRestoreFile())
             {
                 if (stream == null)
-                    return;
+                    return false;
 
                 try
                 {
@@ -56,7 +54,7 @@ namespace ZLR.VM
                     int savedPC;
                     byte[] ifhd = quetzal.GetBlock("IFhd");
                     if (!VerifyIFHD(ifhd, out savedPC))
-                        return;
+                        return false;
 
                     byte[] cmem = quetzal.GetBlock("CMem");
                     byte[] umem;
@@ -66,14 +64,14 @@ namespace ZLR.VM
                         umem = quetzal.GetBlock("UMem");
 
                     if (umem == null || umem.Length != romStart)
-                        return;
+                        return false;
 
                     byte[] stks = quetzal.GetBlock("Stks");
                     Stack<short> savedStack;
                     Stack<CallFrame> savedCallStack;
                     DeserializeStacks(stks, out savedStack, out savedCallStack);
                     if (savedStack == null || savedCallStack == null)
-                        return;
+                        return false;
 
                     // ok, restore it
                     SetBytes(0, umem.Length, umem, 0);
@@ -82,14 +80,15 @@ namespace ZLR.VM
                     SetTopFrame();
                     pc = savedPC;
 
-                    dest = GetByte(pc++);
+                    byte dest = GetByte(pc++);
                     StoreResult(dest, 2);
 
                     ResetHeaderFields(false);
+                    return true;
                 }
                 catch
                 {
-                    StoreResult(dest, 0);
+                    return false;
                 }
             }
         }

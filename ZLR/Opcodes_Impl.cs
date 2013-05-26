@@ -27,16 +27,28 @@ namespace ZLR.VM
                 return;
             }
 
-            int address = UnpackAddress(packedAddress);
+            int address = UnpackAddress(packedAddress, false);
             byte numLocals = GetByte(address);
+            address++;
 
             CallFrame frame = new CallFrame(returnPC, stack.Count, numLocals,
                 args == null ? 0 : args.Length, resultStorage);
+
+            // read initial local variable values for V1-V4
+            if (zversion <= 4)
+            {
+                for (int i = 0; i < numLocals; i++)
+                {
+                    frame.Locals[i] = GetWord(address);
+                    address += 2;
+                }
+            }
+
             if (args != null)
                 Array.Copy(args, frame.Locals, Math.Min(args.Length, numLocals));
             callStack.Push(frame);
             topFrame = frame;
-            pc = address + 1;
+            pc = address;
         }
 
         private void LeaveFunctionImpl(short result)
@@ -408,9 +420,102 @@ namespace ZLR.VM
             for (int i = 0; i < length; i++)
                 text[i] = GetByte(buffer + i);
 
-            byte[] result = EncodeText(text, 0, length, DICT_WORD_SIZE);
+            byte[] result = EncodeText(text, 0, length, DictWordSize);
             for (int i = 0; i < result.Length; i++)
                 SetByte(dest + i, result[i]);
+        }
+
+        private void PadStatusLine(int spacesToLeave)
+        {
+            short x, y;
+            io.GetCursorPos(out x, out y);
+
+            var width = io.WidthChars;
+
+            while (x < width - spacesToLeave)
+            {
+                io.PutChar(' ');
+                x++;
+            }
+        }
+
+        private void ShowStatusImpl()
+        {
+            if (zversion > 3)
+                return;
+
+            var locationStr = GetObjectName((ushort) GetWord(globalsOffset));
+            var hoursOrScore = GetWord(globalsOffset + 2);
+            var minsOrTurns = GetWord(globalsOffset + 4);
+
+            bool useTime;
+            if (zversion < 3)
+            {
+                useTime = false;
+            }
+            else
+            {
+                var flags1 = GetByte(0x1);
+                useTime = ((flags1 & 2) != 0);
+            }
+
+            // let the I/O module intercept the status line request...
+            if (io.DrawCustomStatusLine(locationStr, hoursOrScore, minsOrTurns, useTime) == false)
+            {
+                // ... if it's not intercepted, draw it ourselves using Frotz's format
+
+                // select upper window and turn on reverse video
+                io.SelectWindow(1);
+                io.MoveCursor(1, 1);
+                io.SetTextStyle(TextStyle.Reverse);
+
+                // use the brief format if the screen is too narrow
+                bool brief = io.WidthChars < 55;
+
+                // print the location indented one space
+                io.PutChar(' ');
+                io.PutString(locationStr);
+
+                // move over and print the score/turns or time
+                if (useTime)
+                {
+                    PadStatusLine(brief ? 15 : 20);
+
+                    io.PutString("Time: ");
+
+                    var dispHrs = (hoursOrScore + 11) % 12 + 1;
+                    if (dispHrs < 10)
+                        io.PutChar(' ');
+                    io.PutString(dispHrs.ToString());
+
+                    io.PutChar(':');
+
+                    if (minsOrTurns < 10)
+                        io.PutChar('0');
+                    io.PutString(minsOrTurns.ToString());
+
+                    io.PutString(hoursOrScore >= 12 ? " pm" : " am");
+                }
+                else
+                {
+                    PadStatusLine(brief ? 15 : 30);
+
+                    io.PutString(brief ? "S: " : "Score: ");
+                    io.PutString(hoursOrScore.ToString());
+
+                    PadStatusLine(brief ? 8 : 14);
+
+                    io.PutString(brief ? "M: " : "Moves: ");
+                    io.PutString(minsOrTurns.ToString());
+                }
+
+                // fill the rest of the line with spaces
+                PadStatusLine(0);
+
+                // return to the lower window
+                io.SetTextStyle(TextStyle.Roman);
+                io.SelectWindow(0);
+            }
         }
 #pragma warning restore 0169
     }

@@ -63,7 +63,14 @@ namespace ZLR.VM
             LeaveFunction(il);
         }
 
-        [Opcode(OpCount.Zero, 185, true)]
+        [Opcode(OpCount.Zero, 185, MaxVersion = 4)]
+        private void op_pop(ILGenerator il)
+        {
+            PopFromStack(il);
+            il.Emit(OpCodes.Pop);
+        }
+
+        [Opcode(OpCount.Zero, 185, true, MinVersion = 5)]
         private void op_catch(ILGenerator il)
         {
             FieldInfo callStackFI = typeof(ZMachine).GetField("callStack", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -96,7 +103,23 @@ namespace ZLR.VM
             il.Emit(OpCodes.Call, printZsciiMI);
         }
 
-        [Opcode(OpCount.Zero, 189, false, true, false)]
+        [Opcode(OpCount.Zero, 188)]
+        private void op_show_status(ILGenerator il)
+        {
+            // "In theory this opcode is illegal in later Versions [>= V4] but an interpreter should treat it as nop,
+            // because Version 5 Release 23 of 'Wishbringer' contains this opcode by accident." -- Standard 1.0
+
+            if (zm.ZVersion < 4)
+            {
+                MethodInfo showStatusMI = typeof (ZMachine).GetMethod("ShowStatusImpl",
+                                                                      BindingFlags.NonPublic | BindingFlags.Instance);
+
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Call, showStatusMI);
+            }
+        }
+
+        [Opcode(OpCount.Zero, 189, false, true, false, MinVersion = 3)]
         private void op_verify(ILGenerator il)
         {
             MethodInfo impl = typeof(ZMachine).GetMethod("VerifyGameFile", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -106,7 +129,7 @@ namespace ZLR.VM
             Branch(il, OpCodes.Brtrue, OpCodes.Brfalse);
         }
 
-        [Opcode(OpCount.Zero, 191, false, true, false)]
+        [Opcode(OpCount.Zero, 191, false, true, false, MinVersion = 5)]
         private void op_piracy(ILGenerator il)
         {
             // assume it's genuine

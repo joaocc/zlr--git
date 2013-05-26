@@ -7,7 +7,8 @@ namespace ZLR.VM
     partial class Opcode
     {
 #pragma warning disable 0169
-        [Opcode(OpCount.Var, 224, true, Terminates = true)]
+        [Opcode(OpCount.Var, 224, true, Terminates = true, MaxVersion = 3, Alias = "call")]
+        [Opcode(OpCount.Var, 224, true, Terminates = true, MinVersion = 4)]
         private void op_call_vs(ILGenerator il)
         {
             EnterFunction(il, true);
@@ -89,7 +90,21 @@ namespace ZLR.VM
             il.Emit(OpCodes.Call, setPropMI);
         }
 
-        [Opcode(OpCount.Var, 228, true)]
+        [Opcode(OpCount.Var, 228, MaxVersion = 4)]
+        private void op_sread(ILGenerator il)
+        {
+            MethodInfo impl = typeof(ZMachine).GetMethod("ReadImpl", BindingFlags.NonPublic | BindingFlags.Instance);
+
+            il.Emit(OpCodes.Ldarg_0);
+            LoadOperand(il, 0);
+            LoadOperand(il, 1);
+            LoadOperand(il, 2);
+            LoadOperand(il, 3);
+            il.Emit(OpCodes.Call, impl);
+            il.Emit(OpCodes.Pop);
+        }
+
+        [Opcode(OpCount.Var, 228, true, MinVersion = 5)]
         private void op_aread(ILGenerator il)
         {
             MethodInfo impl = typeof(ZMachine).GetMethod("ReadImpl", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -157,7 +172,7 @@ namespace ZLR.VM
             il.Emit(OpCodes.Call, impl);
         }
 
-        [Opcode(OpCount.Var, 234)]
+        [Opcode(OpCount.Var, 234, MinVersion = 3)]
         private void op_split_window(ILGenerator il)
         {
             FieldInfo ioFI = typeof(ZMachine).GetField("io", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -169,7 +184,7 @@ namespace ZLR.VM
             il.Emit(OpCodes.Call, impl);
         }
 
-        [Opcode(OpCount.Var, 235)]
+        [Opcode(OpCount.Var, 235, MinVersion = 3)]
         private void op_set_window(ILGenerator il)
         {
             FieldInfo ioFI = typeof(ZMachine).GetField("io", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -181,13 +196,13 @@ namespace ZLR.VM
             il.Emit(OpCodes.Call, impl);
         }
 
-        [Opcode(OpCount.Var, 236, true, Terminates = true)]
+        [Opcode(OpCount.Var, 236, true, Terminates = true, MinVersion = 4)]
         private void op_call_vs2(ILGenerator il)
         {
             EnterFunction(il, true);
         }
 
-        [Opcode(OpCount.Var, 237)]
+        [Opcode(OpCount.Var, 237, MinVersion = 4)]
         private void op_erase_window(ILGenerator il)
         {
             FieldInfo ioFI = typeof(ZMachine).GetField("io", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -199,7 +214,7 @@ namespace ZLR.VM
             il.Emit(OpCodes.Call, eraseWindowMI);
         }
 
-        [Opcode(OpCount.Var, 238)]
+        [Opcode(OpCount.Var, 238, MinVersion = 4)]
         private void op_erase_line(ILGenerator il)
         {
             FieldInfo ioFI = typeof(ZMachine).GetField("io", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -227,7 +242,7 @@ namespace ZLR.VM
                 il.MarkLabel(skip.Value);
         }
 
-        [Opcode(OpCount.Var, 239)]
+        [Opcode(OpCount.Var, 239, MinVersion = 4)]
         private void op_set_cursor(ILGenerator il)
         {
             FieldInfo ioFI = typeof(ZMachine).GetField("io", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -243,7 +258,7 @@ namespace ZLR.VM
             il.Emit(OpCodes.Call, moveCursorMI);
         }
 
-        [Opcode(OpCount.Var, 240)]
+        [Opcode(OpCount.Var, 240, MinVersion = 4)]
         private void op_get_cursor(ILGenerator il)
         {
             MethodInfo impl = typeof(ZMachine).GetMethod("GetCursorPos", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -253,7 +268,7 @@ namespace ZLR.VM
             il.Emit(OpCodes.Call, impl);
         }
 
-        [Opcode(OpCount.Var, 241)]
+        [Opcode(OpCount.Var, 241, MinVersion = 4)]
         private void op_set_text_style(ILGenerator il)
         {
             FieldInfo ioFI = typeof(ZMachine).GetField("io", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -265,7 +280,7 @@ namespace ZLR.VM
             il.Emit(OpCodes.Call, impl);
         }
 
-        [Opcode(OpCount.Var, 242)]
+        [Opcode(OpCount.Var, 242, MinVersion = 4)]
         private void op_buffer_mode(ILGenerator il)
         {
             FieldInfo ioFI = typeof(ZMachine).GetField("io", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -281,7 +296,7 @@ namespace ZLR.VM
             il.Emit(OpCodes.Call, impl);
         }
 
-        [Opcode(OpCount.Var, 243)]
+        [Opcode(OpCount.Var, 243, MinVersion = 3)]
         private void op_output_stream(ILGenerator il)
         {
             MethodInfo impl = typeof(ZMachine).GetMethod("SetOutputStream", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -292,7 +307,7 @@ namespace ZLR.VM
             il.Emit(OpCodes.Call, impl);
         }
 
-        [Opcode(OpCount.Var, 244)]
+        [Opcode(OpCount.Var, 244, MinVersion = 3)]
         private void op_input_stream(ILGenerator il)
         {
             MethodInfo impl = typeof(ZMachine).GetMethod("SetInputStream", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -302,7 +317,7 @@ namespace ZLR.VM
             il.Emit(OpCodes.Call, impl);
         }
 
-        [Opcode(OpCount.Var, 245)]
+        [Opcode(OpCount.Var, 245, MinVersion = 3)]
         private void op_sound_effect(ILGenerator il)
         {
             MethodInfo impl = typeof(ZMachine).GetMethod("SoundEffectImpl", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -315,7 +330,7 @@ namespace ZLR.VM
             il.Emit(OpCodes.Call, impl);
         }
 
-        [Opcode(OpCount.Var, 246, true)]
+        [Opcode(OpCount.Var, 246, true, MinVersion = 4)]
         private void op_read_char(ILGenerator il)
         {
             MethodInfo impl = typeof(ZMachine).GetMethod("ReadCharImpl", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -337,7 +352,7 @@ namespace ZLR.VM
             StoreResult(il);
         }
 
-        [Opcode(OpCount.Var, 247, true, true, false)]
+        [Opcode(OpCount.Var, 247, true, true, false, MinVersion = 4)]
         private void op_scan_table(ILGenerator il)
         {
             MethodInfo impl = typeof(ZMachine).GetMethod("ScanTableImpl", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -354,7 +369,8 @@ namespace ZLR.VM
             Branch(il, OpCodes.Brtrue, OpCodes.Brfalse);
         }
 
-        [Opcode(OpCount.Var, 248, true)]
+        [Opcode(OpCount.One, 143, true, MaxVersion = 4)]
+        [Opcode(OpCount.Var, 248, true, MinVersion = 5)]
         private void op_not(ILGenerator il)
         {
             LoadOperand(il, 0);
@@ -362,19 +378,19 @@ namespace ZLR.VM
             StoreResult(il);
         }
 
-        [Opcode(OpCount.Var, 249, Terminates = true)]
+        [Opcode(OpCount.Var, 249, Terminates = true, MinVersion = 5)]
         private void op_call_vn(ILGenerator il)
         {
             EnterFunction(il, false);
         }
 
-        [Opcode(OpCount.Var, 250, Terminates = true)]
+        [Opcode(OpCount.Var, 250, Terminates = true, MinVersion = 5)]
         private void op_call_vn2(ILGenerator il)
         {
             EnterFunction(il, false);
         }
 
-        [Opcode(OpCount.Var, 251)]
+        [Opcode(OpCount.Var, 251, MinVersion = 5)]
         private void op_tokenise(ILGenerator il)
         {
             MethodInfo impl = typeof(ZMachine).GetMethod("Tokenize", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -387,7 +403,7 @@ namespace ZLR.VM
             il.Emit(OpCodes.Call, impl);
         }
 
-        [Opcode(OpCount.Var, 252)]
+        [Opcode(OpCount.Var, 252, MinVersion = 5)]
         private void op_encode_text(ILGenerator il)
         {
             MethodInfo impl = typeof(ZMachine).GetMethod("EncodeTextImpl", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -400,7 +416,7 @@ namespace ZLR.VM
             il.Emit(OpCodes.Call, impl);
         }
 
-        [Opcode(OpCount.Var, 253)]
+        [Opcode(OpCount.Var, 253, MinVersion = 5)]
         private void op_copy_table(ILGenerator il)
         {
             if (operandTypes[1] != OperandType.Variable && operandValues[1] == 0)
@@ -424,7 +440,7 @@ namespace ZLR.VM
             }
         }
 
-        [Opcode(OpCount.Var, 254)]
+        [Opcode(OpCount.Var, 254, MinVersion = 5)]
         private void op_print_table(ILGenerator il)
         {
             MethodInfo impl = typeof(ZMachine).GetMethod("PrintTableImpl", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -437,7 +453,7 @@ namespace ZLR.VM
             il.Emit(OpCodes.Call, impl);
         }
 
-        [Opcode(OpCount.Var, 255, false, true, false)]
+        [Opcode(OpCount.Var, 255, false, true, false, MinVersion = 5)]
         private void op_check_arg_count(ILGenerator il)
         {
             MethodInfo getTopFrameMI = typeof(ZMachine).GetMethod("get_TopFrame", BindingFlags.NonPublic | BindingFlags.Instance);

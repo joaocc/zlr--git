@@ -341,6 +341,20 @@ namespace ZLR.VM
         /// <seealso cref="GraphicsFontAvailable"/>
         short SetFont(short num);
 
+        /// <summary>
+        /// Allows the I/O module to substitute its own status line handling for V1-3 games.
+        /// </summary>
+        /// <param name="location">The name of the player's location.</param>
+        /// <param name="hoursOrScore">Time games: the current hour (0-23). Score games: the
+        /// player's score.</param>
+        /// <param name="minsOrTurns">Time games: the current minute (0-59). Score games: the
+        /// number of turns elapsed.</param>
+        /// <param name="useTime"><b>true</b> if this is a time game, or <b>false</b> if
+        /// this is a score game.</param>
+        /// <returns><b>true</b> to indicate that the status line request has been handled,
+        /// or <b>false</b> to allow ZLR's default status line handler to print it</returns>
+        bool DrawCustomStatusLine(string location, short hoursOrScore, short minsOrTurns, bool useTime);
+
         #endregion
 
         #region Sound Effects
@@ -386,6 +400,19 @@ namespace ZLR.VM
         /// This only affects the lower window, because the upper window is always fixed pitch.
         /// </remarks>
         bool ForceFixedPitch { get; set; }
+
+        /// <summary>
+        /// Gets a value indicating whether text is displayed in a variable pitch font by default.
+        /// </summary>
+        /// <remarks>
+        /// This only affects the lower window, because the upper window is always fixed pitch.
+        /// </remarks>
+        bool VariablePitchAvailable { get; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the lower window should scroll from the bottom.
+        /// </summary>
+        bool ScrollFromBottom { get; set; }
 
         /// <summary>
         /// Gets a value indicating whether the bold text style is available.
@@ -510,7 +537,16 @@ namespace ZLR.VM
 
     partial class ZMachine
     {
-        private const int DICT_WORD_SIZE = 9;
+        private int DictWordSize
+        {
+            get
+            {
+                if (zversion >= 4)
+                    return 9;
+                else
+                    return 6;
+            }
+        }
 
 #pragma warning disable 0169
         private void PrintZSCII(short zc)
