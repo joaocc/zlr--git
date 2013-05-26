@@ -92,7 +92,7 @@ namespace ZLR.VM
                 while (b != 0)
                 {
                     int num = b & 31;
-                    int len = (b >> 5) - 1;
+                    int len = (b >> 5) + 1;
 
                     if (prop == 0 || num < prop)
                         return (short)num;

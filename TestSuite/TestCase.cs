@@ -68,8 +68,17 @@ namespace TestSuite
                 string ext = Path.GetExtension(file).ToLower();
                 switch (ext)
                 {
+                    case ".z1":
+                    case ".z2":
+                    case ".z3":
+                    case ".z4":
                     case ".z5":
+                    case ".z6":
+                    case ".z7":
                     case ".z8":
+                    case ".zcode":
+                    case ".zlb":
+                    case ".zblorb":
                         result.Add(shortname, new CompiledTestCase(file));
                         break;
 
@@ -93,13 +102,16 @@ namespace TestSuite
         }
     }
 
-    class InformTestCase : TestCase, IDisposable
+    class SourceCodeTestCase : TestCase, IDisposable
     {
+        private readonly string compiler;
         private string zfile;
 
-        public InformTestCase(string file)
+        public SourceCodeTestCase(string compiler, string file)
             : base(file)
         {
+            this.compiler = compiler;
+
             // finalizer only needs to be called once we've compiled the test
             GC.SuppressFinalize(this);
         }
@@ -107,7 +119,7 @@ namespace TestSuite
         public override Stream GetZCode()
         {
             string path = Path.GetDirectoryName(testFile);
-            string compiler = Path.Combine(path, "compile-game.bat");
+            string compiler = Path.Combine(path, this.compiler);
             string infbase = Path.GetFileNameWithoutExtension(testFile);
 
             ProcessStartInfo info = new ProcessStartInfo();
@@ -123,7 +135,7 @@ namespace TestSuite
             }
 
             string outpath = Path.Combine(path, "Compiled");
-            string outfile = Path.Combine(outpath, infbase + ".z5");
+            string outfile = Path.Combine(outpath, infbase + ".zcode");
             if (!File.Exists(outfile))
                 throw new Exception("Failed to compile test case");
 
@@ -156,9 +168,17 @@ namespace TestSuite
             CleanUp();
         }
 
-        ~InformTestCase()
+        ~SourceCodeTestCase()
         {
             CleanUp();
+        }
+    }
+
+    class InformTestCase : SourceCodeTestCase
+    {
+        public InformTestCase(string file) :
+            base("compile-inform-case.bat", file)
+        {
         }
     }
 }

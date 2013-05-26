@@ -1,0 +1,11 @@
+Switches "v7";
+
+Constant HELLO_STRING "Hello, ";
+
+[ Main;
+	SayHello();
+];
+
+[ SayHello;
+	print (string) HELLO_STRING, "Version ", 0->0, "!^";
+];

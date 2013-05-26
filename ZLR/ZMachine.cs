@@ -309,10 +309,17 @@ namespace ZLR.VM
 
             ResetHeaderFields(true);
             io.EraseWindow(-1);
-            if (zversion < 4)
+            if (zversion <= 4)
                 io.ScrollFromBottom = true;
 
-            pc = (ushort)GetWord(0x06);
+            if (zversion == 6)
+            {
+                EnterFunctionImpl(GetWord(0x06), null, -1, -1);
+            }
+            else
+            {
+                pc = (ushort)GetWord(0x06);
+            }
 
             cache = new LruCache<int, CachedCode>(cacheSize);
 
@@ -1104,8 +1111,8 @@ namespace ZLR.VM
             abbrevTable = (ushort)GetWord(0x18);
             if (zversion == 6 || zversion == 7)
             {
-                codeStart = GetWord(0x28);
-                stringStart = GetWord(0x2A);
+                codeStart = GetWord(0x28) * 8;
+                stringStart = GetWord(0x2A) * 8;
             }
 
             // load character tables (setting up memory traps if needed)

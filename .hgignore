@@ -12,3 +12,4 @@ _UpgradeReport_Files
 *.sdf
 *.opensdf
 Demona/icon.res
+*.exe
