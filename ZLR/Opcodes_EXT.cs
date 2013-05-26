@@ -7,59 +7,115 @@ namespace ZLR.VM
     partial class Opcode
     {
 #pragma warning disable 0169
-        [Opcode(OpCount.Ext, 0, true)]
+        [Opcode(OpCount.Zero, 181, false, true, false, MaxVersion = 3)]
+        [Opcode(OpCount.Zero, 181, true, MinVersion = 4, MaxVersion = 4)]
+        [Opcode(OpCount.Ext, 0, true, MinVersion = 5)]
         private void op_save(ILGenerator il)
         {
-            if (argc == 0)
-            {
-                MethodInfo impl = typeof(ZMachine).GetMethod("SaveQuetzal", BindingFlags.NonPublic | BindingFlags.Instance);
+            MethodInfo impl;
 
-                il.Emit(OpCodes.Ldarg_0);
-                il.Emit(OpCodes.Ldc_I4, resultStorage);
-                il.Emit(OpCodes.Ldc_I4, this.PC + this.ZCodeLength);
-                il.Emit(OpCodes.Call, impl);
-            }
-            else
+            switch (zm.ZVersion)
             {
-                MethodInfo impl = typeof(ZMachine).GetMethod("SaveAuxiliary", BindingFlags.NonPublic | BindingFlags.Instance);
+                case 1:
+                case 2:
+                case 3:
+                    // branching version
+                    impl = typeof (ZMachine).GetMethod("SaveQuetzal",
+                        BindingFlags.NonPublic | BindingFlags.Instance);
 
-                il.Emit(OpCodes.Ldarg_0);
-                LoadOperand(il, 0);
-                LoadOperand(il, 1);
-                LoadOperand(il, 2);
-                il.Emit(OpCodes.Call, impl);
-                StoreResult(il);
+                    il.Emit(OpCodes.Ldarg_0);
+                    il.Emit(OpCodes.Ldc_I4, this.PC + this.ZCodeLength);
+                    il.Emit(OpCodes.Call, impl);
+                    Branch(il, OpCodes.Brtrue, OpCodes.Brfalse);
+                    break;
+
+                default:
+                    // storing version
+                    // in V4, argc is always 0 since this is a 0OP instruction
+                    if (argc == 0)
+                    {
+                        impl = typeof (ZMachine).GetMethod("SaveQuetzal",
+                            BindingFlags.NonPublic | BindingFlags.Instance);
+
+                        il.Emit(OpCodes.Ldarg_0);
+                        il.Emit(OpCodes.Ldc_I4, resultStorage);
+                        il.Emit(OpCodes.Ldc_I4, this.PC + this.ZCodeLength);
+                        il.Emit(OpCodes.Call, impl);
+                        StoreResult(il);
+                    }
+                    else
+                    {
+                        impl = typeof (ZMachine).GetMethod("SaveAuxiliary",
+                            BindingFlags.NonPublic | BindingFlags.Instance);
+
+                        il.Emit(OpCodes.Ldarg_0);
+                        LoadOperand(il, 0);
+                        LoadOperand(il, 1);
+                        LoadOperand(il, 2);
+                        il.Emit(OpCodes.Call, impl);
+                        StoreResult(il);
+                    }
+                    break;
             }
         }
 
-        [Opcode(OpCount.Ext, 1, true, Terminates = true)]
+        [Opcode(OpCount.Zero, 182, false, true, false, Terminates = true, MaxVersion = 3)]
+        [Opcode(OpCount.Zero, 182, true, Terminates = true, MinVersion = 4, MaxVersion = 4)]
+        [Opcode(OpCount.Ext, 1, true, Terminates = true, MinVersion = 5)]
         private void op_restore(ILGenerator il)
         {
-            if (argc == 0)
+            MethodInfo impl;
+
+            switch (zm.ZVersion)
             {
-                MethodInfo impl = typeof(ZMachine).GetMethod("RestoreQuetzal", BindingFlags.NonPublic | BindingFlags.Instance);
+                case 1:
+                case 2:
+                case 3:
+                    // branching version
+                    impl = typeof (ZMachine).GetMethod("RestoreQuetzal",
+                                                        BindingFlags.NonPublic | BindingFlags.Instance);
 
-                il.Emit(OpCodes.Ldarg_0);
-                il.Emit(OpCodes.Ldc_I4, resultStorage);
-                il.Emit(OpCodes.Ldc_I4, PC + ZCodeLength);
-                il.Emit(OpCodes.Call, impl);
+                    il.Emit(OpCodes.Ldarg_0);
+                    il.Emit(OpCodes.Ldc_I4, resultStorage);
+                    il.Emit(OpCodes.Ldc_I4, PC + ZCodeLength);
+                    il.Emit(OpCodes.Call, impl);
+                    Branch(il, OpCodes.Brtrue, OpCodes.Brfalse);
+                    compiling = false;
+                    break;
 
-                compiling = false;
-            }
-            else
-            {
-                MethodInfo impl = typeof(ZMachine).GetMethod("RestoreAuxiliary", BindingFlags.NonPublic | BindingFlags.Instance);
+                default:
+                    // storing version
+                    // in V4, argc is always 0 since this is a 0OP instruction
+                    if (argc == 0)
+                    {
+                        impl = typeof (ZMachine).GetMethod("RestoreQuetzal",
+                                                           BindingFlags.NonPublic | BindingFlags.Instance);
 
-                il.Emit(OpCodes.Ldarg_0);
-                LoadOperand(il, 0);
-                LoadOperand(il, 1);
-                LoadOperand(il, 2);
-                il.Emit(OpCodes.Call, impl);
-                StoreResult(il);
+                        il.Emit(OpCodes.Ldarg_0);
+                        il.Emit(OpCodes.Ldc_I4, resultStorage);
+                        il.Emit(OpCodes.Ldc_I4, PC + ZCodeLength);
+                        il.Emit(OpCodes.Call, impl);
+                        StoreResult(il);
+
+                        compiling = false;
+                    }
+                    else
+                    {
+                        impl = typeof (ZMachine).GetMethod("RestoreAuxiliary",
+                                                           BindingFlags.NonPublic | BindingFlags.Instance);
+
+                        il.Emit(OpCodes.Ldarg_0);
+                        LoadOperand(il, 0);
+                        LoadOperand(il, 1);
+                        LoadOperand(il, 2);
+                        il.Emit(OpCodes.Call, impl);
+                        StoreResult(il);
+                    }
+                    break;
             }
         }
 
-        [Opcode(OpCount.Ext, 2, true)]
+        [Opcode(OpCount.Ext, 2, true, MinVersion = 5)]
         private void op_log_shift(ILGenerator il)
         {
             if (operandTypes[1] == OperandType.Variable)
@@ -119,7 +175,7 @@ namespace ZLR.VM
             StoreResult(il);
         }
 
-        [Opcode(OpCount.Ext, 4, true)]
+        [Opcode(OpCount.Ext, 4, true, MinVersion = 5)]
         private void op_set_font(ILGenerator il)
         {
             FieldInfo ioFI = typeof(ZMachine).GetField("io", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -134,7 +190,7 @@ namespace ZLR.VM
 
         // EXT:5 to EXT:8 are only in V6
 
-        [Opcode(OpCount.Ext, 9, true)]
+        [Opcode(OpCount.Ext, 9, true, MinVersion = 5)]
         private void op_save_undo(ILGenerator il)
         {
             MethodInfo impl = typeof(ZMachine).GetMethod("SaveUndo", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -145,7 +201,7 @@ namespace ZLR.VM
             il.Emit(OpCodes.Call, impl);
         }
 
-        [Opcode(OpCount.Ext, 10, true, Terminates = true)]
+        [Opcode(OpCount.Ext, 10, true, Terminates = true, MinVersion = 5)]
         private void op_restore_undo(ILGenerator il)
         {
             MethodInfo impl = typeof(ZMachine).GetMethod("RestoreUndo", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -158,7 +214,7 @@ namespace ZLR.VM
             compiling = false;
         }
 
-        [Opcode(OpCount.Ext, 11)]
+        [Opcode(OpCount.Ext, 11, MinVersion = 5)]
         private void op_print_unicode(ILGenerator il)
         {
             MethodInfo impl = typeof(ZMachine).GetMethod("PrintUnicode", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -168,7 +224,7 @@ namespace ZLR.VM
             il.Emit(OpCodes.Call, impl);
         }
 
-        [Opcode(OpCount.Ext, 12, true)]
+        [Opcode(OpCount.Ext, 12, true, MinVersion = 5)]
         private void op_check_unicode(ILGenerator il)
         {
             FieldInfo ioFI = typeof(ZMachine).GetField("io", BindingFlags.NonPublic | BindingFlags.Instance);

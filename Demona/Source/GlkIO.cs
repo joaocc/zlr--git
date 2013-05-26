@@ -962,6 +962,18 @@ namespace ZLR.Interfaces.Demona
             get { return true; }
         }
 
+        bool IZMachineIO.VariablePitchAvailable
+        {
+            get { return true; }
+        }
+
+        // XXX
+        bool IZMachineIO.ScrollFromBottom
+        {
+            get { return false; }
+            set { /* nada */ }
+        }
+
         bool IZMachineIO.TimedInputAvailable
         {
             get { return Glk.glk_gestalt(Gestalt.Timer, 0) != 0; }
@@ -1049,6 +1061,11 @@ namespace ZLR.Interfaces.Demona
             if (Glk.glk_gestalt(Gestalt.CharInput, ch) != 0)
                 result |= UnicodeCaps.CanInput;
             return result;
+        }
+
+        bool IZMachineIO.DrawCustomStatusLine(string location, short hoursOrScore, short minsOrTurns, bool useTime)
+        {
+            return false;
         }
 
         #endregion

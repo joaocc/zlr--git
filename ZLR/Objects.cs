@@ -9,40 +9,66 @@ namespace ZLR.VM
             if (obj == 0)
                 return 0;
 
-            int propTable = (ushort)GetWord(GetObjectAddress(obj) + 12);
-
-            // skip object name
-            propTable += 2 * GetByte(propTable) + 1;
-
-            int addr = propTable;
-            byte b = GetByte(addr++);
-            while (b != 0)
+            if (zversion <= 3)
             {
-                int num = b & 63;
-                int len;
-                if ((b & 128) == 0)
+                int propTable = (ushort)GetWord(GetObjectAddress(obj) + 7);
+
+                // skip object name
+                propTable += 2 * GetByte(propTable) + 1;
+
+                int addr = propTable;
+                byte b = GetByte(addr++);
+                while (b != 0)
                 {
-                    if ((b & 64) == 0)
-                        len = 1;
-                    else
-                        len = 2;
-                }
-                else
-                {
+                    int num = b & 31;
+                    int len = (b >> 5) + 1;
+
+                    if (num == prop)
+                        return (short)addr;
+                    else if (num < prop)
+                        break;
+
+                    addr += len;
                     b = GetByte(addr++);
-                    System.Diagnostics.Debug.Assert((b & 128) == 128);
-                    len = b & 63;
-                    if (len == 0)
-                        len = 64;
                 }
+            }
+            else
+            {
+                int propTable = (ushort)GetWord(GetObjectAddress(obj) + 12);
 
-                if (num == prop)
-                    return (short)addr;
-                else if (num < prop)
-                    break;
+                // skip object name
+                propTable += 2 * GetByte(propTable) + 1;
 
-                addr += len;
-                b = GetByte(addr++);
+                int addr = propTable;
+                byte b = GetByte(addr++);
+                while (b != 0)
+                {
+                    int num = b & 63;
+                    int len;
+                    if ((b & 128) == 0)
+                    {
+                        if ((b & 64) == 0)
+                            len = 1;
+                        else
+                            len = 2;
+                    }
+                    else
+                    {
+                        b = GetByte(addr++);
+                        System.Diagnostics.Debug.Assert((b & 128) == 128);
+                        len = b & 63;
+                        if (len == 0)
+                            len = 64;
+                    }
+
+                    if (num == prop)
+                        return (short)addr;
+                    else if (num < prop)
+                        break;
+
+                    addr += len;
+                    b = GetByte(addr++);
+                }
             }
 
             return 0;
@@ -54,38 +80,63 @@ namespace ZLR.VM
             if (obj == 0)
                 return 0;
 
-            int propTable = (ushort)GetWord(GetObjectAddress(obj) + 12);
-
-            // skip object name
-            propTable += 2 * GetByte(propTable) + 1;
-
-            int addr = propTable;
-            byte b = GetByte(addr++);
-            while (b != 0)
+            if (zversion <= 3)
             {
-                int num = b & 63;
-                int len;
-                if ((b & 128) == 0)
+                int propTable = (ushort)GetWord(GetObjectAddress(obj) + 7);
+
+                // skip object name
+                propTable += 2 * GetByte(propTable) + 1;
+
+                int addr = propTable;
+                byte b = GetByte(addr++);
+                while (b != 0)
                 {
-                    if ((b & 64) == 0)
-                        len = 1;
-                    else
-                        len = 2;
-                }
-                else
-                {
+                    int num = b & 31;
+                    int len = (b >> 5) - 1;
+
+                    if (prop == 0 || num < prop)
+                        return (short)num;
+
+                    addr += len;
                     b = GetByte(addr++);
-                    System.Diagnostics.Debug.Assert((b & 128) == 128);
-                    len = b & 63;
-                    if (len == 0)
-                        len = 64;
                 }
 
-                if (prop == 0 || num < prop)
-                    return (short)num;
+            }
+            else
+            {
+                int propTable = (ushort)GetWord(GetObjectAddress(obj) + 12);
 
-                addr += len;
-                b = GetByte(addr++);
+                // skip object name
+                propTable += 2 * GetByte(propTable) + 1;
+
+                int addr = propTable;
+                byte b = GetByte(addr++);
+                while (b != 0)
+                {
+                    int num = b & 63;
+                    int len;
+                    if ((b & 128) == 0)
+                    {
+                        if ((b & 64) == 0)
+                            len = 1;
+                        else
+                            len = 2;
+                    }
+                    else
+                    {
+                        b = GetByte(addr++);
+                        System.Diagnostics.Debug.Assert((b & 128) == 128);
+                        len = b & 63;
+                        if (len == 0)
+                            len = 64;
+                    }
+
+                    if (prop == 0 || num < prop)
+                        return (short)num;
+
+                    addr += len;
+                    b = GetByte(addr++);
+                }
             }
 
             return 0;
@@ -121,21 +172,29 @@ namespace ZLR.VM
             if (address == 0)
                 return 0;
 
-            byte b = GetByte(address - 1);
-            if ((b & 128) == 0)
+            if (zversion <= 3)
             {
-                if ((b & 64) == 0)
-                    return 1;
-                else
-                    return 2;
+                byte b = GetByte(address - 1);
+                return (short)((b >> 5) + 1);
             }
             else
             {
-                short len = (short)(b & 63);
-                if (len == 0)
-                    return 64;
+                byte b = GetByte(address - 1);
+                if ((b & 128) == 0)
+                {
+                    if ((b & 64) == 0)
+                        return 1;
+                    else
+                        return 2;
+                }
                 else
-                    return len;
+                {
+                    short len = (short)(b & 63);
+                    if (len == 0)
+                        return 64;
+                    else
+                        return len;
+                }
             }
         }
 
@@ -143,6 +202,9 @@ namespace ZLR.VM
         {
             if (obj == 0)
                 return 0;
+
+            if (zversion <= 3)
+                return (ushort)GetByte(GetObjectAddress(obj) + 4);
 
             return (ushort)GetWord(GetObjectAddress(obj) + 6);
         }
@@ -152,6 +214,9 @@ namespace ZLR.VM
             if (obj == 0)
                 return 0;
 
+            if (zversion <= 3)
+                return (ushort)GetByte(GetObjectAddress(obj) + 5);
+
             return (ushort)GetWord(GetObjectAddress(obj) + 8);
         }
 
@@ -160,25 +225,43 @@ namespace ZLR.VM
             if (obj == 0)
                 return 0;
 
+            if (zversion <= 3)
+                return (ushort)GetByte(GetObjectAddress(obj) + 6);
+
             return (ushort)GetWord(GetObjectAddress(obj) + 10);
         }
 
         private void SetObjectParent(ushort obj, ushort value)
         {
             if (obj != 0)
-                SetWord(GetObjectAddress(obj) + 6, (short)value);
+            {
+                if (zversion <= 3)
+                    SetByte(GetObjectAddress(obj) + 4, (byte)value);
+                else
+                    SetWord(GetObjectAddress(obj) + 6, (short)value);
+            }
         }
 
         private void SetObjectSibling(ushort obj, ushort value)
         {
             if (obj != 0)
-                SetWord(GetObjectAddress(obj) + 8, (short)value);
+            {
+                if (zversion <= 3)
+                    SetByte(GetObjectAddress(obj) + 5, (byte)value);
+                else
+                    SetWord(GetObjectAddress(obj) + 8, (short)value);
+            }
         }
 
         private void SetObjectChild(ushort obj, ushort value)
         {
             if (obj != 0)
-                SetWord(GetObjectAddress(obj) + 10, (short)value);
+            {
+                if (zversion <= 3)
+                    SetByte(GetObjectAddress(obj) + 6, (byte)value);
+                else
+                    SetWord(GetObjectAddress(obj) + 10, (short)value);
+            }
         }
 
 #pragma warning disable 0169
@@ -218,7 +301,10 @@ namespace ZLR.VM
 
         private int GetObjectAddress(ushort obj)
         {
-            return objectTable + 2 * 63 + 14 * (obj - 1);
+            if (zversion <= 3)
+                return objectTable + 2 * 31 + 9 * (obj - 1);
+            else
+                return objectTable + 2 * 63 + 14 * (obj - 1);
         }
 
 #pragma warning disable 0169
@@ -227,7 +313,11 @@ namespace ZLR.VM
             if (obj == 0)
                 return string.Empty;
 
-            int propTable = (ushort)GetWord(GetObjectAddress(obj) + 12);
+            int propTable;
+            if (zversion <= 3)
+                propTable = (ushort)GetWord(GetObjectAddress(obj) + 7);
+            else
+                propTable = (ushort)GetWord(GetObjectAddress(obj) + 12);
             return DecodeString(propTable + 1);
         }
 

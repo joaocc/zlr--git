@@ -177,6 +177,17 @@ namespace TestSuite
             get { return false; }
         }
 
+        bool IZMachineIO.VariablePitchAvailable
+        {
+            get { return false; }
+        }
+
+        bool IZMachineIO.ScrollFromBottom
+        {
+            get { return false; }
+            set { /* nada */ }
+        }
+
         bool IZMachineIO.TimedInputAvailable
         {
             get { return false; }
@@ -258,6 +269,11 @@ namespace TestSuite
         UnicodeCaps IZMachineIO.CheckUnicode(char ch)
         {
             return UnicodeCaps.CanPrint | UnicodeCaps.CanInput;
+        }
+
+        bool IZMachineIO.DrawCustomStatusLine(string location, short hoursOrScore, short minsOrTurns, bool useTime)
+        {
+            return false;
         }
 
         #endregion
@@ -435,6 +451,17 @@ namespace TestSuite
             get { return false; }
         }
 
+        bool IZMachineIO.VariablePitchAvailable
+        {
+            get { return false; }
+        }
+
+        bool IZMachineIO.ScrollFromBottom
+        {
+            get { return false; }
+            set { /* nada */ }
+        }
+
         bool IZMachineIO.GraphicsFontAvailable
         {
             get { return false; }
@@ -504,6 +531,11 @@ namespace TestSuite
         UnicodeCaps IZMachineIO.CheckUnicode(char ch)
         {
             return UnicodeCaps.CanInput | UnicodeCaps.CanPrint;
+        }
+
+        bool IZMachineIO.DrawCustomStatusLine(string location, short hoursOrScore, short minsOrTurns, bool useTime)
+        {
+            return false;
         }
 
         #endregion

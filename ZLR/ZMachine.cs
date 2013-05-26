@@ -28,7 +28,7 @@ namespace ZLR.VM
     {
         public static readonly string ZLR_VERSION = "0.07";
 
-        private struct CachedCode
+        private class CachedCode
         {
             public int NextPC;
             public ZCodeDelegate Code;
@@ -76,6 +76,7 @@ namespace ZLR.VM
         bool predictableRng;
         byte[] wordSeparators;
         int romStart;
+        int codeStart, stringStart; // V6-7
         List<UndoState> undoStates = new List<UndoState>();
         bool normalOutput, tableOutput;
         Stack<ushort> tableOutputAddrStack = new Stack<ushort>();
@@ -137,8 +138,8 @@ namespace ZLR.VM
 
             zversion = zmem[0];
 
-            if (zversion < 3 || (zversion > 5 && zversion != 8))
-                throw new ArgumentException("Z-code version must be 3, 4, 5, or 8");
+            if (zversion < 1 || zversion > 8)
+                throw new ArgumentException("Z-code version must be between 1 and 8");
 
             io.SizeChanged += new EventHandler(io_SizeChanged);
         }
@@ -308,6 +309,8 @@ namespace ZLR.VM
 
             ResetHeaderFields(true);
             io.EraseWindow(-1);
+            if (zversion < 4)
+                io.ScrollFromBottom = true;
 
             pc = (ushort)GetWord(0x06);
 
@@ -495,8 +498,8 @@ namespace ZLR.VM
                     cacheMisses++;
 #endif
                     int count;
-                    entry.Code = CompileZCode(out count);
-                    entry.NextPC = pc;
+                    var code = CompileZCode(out count);
+                    entry = new CachedCode(pc, code);
 #if BENCHMARK
                     entry.Cycles = count;   // only used to calculate the amount of cached z-code
 #endif
@@ -567,6 +570,11 @@ namespace ZLR.VM
         internal int CompilationStart
         {
             get { return compilationStart; }
+        }
+
+        internal int ZVersion
+        {
+            get { return zversion; }
         }
 
         private delegate void ZCodeDelegate();
@@ -928,7 +936,7 @@ namespace ZLR.VM
 #if TRACING
             // write decoded opcode to console
             Console.Write("{0:x6}  {4,3} {2,5}  {1,-7}     {3}",
-                opc, FormatOpcode(count, form, opnum), form, Opcode.OpcodeName(info.Compiler), opcode);
+                opc, FormatOpcode(count, form, opnum), form, Opcode.GetOpcodeName(info.Attr, info.Compiler), opcode);
 
             for (int i = 0; i < argc; i++)
             {
@@ -1094,6 +1102,11 @@ namespace ZLR.VM
             globalsOffset = (ushort)GetWord(0xC);
             romStart = (ushort)GetWord(0xE);
             abbrevTable = (ushort)GetWord(0x18);
+            if (zversion == 6 || zversion == 7)
+            {
+                codeStart = GetWord(0x28);
+                stringStart = GetWord(0x2A);
+            }
 
             // load character tables (setting up memory traps if needed)
             LoadExtraChars();
@@ -1101,18 +1114,34 @@ namespace ZLR.VM
             LoadTerminatingChars();
             LoadWordSeparators();
 
-            byte flags1 = 0; // depends on I/O capabilities
+            byte flags1;
 
-            if (io.ColorsAvailable)
-                flags1 |= 1;
-            if (io.BoldAvailable)
-                flags1 |= 4;
-            if (io.ItalicAvailable)
-                flags1 |= 8;
-            if (io.FixedPitchAvailable)
-                flags1 |= 16;
-            if (io.TimedInputAvailable)
-                flags1 |= 128;
+            if (zversion <= 3)
+            {
+                // old-style flags1
+                flags1 = GetByte(0x1);
+                flags1 |= (16 | 32);    // status line and screen splitting are always available
+                if (io.VariablePitchAvailable)
+                    flags1 |= 64;
+                else
+                    flags1 &= unchecked((byte) ~64);
+            }
+            else
+            {
+                // new-style flags1
+                flags1 = 0; // depends on I/O capabilities
+
+                if (io.ColorsAvailable)
+                    flags1 |= 1;
+                if (io.BoldAvailable)
+                    flags1 |= 4;
+                if (io.ItalicAvailable)
+                    flags1 |= 8;
+                if (io.FixedPitchAvailable)
+                    flags1 |= 16;
+                if (io.TimedInputAvailable)
+                    flags1 |= 128;
+            }
 
             ushort flags2 = 16; // always support UNDO
 
@@ -1271,12 +1300,30 @@ namespace ZLR.VM
             return GetWord(headerExt + 2 * num);
         }
 
-        private int UnpackAddress(short packedAddr)
+        private int UnpackAddress(short packedAddr, bool forString)
         {
-            if (zversion == 5)
-                return 4 * (ushort)packedAddr;
-            else
-                return 8 * (ushort)packedAddr;
+            switch (zversion)
+            {
+                case 1:
+                case 2:
+                case 3:
+                    return 2*(ushort) packedAddr;
+
+                case 4:
+                case 5:
+                    return 4*(ushort) packedAddr;
+
+                case 6:
+                case 7:
+                    var offset = forString ? stringStart : codeStart;
+                    return offset + 4*(ushort) packedAddr;
+
+                case 8:
+                    return 8*(ushort) packedAddr;
+
+                default:
+                    throw new NotImplementedException();
+            }
         }
 
         private void TrapMemory(ushort address, ushort length)

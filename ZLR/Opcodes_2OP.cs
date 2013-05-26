@@ -304,19 +304,19 @@ namespace ZLR.VM
             BinaryOperation(il, OpCodes.Rem);
         }
         
-        [Opcode(OpCount.Two, 25, true, Terminates = true)]
+        [Opcode(OpCount.Two, 25, true, Terminates = true, MinVersion = 4)]
         private void op_call_2s(ILGenerator il)
         {
             EnterFunction(il, true);
         }
 
-        [Opcode(OpCount.Two, 26, Terminates = true)]
+        [Opcode(OpCount.Two, 26, Terminates = true, MinVersion = 5)]
         private void op_call_2n(ILGenerator il)
         {
             EnterFunction(il, false);
         }
 
-        [Opcode(OpCount.Two, 27)]
+        [Opcode(OpCount.Two, 27, MinVersion = 5)]
         private void op_set_colour(ILGenerator il)
         {
             FieldInfo ioFI = typeof(ZMachine).GetField("io", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -329,7 +329,7 @@ namespace ZLR.VM
             il.Emit(OpCodes.Call, impl);
         }
 
-        [Opcode(OpCount.Two, 28)]
+        [Opcode(OpCount.Two, 28, MinVersion = 5)]
         private void op_throw(ILGenerator il)
         {
             MethodInfo impl = typeof(ZMachine).GetMethod("ThrowImpl", BindingFlags.NonPublic | BindingFlags.Instance);

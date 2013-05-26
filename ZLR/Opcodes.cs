@@ -84,13 +84,13 @@ namespace ZLR.VM
 
         public override string ToString()
         {
-            return OpcodeName(compiler);
+            return GetOpcodeName(attribute, compiler);
         }
 
         public string Disassemble(VariableNameProvider varNamer)
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append(OpcodeName(compiler));
+            sb.Append(GetOpcodeName(attribute, compiler));
 
             for (int i = 0; i < argc; i++)
             {
@@ -358,8 +358,11 @@ namespace ZLR.VM
             return false;
         }
 
-        public static string OpcodeName(OpcodeCompiler handler)
+        internal static string GetOpcodeName(OpcodeAttribute attribute, OpcodeCompiler handler)
         {
+            if (attribute != null && attribute.Alias != null)
+                return attribute.Alias;
+
             if (handler == null)
                 return "<unknown>";
 
@@ -698,6 +701,7 @@ namespace ZLR.VM
         private bool _store, _branch, _text;
         private bool _noReturn, _indirect;
         private byte _minVer = 1, _maxVer = 8;
+        private string _alias = null;
 
         public OpCount OpCount { get { return _count; } }
         public byte Number { get { return _opnum; } }
@@ -727,6 +731,12 @@ namespace ZLR.VM
         {
             get { return _maxVer; }
             set { _maxVer = value; }
+        }
+
+        public string Alias
+        {
+            get { return _alias; }
+            set { _alias = value; }
         }
     }
 }

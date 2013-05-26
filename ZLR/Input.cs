@@ -13,11 +13,23 @@ namespace ZLR.VM
 #pragma warning disable 0169
         private short ReadImpl(ushort buffer, ushort parse, ushort time, ushort routine)
         {
-            byte max = GetByte(buffer);
-            byte initlen = GetByte(buffer + 1);
+            byte max, initlen;
+            if (zversion <= 4)
+            {
+                max = (byte)(GetByte(buffer) - 1);
+                initlen = 0;
+            }
+            else
+            {
+                max = GetByte(buffer);
+                initlen = GetByte(buffer + 1);
+            }
 
             byte terminator;
             string str;
+
+            if (zversion <= 3)
+                ShowStatusImpl();
 
             BeginExternalWait();
             try
@@ -27,6 +39,7 @@ namespace ZLR.VM
                     string initial = string.Empty;
                     if (initlen > 0)
                     {
+                        // we never get here for V1-4
                         StringBuilder sb = new StringBuilder(initlen);
                         for (int i = 0; i < initlen; i++)
                             sb.Append(CharFromZSCII(GetByte(buffer + 2 + i)));
@@ -54,9 +67,18 @@ namespace ZLR.VM
             }
 
             byte[] chars = StringToZSCII(str.ToLower());
-            SetByte(buffer + 1, (byte)chars.Length);
-            for (int i = 0; i < Math.Min(chars.Length, max); i++)
-                SetByte(buffer + 2 + i, chars[i]);
+            if (zversion <= 4)
+            {
+                for (int i = 0; i < Math.Min(chars.Length, max); i++)
+                    SetByte(buffer + 1 + i, chars[i]);
+                SetByte(buffer + 1 + Math.Min(chars.Length, max), 0);
+            }
+            else
+            {
+                SetByte(buffer + 1, (byte)chars.Length);
+                for (int i = 0; i < Math.Min(chars.Length, max); i++)
+                    SetByte(buffer + 2 + i, chars[i]);
+            }
 
             if (parse != 0)
                 Tokenize(buffer, parse, 0, false);
@@ -186,12 +208,32 @@ namespace ZLR.VM
 
         private void Tokenize(ushort buffer, ushort parse, ushort userDict, bool skipUnrecognized)
         {
-            byte bufLen = GetByte(buffer + 1);
+            byte bufLen;
+            int tokenOffset;
+
+            if (zversion <= 4)
+            {
+                bufLen = 0;
+                tokenOffset = 1;
+
+                for (int i = buffer + 1; i < romStart; i++)
+                    if (GetByte(i) == 0)
+                    {
+                        bufLen = (byte)(i - buffer - 1);
+                        break;
+                    }
+            }
+            else
+            {
+                bufLen = GetByte(buffer + 1);
+                tokenOffset = 2;
+            }
+
             byte max = GetByte(parse + 0);
             byte count = 0;
 
             byte[] myBuffer = new byte[bufLen];
-            GetBytes(buffer + 2, bufLen, myBuffer, 0);
+            GetBytes(buffer + tokenOffset, bufLen, myBuffer, 0);
             List<Token> tokens = SplitTokens(myBuffer, userDict);
 
             foreach (Token tok in tokens)
@@ -202,7 +244,7 @@ namespace ZLR.VM
 
                 SetWord(parse + 2 + 4 * count, (short)word);
                 SetByte(parse + 2 + 4 * count + 2, tok.Length);
-                SetByte(parse + 2 + 4 * count + 3, (byte)(2 + tok.StartPos));
+                SetByte(parse + 2 + 4 * count + 3, (byte)(tokenOffset + tok.StartPos));
                 count++;
 
                 if (count == max)
@@ -217,7 +259,7 @@ namespace ZLR.VM
             int dictStart;
             byte[] word;
 
-            word = EncodeText(buffer, pos, length, DICT_WORD_SIZE);
+            word = EncodeText(buffer, pos, length, DictWordSize);
 
             if (userDict != 0)
             {
