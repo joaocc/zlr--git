@@ -329,7 +329,7 @@ namespace ZLR.VM
             il.Emit(OpCodes.Call, impl);
         }
 
-        [Opcode(OpCount.Two, 28, MinVersion = 5)]
+        [Opcode(OpCount.Two, 28, Terminates = true, MinVersion = 5)]
         private void op_throw(ILGenerator il)
         {
             MethodInfo impl = typeof(ZMachine).GetMethod("ThrowImpl", BindingFlags.NonPublic | BindingFlags.Instance);

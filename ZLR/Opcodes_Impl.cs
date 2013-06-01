@@ -317,16 +317,15 @@ namespace ZLR.VM
 
             if (words)
             {
-                for (int i = 0; i < tableLen; i += entryLen)
-                    if (GetWord(table + i) == x)
-                        return 0x10000 | (table + i);
+                for (int i = 0; i < tableLen; i++)
+                    if (GetWord(table + i * entryLen) == x)
+                        return 0x10000 | (table + i * entryLen);
             }
             else
             {
-                byte b = (byte)x;
-                for (int i = 0; i < tableLen; i += entryLen)
-                    if (GetByte(table + i) == b)
-                        return 0x10000 | (table + i);
+                for (int i = 0; i < tableLen; i++)
+                    if (GetByte(table + i * entryLen) == x)
+                        return 0x10000 | (table + i * entryLen);
             }
 
             return 0;
