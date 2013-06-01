@@ -434,7 +434,9 @@ namespace ZLR.Interfaces.SystemConsole
 
             foreach (string line in lines)
             {
-                Console.SetCursorPosition(col, row++);
+                if (row < Console.WindowHeight)
+                    Console.SetCursorPosition(col, row++);
+
                 Console.Write(line);
             }
         }
