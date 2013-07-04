@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <title>$title$</title>
+    <authors>$author$</authors>
+    <owners>$author$</owners>
+    <licenseUrl>http://opensource.org/licenses/gpl-2.0</licenseUrl>
+    <projectUrl>http://sourceforge.net/projects/zlr/</projectUrl>
+    <iconUrl>http://zlr.sourceforge.net/zlr-icon-32x32.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>$description$</description>
+    <releaseNotes>First NuGet release.</releaseNotes>
+    <copyright>Copyright 2007-2013 Jesse McGrew</copyright>
+    <tags>zlr z-machine zmachine z-code zcode infocom jit interpreter</tags>
+  </metadata>
+</package>
