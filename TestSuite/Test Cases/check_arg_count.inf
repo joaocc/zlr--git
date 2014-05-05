@@ -1,0 +1,16 @@
+[ Test a b c;
+	@check_arg_count 3 ?L3;
+	@check_arg_count 2 ?L2;
+	@check_arg_count 1 ?L1;
+	"Counted no args.";
+	.L3; "Counted 3+ args.";
+	.L2; "Counted 2 args.";
+	.L1; "Counted 1 arg.";
+];
+
+[ Main;
+	print "Testing with 4: "; Test(0, 0, 0, 0);
+	print "Testing with 2: "; Test(0, 0);
+	print "Testing with 1: "; Test(0);
+	print "Testing with 0: "; Test();
+];
