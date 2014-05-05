@@ -1,0 +1,4 @@
+Testing with 4: Counted 3+ args.
+Testing with 2: Counted 2 args.
+Testing with 1: Counted 1 arg.
+Testing with 0: Counted no args.
