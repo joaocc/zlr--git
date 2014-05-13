@@ -10,6 +10,7 @@ namespace TestSuite
     {
         protected readonly Queue<string> inputBuffer = new Queue<string>(); 
         protected readonly StringBuilder outputBuffer = new StringBuilder();
+        protected MemoryStream saveData;
 
         public string CollectOutput()
         {
@@ -59,11 +60,15 @@ namespace TestSuite
 
         public Stream OpenSaveFile(int size)
         {
-            return null;
+            saveData = new MemoryStream();
+            return saveData;
         }
 
         public Stream OpenRestoreFile()
         {
+            if (saveData != null)
+                return new MemoryStream(saveData.ToArray(), false);
+
             return null;
         }
 
