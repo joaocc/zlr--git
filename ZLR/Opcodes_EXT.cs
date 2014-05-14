@@ -38,7 +38,6 @@ namespace ZLR.VM
                             BindingFlags.NonPublic | BindingFlags.Instance);
 
                         il.Emit(OpCodes.Ldarg_0);
-                        il.Emit(OpCodes.Ldc_I4, resultStorage);
                         il.Emit(OpCodes.Ldc_I4, this.PC + this.ZCodeLength);
                         il.Emit(OpCodes.Call, impl);
                         StoreResult(il);
@@ -72,11 +71,10 @@ namespace ZLR.VM
                 case 2:
                 case 3:
                     // branching version
-                    impl = typeof (ZMachine).GetMethod("RestoreQuetzal",
-                                                        BindingFlags.NonPublic | BindingFlags.Instance);
+                    impl = typeof(ZMachine).GetMethod("RestoreQuetzal",
+                        BindingFlags.NonPublic | BindingFlags.Instance);
 
                     il.Emit(OpCodes.Ldarg_0);
-                    il.Emit(OpCodes.Ldc_I4, resultStorage);
                     il.Emit(OpCodes.Ldc_I4, PC + ZCodeLength);
                     il.Emit(OpCodes.Call, impl);
                     Branch(il, OpCodes.Brtrue, OpCodes.Brfalse);
@@ -88,11 +86,10 @@ namespace ZLR.VM
                     // in V4, argc is always 0 since this is a 0OP instruction
                     if (argc == 0)
                     {
-                        impl = typeof (ZMachine).GetMethod("RestoreQuetzal",
-                                                           BindingFlags.NonPublic | BindingFlags.Instance);
+                        impl = typeof(ZMachine).GetMethod("RestoreQuetzal",
+                            BindingFlags.NonPublic | BindingFlags.Instance);
 
                         il.Emit(OpCodes.Ldarg_0);
-                        il.Emit(OpCodes.Ldc_I4, resultStorage);
                         il.Emit(OpCodes.Ldc_I4, PC + ZCodeLength);
                         il.Emit(OpCodes.Call, impl);
                         StoreResult(il);
@@ -101,8 +98,8 @@ namespace ZLR.VM
                     }
                     else
                     {
-                        impl = typeof (ZMachine).GetMethod("RestoreAuxiliary",
-                                                           BindingFlags.NonPublic | BindingFlags.Instance);
+                        impl = typeof(ZMachine).GetMethod("RestoreAuxiliary",
+                            BindingFlags.NonPublic | BindingFlags.Instance);
 
                         il.Emit(OpCodes.Ldarg_0);
                         LoadOperand(il, 0);

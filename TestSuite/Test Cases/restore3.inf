@@ -1,0 +1,44 @@
+Switches "v3~S";
+
+Array buffer -> 120;
+Array parse -> 10;
+
+Object nowhere "nowhere";
+Global location = nowhere;
+Global score = 0;
+Global turns = 0;
+
+[ Main i;
+  for (i=1: : i++) {
+    print "Round ", i, "!^Save, restore, or quit? ";
+    buffer->0 = 100;
+    parse-->0 = 2 * $100;
+    read buffer parse;
+    if (parse->1 < 1) jump tryagain;
+    switch (parse-->1) {
+      'save': DoSave();
+      'restore': DoRestore();
+      'quit': DoQuit();
+      default:
+        .tryagain;
+        print "No, try again.^";
+    }
+  }
+];
+
+[ DoSave x;
+  @save ?ok;
+  print_ret "Save failed.";
+  .ok;
+  print_ret "OK.";
+];
+
+[ DoRestore x;
+  @restore ?ok;
+  print "Restore failed.^";
+  .ok; return;
+];
+
+[ DoQuit;
+  @quit;
+];
