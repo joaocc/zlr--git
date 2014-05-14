@@ -9,10 +9,11 @@ namespace ZLR.VM
     public partial class ZMachine
     {
 #pragma warning disable 0169
-        private bool SaveQuetzal(int nextPC)
+        private bool SaveQuetzal(int savedPC)
         {
             Quetzal quetzal = new Quetzal();
-            quetzal.AddBlock("IFhd", MakeIFHD(nextPC - 1));
+            // savedPC points to the result storage byte (V3) or branch offset (V4+) of the save instruction
+            quetzal.AddBlock("IFhd", MakeIFHD(savedPC));
             quetzal.AddBlock("CMem", CompressRAM());
             quetzal.AddBlock("Stks", SerializeStacks());
 
@@ -82,10 +83,16 @@ namespace ZLR.VM
 
                     if (ZVersion < 4)
                     {
-                        pc += GetWord(pc);
+                        // savedPC points to the save instruction's branch offset
+                        bool branchIfTrue;
+                        int branchOffset;
+                        DecodeBranch(ref pc, out branchIfTrue, out branchOffset);
+                        if (branchIfTrue)
+                            pc += branchOffset - 2;
                     }
                     else
                     {
+                        // savedPC points to the save instruction's result storage byte
                         byte dest = GetByte(pc++);
                         StoreResult(dest, 2);
                     }

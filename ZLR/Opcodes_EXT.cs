@@ -24,7 +24,8 @@ namespace ZLR.VM
                         BindingFlags.NonPublic | BindingFlags.Instance);
 
                     il.Emit(OpCodes.Ldarg_0);
-                    il.Emit(OpCodes.Ldc_I4, this.PC + this.ZCodeLength);
+                    // pass the address of this instruction's branch offset, which is always the 2nd instruction byte because this is 0OP
+                    il.Emit(OpCodes.Ldc_I4, this.PC + 1);
                     il.Emit(OpCodes.Call, impl);
                     Branch(il, OpCodes.Brtrue, OpCodes.Brfalse);
                     break;
@@ -38,7 +39,8 @@ namespace ZLR.VM
                             BindingFlags.NonPublic | BindingFlags.Instance);
 
                         il.Emit(OpCodes.Ldarg_0);
-                        il.Emit(OpCodes.Ldc_I4, this.PC + this.ZCodeLength);
+                        // pass the address of this instruction's result storage, which is always the last instruction byte
+                        il.Emit(OpCodes.Ldc_I4, this.PC + this.ZCodeLength - 1);
                         il.Emit(OpCodes.Call, impl);
                         StoreResult(il);
                     }
@@ -74,10 +76,14 @@ namespace ZLR.VM
                     impl = typeof(ZMachine).GetMethod("RestoreQuetzal",
                         BindingFlags.NonPublic | BindingFlags.Instance);
 
+                    int failurePC = PC + ZCodeLength;
+                    if (!branchIfTrue)
+                        failurePC += branchOffset - 2;
+
                     il.Emit(OpCodes.Ldarg_0);
-                    il.Emit(OpCodes.Ldc_I4, PC + ZCodeLength);
+                    il.Emit(OpCodes.Ldc_I4, failurePC);
                     il.Emit(OpCodes.Call, impl);
-                    Branch(il, OpCodes.Brtrue, OpCodes.Brfalse);
+                    il.Emit(OpCodes.Pop);
                     compiling = false;
                     break;
 

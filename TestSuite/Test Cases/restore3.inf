@@ -10,14 +10,16 @@ Global turns = 0;
 
 [ Main i;
   for (i=1: : i++) {
-    print "Round ", i, "!^Save, restore, or quit? ";
+    print "Round ", i, "!^Save, restore, sav2, res2, or quit? ";
     buffer->0 = 100;
     parse-->0 = 2 * $100;
     read buffer parse;
     if (parse->1 < 1) jump tryagain;
     switch (parse-->1) {
       'save': DoSave();
+      'sav2': DoSave2();
       'restore': DoRestore();
+      'res2': DoRestore2();
       'quit': DoQuit();
       default:
         .tryagain;
@@ -26,17 +28,30 @@ Global turns = 0;
   }
 ];
 
-[ DoSave x;
+[ DoSave;
   @save ?ok;
   print_ret "Save failed.";
   .ok;
   print_ret "OK.";
 ];
 
-[ DoRestore x;
+[ DoSave2;
+  @save ?~bad;
+  print_ret "OK.";
+  .bad;
+  print_ret "Save failed.";
+];
+
+[ DoRestore;
   @restore ?ok;
   print "Restore failed.^";
   .ok; return;
+];
+
+[ DoRestore2;
+  @restore ?~bad;
+  return;
+  .bad; print "Restore failed.^";
 ];
 
 [ DoQuit;

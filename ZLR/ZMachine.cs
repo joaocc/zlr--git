@@ -989,20 +989,7 @@ namespace ZLR.VM
 
             if (info.Attr.Branch)
             {
-                byte b = GetByte(pc++);
-                branchIfTrue = ((b & 128) == 128);
-                if ((b & 64) == 64)
-                {
-                    // short branch, 0 to 63
-                    branchOffset = b & 63;
-                }
-                else
-                {
-                    // long branch, signed 14-bit offset
-                    branchOffset = ((b & 63) << 8) + GetByte(pc++);
-                    if ((branchOffset & 0x2000) != 0)
-                        branchOffset = (int)((uint)branchOffset | 0xFFFFC000); // extend the sign
-                }
+                DecodeBranch(ref pc, out branchIfTrue, out branchOffset);
 
 #if TRACING
                 Console.Write(" ?{0}{1}",
@@ -1037,6 +1024,24 @@ namespace ZLR.VM
                 this, info.Compiler, info.Attr, opc, pc - opc,
                 argc, operandTypes, argv,
                 text, resultStorage, branchIfTrue, branchOffset);
+        }
+
+        private void DecodeBranch(ref int pc, out bool branchIfTrue, out int branchOffset)
+        {
+            byte b = GetByte(pc++);
+            branchIfTrue = ((b & 128) == 128);
+            if ((b & 64) == 64)
+            {
+                // short branch, 0 to 63
+                branchOffset = b & 63;
+            }
+            else
+            {
+                // long branch, signed 14-bit offset
+                branchOffset = ((b & 63) << 8) + GetByte(pc++);
+                if ((branchOffset & 0x2000) != 0)
+                    branchOffset = (int)((uint)branchOffset | 0xFFFFC000); // extend the sign
+            }
         }
 
         private static string FormatOpCount(OpCount opc)

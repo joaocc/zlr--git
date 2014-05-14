@@ -1,9 +1,26 @@
 Round 1!
-Save, restore, or quit?  nowhere                                                 Score: 0                                                                 Moves: 0                                                                               No, try again.
+Save, restore, sav2, res2, or quit?  nowhere                                                 Score: 0                                                                 Moves: 0                                                                               No, try again.
 Round 2!
-Save, restore, or quit?  nowhere                                                 Score: 0                                                                 Moves: 0                                                                               OK.
+Save, restore, sav2, res2, or quit?  nowhere                                                 Score: 0                                                                 Moves: 0                                                                               OK.
 Round 3!
-Save, restore, or quit?  nowhere                                                 Score: 0                                                                 Moves: 0                                                                               No, try again.
+Save, restore, sav2, res2, or quit?  nowhere                                                 Score: 0                                                                 Moves: 0                                                                               No, try again.
 Round 4!
-Save, restore, or quit?  nowhere                                                 Score: 0                                                                 Moves: 0                                                                               Round 3!
-Save, restore, or quit?  nowhere                                                 Score: 0                                                                 Moves: 0                                                                               
+Save, restore, sav2, res2, or quit?  nowhere                                                 Score: 0                                                                 Moves: 0                                                                               OK.
+Round 3!
+Save, restore, sav2, res2, or quit?  nowhere                                                 Score: 0                                                                 Moves: 0                                                                               No, try again.
+Round 4!
+Save, restore, sav2, res2, or quit?  nowhere                                                 Score: 0                                                                 Moves: 0                                                                               OK.
+Round 3!
+Save, restore, sav2, res2, or quit?  nowhere                                                 Score: 0                                                                 Moves: 0                                                                               OK.
+Round 4!
+Save, restore, sav2, res2, or quit?  nowhere                                                 Score: 0                                                                 Moves: 0                                                                               No, try again.
+Round 5!
+Save, restore, sav2, res2, or quit?  nowhere                                                 Score: 0                                                                 Moves: 0                                                                               No, try again.
+Round 6!
+Save, restore, sav2, res2, or quit?  nowhere                                                 Score: 0                                                                 Moves: 0                                                                               OK.
+Round 4!
+Save, restore, sav2, res2, or quit?  nowhere                                                 Score: 0                                                                 Moves: 0                                                                               No, try again.
+Round 5!
+Save, restore, sav2, res2, or quit?  nowhere                                                 Score: 0                                                                 Moves: 0                                                                               OK.
+Round 4!
+Save, restore, sav2, res2, or quit?  nowhere                                                 Score: 0                                                                 Moves: 0                                                                               
