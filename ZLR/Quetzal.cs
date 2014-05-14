@@ -80,8 +80,15 @@ namespace ZLR.VM
                     SetTopFrame();
                     pc = savedPC;
 
-                    byte dest = GetByte(pc++);
-                    StoreResult(dest, 2);
+                    if (ZVersion < 4)
+                    {
+                        pc += GetWord(pc);
+                    }
+                    else
+                    {
+                        byte dest = GetByte(pc++);
+                        StoreResult(dest, 2);
+                    }
 
                     ResetHeaderFields(false);
                     return true;
