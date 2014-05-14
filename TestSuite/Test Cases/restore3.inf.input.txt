@@ -2,4 +2,12 @@
 save
 
 restore
+
+res2
+sav2
+
+
+restore
+
+res2
 quit

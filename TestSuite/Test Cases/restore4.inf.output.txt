@@ -1,10 +1,12 @@
 Round 1!
 Save, restore, or quit? No, try again.
 Round 2!
+Save, restore, or quit? Restore failed.
+Round 3!
 Save, restore, or quit? Saved.
-Round 3!
-Save, restore, or quit? No, try again.
 Round 4!
+Save, restore, or quit? No, try again.
+Round 5!
 Save, restore, or quit? Restored.
-Round 3!
+Round 4!
 Save, restore, or quit? 
