@@ -24,6 +24,29 @@ using SystemDebugger = System.Diagnostics.Debugger;
 
 namespace ZLR.VM
 {
+    public sealed class RandomNeededEventArgs : EventArgs
+    {
+        public RandomNeededEventArgs(short range)
+        {
+            this.Range = range;
+        }
+
+        public short Range { get; private set; }
+        public short? Value { get; set; }
+    }
+
+    public sealed class RandomRolledEventArgs : EventArgs
+    {
+        public RandomRolledEventArgs(short value, short range)
+        {
+            this.Value = value;
+            this.Range = range;
+        }
+
+        public short Value { get; private set; }
+        public short Range { get; private set; }
+    }
+
     partial class ZMachine
     {
         public static readonly string ZLR_VERSION = "0.07";
@@ -143,6 +166,9 @@ namespace ZLR.VM
 
             io.SizeChanged += new EventHandler(io_SizeChanged);
         }
+
+        public event EventHandler<RandomNeededEventArgs> RandomNeeded;
+        public event EventHandler<RandomRolledEventArgs> RandomRolled;
 
         public int CodeCacheSize
         {
