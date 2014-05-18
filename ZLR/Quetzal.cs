@@ -115,7 +115,7 @@ namespace ZLR.VM
             gameFile.Read(origRam, 0, romStart);
 
             List<byte> result = new List<byte>(romStart);
-            int i = 0;
+            int i = 0, lastNonZero = 0;
             while (i < romStart)
             {
                 byte b = (byte)(GetByte(i) ^ origRam[i]);
@@ -135,12 +135,13 @@ namespace ZLR.VM
                 {
                     result.Add(b);
                     i++;
+                    lastNonZero = result.Count;
                 }
             }
 
             // remove trailing zeros
-            while (result.Count >= 2 && result[result.Count - 2] == 0)
-                result.RemoveRange(result.Count - 2, 2);
+            if (result.Count > lastNonZero)
+                result.RemoveRange(lastNonZero, result.Count - lastNonZero);
 
             return result.ToArray();
         }
