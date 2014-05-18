@@ -117,25 +117,53 @@ namespace ZLR.VM
 
         private short RandomImpl(short range)
         {
-            if (predictableRng && range <= 0)
+            short? result = null;
+
+            // try raising RandomNeeded
+            var handler = RandomNeeded;
+            if (handler != null)
             {
-                // don't change anything
-                return 0;
+                var eventArgs = new RandomNeededEventArgs(range);
+                handler(this, eventArgs);
+
+                if (eventArgs.Value != null)
+                    result = (short)eventArgs.Value;
             }
 
-            if (range == 0)
+            // if that didn't work, use the internal RNG
+            if (result == null)
             {
-                rng = new Random();
-                return 0;
+                if (predictableRng && range <= 0)
+                {
+                    // don't change anything
+                    result = 0;
+                }
+                else if (range == 0)
+                {
+                    rng = new Random();
+                    result = 0;
+                }
+                else if (range < 0)
+                {
+                    rng = new Random(range);
+                    result = 0;
+                }
+                else
+                {
+                    result = (short)(rng.Next(range) + 1);
+                }
+            }
+            System.Diagnostics.Debug.Assert(result != null);
+
+            // log it via RandomRolled
+            var handler2 = RandomRolled;
+            if (handler2 != null)
+            {
+                var eventArgs = new RandomRolledEventArgs((short)result, range);
+                handler2(this, eventArgs);
             }
 
-            if (range < 0)
-            {
-                rng = new Random(range);
-                return 0;
-            }
-
-            return (short)(rng.Next(range) + 1);
+            return (short)result;
         }
 
         private void SaveUndo(byte dest, int nextPC)

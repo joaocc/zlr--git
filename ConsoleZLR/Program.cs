@@ -23,44 +23,49 @@ namespace ZLR.Interfaces.SystemConsole
                 string gameDir = null, debugDir = null;
                 string fileName = null, commandFile = null;
                 DisplayType displayType = DisplayType.FullScreen;
-                bool debugger = false;
+                bool debugger = false, predictable = false;
 
                 if (args.Length >= 1 && args[0].Length > 0)
                 {
                     int n = 0;
 
+                    bool parsing = true;
                     do
                     {
-                        if (args[n].ToLower() == "-commands")
+                        switch (args[n].ToLower())
                         {
-                            if (args.Length > n + 1)
-                            {
-                                commandFile = args[n + 1];
-                                n += 2;
-                                if (args.Length <= n)
+                            case "-commands":
+                                if (args.Length > n + 1)
+                                {
+                                    commandFile = args[n + 1];
+                                    n += 2;
+                                    if (args.Length <= n)
+                                        return Usage();
+                                }
+                                else
                                     return Usage();
-                            }
-                            else
-                                return Usage();
+                                break;
+                            case "-dumb":
+                                n++;
+                                displayType = DisplayType.Dumb;
+                                break;
+                            case "-dumb2":
+                                n++;
+                                displayType = DisplayType.DumbBottomWinOnly;
+                                break;
+                            case "-debug":
+                                n++;
+                                debugger = true;
+                                break;
+                            case "-predictable":
+                                n++;
+                                predictable = true;
+                                break;
+                            default:
+                                parsing = false;
+                                break;
                         }
-                        else if (args[n].ToLower() == "-dumb")
-                        {
-                            n++;
-                            displayType = DisplayType.Dumb;
-                        }
-                        else if (args[n].ToLower() == "-dumb2")
-                        {
-                            n++;
-                            displayType = DisplayType.DumbBottomWinOnly;
-                        }
-                        else if (args[n].ToLower() == "-debug")
-                        {
-                            n++;
-                            debugger = true;
-                        }
-                        else
-                            break;
-                    } while (true);
+                    } while (parsing);
 
                     gameStream = new FileStream(args[n], FileMode.Open, FileAccess.Read);
                     gameDir = Path.GetDirectoryName(Path.GetFullPath(args[n]));
@@ -104,6 +109,7 @@ namespace ZLR.Interfaces.SystemConsole
                 }
 
                 ZMachine zm = new ZMachine(gameStream, io);
+                zm.PredictableRandom = predictable;
                 if (commandFile != null)
                     zm.ReadingCommandsFromFile = true;
                 if (debugStream != null)
@@ -147,7 +153,7 @@ namespace ZLR.Interfaces.SystemConsole
         private static int Usage()
         {
             string exe = Path.GetFileName(Assembly.GetExecutingAssembly().Location);
-            Console.WriteLine("Usage: {0} [-commands <commandfile.txt>] [-dumb | -dumb2] [-debug] <game_file.z5/z8> [<debug_file.dbg>]", exe);
+            Console.WriteLine("Usage: {0} [-commands <commandfile.txt>] [-dumb | -dumb2] [-debug] [-predictable] <game_file.z5/z8> [<debug_file.dbg>]", exe);
             return 1;
         }
 
